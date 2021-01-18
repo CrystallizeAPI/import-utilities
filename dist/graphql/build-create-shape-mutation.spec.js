@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var ava_1 = __importDefault(require("ava"));
-var shape_component_input_1 = require("../types/shapes/shape-components/shape-component.input");
+var component_input_1 = require("../types/shapes/components/component.input");
 var shape_input_1 = require("../types/shapes/shape.input");
 var build_create_shape_mutation_1 = require("./build-create-shape-mutation");
 ava_1.default('create mutation for shape without components', function (t) {
@@ -28,12 +28,12 @@ ava_1.default('create mutation for shape with basic components', function (t) {
             {
                 id: 'images',
                 name: 'Images',
-                type: shape_component_input_1.componentTypes.images,
+                type: component_input_1.componentTypes.images,
             },
             {
                 id: 'description',
                 name: 'Description',
-                type: shape_component_input_1.componentTypes.richText,
+                type: component_input_1.componentTypes.richText,
             },
         ],
     };
@@ -52,19 +52,19 @@ ava_1.default('create mutation for shape with complex components', function (t) 
             {
                 id: 'chunk',
                 name: 'Chunk',
-                type: shape_component_input_1.componentTypes.contentChunk,
+                type: component_input_1.componentTypes.contentChunk,
                 config: {
                     contentChunk: {
                         components: [
                             {
                                 id: 'relation',
                                 name: 'Relation',
-                                type: shape_component_input_1.componentTypes.itemRelations,
+                                type: component_input_1.componentTypes.itemRelations,
                             },
                             {
                                 id: 'isFeatured',
                                 name: 'Is Featured',
-                                type: shape_component_input_1.componentTypes.boolean,
+                                type: component_input_1.componentTypes.boolean,
                             },
                         ],
                         repeatable: true,
@@ -74,7 +74,7 @@ ava_1.default('create mutation for shape with complex components', function (t) 
             {
                 id: 'properties',
                 name: 'Properties',
-                type: shape_component_input_1.componentTypes.propertiesTable,
+                type: component_input_1.componentTypes.propertiesTable,
                 config: {
                     propertiesTable: {
                         sections: [

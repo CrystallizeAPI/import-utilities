@@ -1,6 +1,5 @@
 import test from 'ava'
-import { EnumType } from 'json-to-graphql-query'
-import { componentTypes } from '../types/shapes/shape-components/shape-component.input'
+import { componentTypes } from '../types/shapes/components/component.input'
 import { ShapeInput, shapeTypes } from '../types/shapes/shape.input'
 import { buildCreateShapeMutation } from './build-create-shape-mutation'
 

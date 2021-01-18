@@ -1,8 +1,6 @@
 import test from 'ava'
-import { EnumType } from 'json-to-graphql-query'
 import { TenantInput } from '../types'
-import { componentTypes } from '../types/shapes/shape-components/shape-component.input'
-import { ShapeInput, shapeTypes } from '../types/shapes/shape.input'
+import { shapeTypes } from '../types/shapes/shape.input'
 import { buildCreateTenantMutation } from './build-create-tenant-mutation'
 
 test('create mutation for basic tenant', (t) => {
