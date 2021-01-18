@@ -1,14 +1,14 @@
 import test from 'ava'
 import { EnumType } from 'json-to-graphql-query'
-import { ComponentType } from '../types/shapes/shape-components/shape-component.input'
-import { ShapeInput, ShapeType } from '../types/shapes/shape.input'
+import { componentTypes } from '../types/shapes/shape-components/shape-component.input'
+import { ShapeInput, shapeTypes } from '../types/shapes/shape.input'
 import { buildCreateShapeMutation } from './build-create-shape-mutation'
 
 test('create mutation for shape without components', (t) => {
   const shape: ShapeInput = {
     tenantId: '1234',
     name: 'Some Shape',
-    type: new EnumType(ShapeType.product),
+    type: shapeTypes.product,
   }
 
   const got = buildCreateShapeMutation(shape).replace(/ /g, '')
@@ -38,17 +38,17 @@ test('create mutation for shape with basic components', (t) => {
   const input: ShapeInput = {
     tenantId: '1234',
     name: 'Some Shape with Basic Components',
-    type: new EnumType(ShapeType.document),
+    type: shapeTypes.document,
     components: [
       {
         id: 'images',
         name: 'Images',
-        type: new EnumType(ComponentType.images),
+        type: componentTypes.images,
       },
       {
         id: 'description',
         name: 'Description',
-        type: new EnumType(ComponentType.richText),
+        type: componentTypes.richText,
       },
     ],
   }
@@ -91,24 +91,24 @@ test('create mutation for shape with complex components', (t) => {
   const input: ShapeInput = {
     tenantId: '1234',
     name: 'Some Shape with Complex Components',
-    type: new EnumType(ShapeType.document),
+    type: shapeTypes.document,
     components: [
       {
         id: 'chunk',
         name: 'Chunk',
-        type: new EnumType(ComponentType.contentChunk),
+        type: componentTypes.contentChunk,
         config: {
           contentChunk: {
             components: [
               {
                 id: 'relation',
                 name: 'Relation',
-                type: new EnumType(ComponentType.itemRelations),
+                type: componentTypes.itemRelations,
               },
               {
                 id: 'isFeatured',
                 name: 'Is Featured',
-                type: new EnumType(ComponentType.boolean),
+                type: componentTypes.boolean,
               },
             ],
             repeatable: true,
@@ -118,7 +118,7 @@ test('create mutation for shape with complex components', (t) => {
       {
         id: 'properties',
         name: 'Properties',
-        type: new EnumType(ComponentType.propertiesTable),
+        type: componentTypes.propertiesTable,
         config: {
           propertiesTable: {
             sections: [

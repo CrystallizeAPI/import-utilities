@@ -1,10 +1,14 @@
 import { EnumType } from 'json-to-graphql-query'
 import { ShapeComponentInput } from './shape-components/shape-component.input'
 
-export enum ShapeType {
-  product = 'product',
-  document = 'document',
-  folder = 'folder',
+interface ShapeTypeEnum {
+  [name: string]: EnumType
+}
+
+export const shapeTypes: ShapeTypeEnum = {
+  product: new EnumType('product'),
+  document: new EnumType('document'),
+  folder: new EnumType('folder'),
 }
 
 export interface ShapeInput {

@@ -1,6 +1,5 @@
 import {
   ShapeComponentInput,
-  ComponentType,
   ComponentConfigInput,
 } from '../shape-component.input'
 
