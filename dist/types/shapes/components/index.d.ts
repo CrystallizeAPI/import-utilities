@@ -1,3 +1,4 @@
+export * from './component';
 export * from './component.input';
 export * from './component-content.input';
 export * from './boolean';

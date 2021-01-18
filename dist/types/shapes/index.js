@@ -12,4 +12,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./key-value-pair.input"), exports);
 __exportStar(require("./shape.input"), exports);
+__exportStar(require("./shape"), exports);
 __exportStar(require("./components"), exports);
