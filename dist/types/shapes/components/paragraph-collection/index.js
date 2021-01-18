@@ -11,3 +11,4 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./paragraph-collection.input"), exports);
+__exportStar(require("./paragraph-collection-content.input"), exports);
