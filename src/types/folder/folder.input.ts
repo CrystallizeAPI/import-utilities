@@ -5,4 +5,7 @@ export interface FolderInput {
   shapeId: string
   name: string
   components?: ComponentContentInput[]
+  tree?: {
+    parentId: string
+  }
 }

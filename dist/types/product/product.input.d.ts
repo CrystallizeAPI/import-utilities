@@ -7,4 +7,7 @@ export interface ProductInput {
     name: string;
     variants: ProductVariantInput[];
     components?: ComponentContentInput[];
+    tree?: {
+        parentId: string;
+    };
 }
