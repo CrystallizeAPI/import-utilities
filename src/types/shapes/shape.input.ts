@@ -8,7 +8,7 @@ export enum ShapeType {
 }
 
 export interface ShapeInput {
-  tenantId: string
+  tenantId?: string
   name: string
   type: EnumType
   components?: ShapeComponentInput[]

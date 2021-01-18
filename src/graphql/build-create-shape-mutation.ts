@@ -1,4 +1,4 @@
-import { EnumType, jsonToGraphQLQuery } from 'json-to-graphql-query'
+import { jsonToGraphQLQuery } from 'json-to-graphql-query'
 import { ShapeInput } from '../types/shapes/shape.input'
 
 export const buildCreateShapeMutation = (input: ShapeInput): string => {
