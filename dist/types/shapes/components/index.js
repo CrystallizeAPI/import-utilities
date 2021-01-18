@@ -11,6 +11,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./component.input"), exports);
+__exportStar(require("./component-content.input"), exports);
 __exportStar(require("./boolean"), exports);
 __exportStar(require("./component-choice"), exports);
 __exportStar(require("./content-chunk"), exports);

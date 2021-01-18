@@ -1,4 +1,5 @@
 export * from './component.input'
+export * from './component-content.input'
 export * from './boolean'
 export * from './component-choice'
 export * from './content-chunk'
