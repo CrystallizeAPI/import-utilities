@@ -1,16 +1,20 @@
 import { jsonToGraphQLQuery } from 'json-to-graphql-query'
-import { ShapeInput } from '../types'
+import { TenantInput } from '../types'
 
-export const buildCreateShapeMutation = (input: ShapeInput): string => {
+export const buildCreateTenantMutation = (input: TenantInput): string => {
   const mutation = {
     mutation: {
-      shape: {
+      tenant: {
         create: {
           __args: {
             input,
           },
           id: true,
-          name: true,
+          identifier: true,
+          shapes: {
+            id: true,
+            name: true,
+          },
         },
       },
     },

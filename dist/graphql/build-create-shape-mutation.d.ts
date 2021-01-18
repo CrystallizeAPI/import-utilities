@@ -1,2 +1,2 @@
-import { ShapeInput } from '../types/shapes/shape.input';
+import { ShapeInput } from '../types';
 export declare const buildCreateShapeMutation: (input: ShapeInput) => string;
