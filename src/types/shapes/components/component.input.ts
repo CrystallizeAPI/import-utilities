@@ -1,10 +1,6 @@
 import { EnumType } from 'json-to-graphql-query'
 
-interface ComponentTypeEnum {
-  [name: string]: EnumType
-}
-
-export const componentTypes: ComponentTypeEnum = {
+export const componentTypes = {
   boolean: new EnumType('boolean'),
   componentChoice: new EnumType('componentChoice'),
   contentChunk: new EnumType('contentChunk'),

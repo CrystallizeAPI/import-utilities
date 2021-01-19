@@ -1,8 +1,19 @@
 import { EnumType } from 'json-to-graphql-query';
-interface ComponentTypeEnum {
-    [name: string]: EnumType;
-}
-export declare const componentTypes: ComponentTypeEnum;
+export declare const componentTypes: {
+    boolean: EnumType;
+    componentChoice: EnumType;
+    contentChunk: EnumType;
+    datetime: EnumType;
+    gridRelations: EnumType;
+    images: EnumType;
+    itemRelations: EnumType;
+    location: EnumType;
+    paragraphCollection: EnumType;
+    propertiesTable: EnumType;
+    richText: EnumType;
+    singleLine: EnumType;
+    videos: EnumType;
+};
 export interface ComponentConfigInput {
 }
 export interface ComponentInput {
@@ -12,4 +23,3 @@ export interface ComponentInput {
     description?: string;
     config?: ComponentConfigInput;
 }
-export {};

@@ -1,10 +1,11 @@
 import { EnumType } from 'json-to-graphql-query';
 import { ComponentInput } from './components/component.input';
 import { KeyValuePairInput } from './key-value-pair.input';
-interface ShapeTypeEnum {
-    [name: string]: EnumType;
-}
-export declare const shapeTypes: ShapeTypeEnum;
+export declare const shapeTypes: {
+    product: EnumType;
+    document: EnumType;
+    folder: EnumType;
+};
 export interface ShapeInput {
     tenantId?: string;
     name: string;
@@ -12,4 +13,3 @@ export interface ShapeInput {
     meta?: KeyValuePairInput[];
     components?: ComponentInput[];
 }
-export {};
