@@ -6,10 +6,7 @@ import {
 import { DocumentInput } from '../types/document/document.input'
 import { FolderInput } from '../types/folder/folder.input'
 import { ProductInput } from '../types/product/product.input'
-import { componentTypes } from '../types/shapes/components/component.input'
-import { ShapeInput, shapeTypes } from '../types/shapes/shape.input'
 import { buildCreateItemMutation } from './build-create-item-mutation'
-import { buildCreateShapeMutation } from './build-create-shape-mutation'
 
 test('create mutation for product', (t) => {
   const input: ProductInput = {
