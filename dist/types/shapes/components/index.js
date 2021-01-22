@@ -21,6 +21,7 @@ __exportStar(require("./grid-relations"), exports);
 __exportStar(require("./images"), exports);
 __exportStar(require("./item-relations"), exports);
 __exportStar(require("./location"), exports);
+__exportStar(require("./numeric"), exports);
 __exportStar(require("./paragraph-collection"), exports);
 __exportStar(require("./properties-table"), exports);
 __exportStar(require("./rich-text"), exports);

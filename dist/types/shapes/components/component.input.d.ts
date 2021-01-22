@@ -8,6 +8,7 @@ export declare const componentTypes: {
     images: EnumType;
     itemRelations: EnumType;
     location: EnumType;
+    numeric: EnumType;
     paragraphCollection: EnumType;
     propertiesTable: EnumType;
     richText: EnumType;

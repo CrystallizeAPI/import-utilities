@@ -11,6 +11,7 @@ exports.componentTypes = {
     images: new json_to_graphql_query_1.EnumType('images'),
     itemRelations: new json_to_graphql_query_1.EnumType('itemRelations'),
     location: new json_to_graphql_query_1.EnumType('location'),
+    numeric: new json_to_graphql_query_1.EnumType('numeric'),
     paragraphCollection: new json_to_graphql_query_1.EnumType('paragraphCollection'),
     propertiesTable: new json_to_graphql_query_1.EnumType('propertiesTable'),
     richText: new json_to_graphql_query_1.EnumType('richText'),
