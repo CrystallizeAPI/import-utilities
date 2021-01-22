@@ -9,6 +9,7 @@ export const componentTypes = {
   images: new EnumType('images'),
   itemRelations: new EnumType('itemRelations'),
   location: new EnumType('location'),
+  numeric: new EnumType('numeric'),
   paragraphCollection: new EnumType('paragraphCollection'),
   propertiesTable: new EnumType('propertiesTable'),
   richText: new EnumType('richText'),
