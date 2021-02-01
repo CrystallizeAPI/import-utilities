@@ -53,7 +53,7 @@ test('get items with id and language', (t) => {
                   long
                 }
                 ... on NumericContent {
-                  value
+                  number
                   unit
                 }
                 ... on PropertiesTableContent {
