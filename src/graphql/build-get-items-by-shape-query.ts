@@ -70,7 +70,7 @@ export const buildGetItemsByShapeQuery = (
                   },
                   {
                     __typeName: 'NumericContent',
-                    value: true,
+                    number: true,
                     unit: true,
                   },
                   {

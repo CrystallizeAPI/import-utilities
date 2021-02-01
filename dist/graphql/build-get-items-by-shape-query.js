@@ -69,7 +69,7 @@ var buildGetItemsByShapeQuery = function (id, language) {
                                     },
                                     {
                                         __typeName: 'NumericContent',
-                                        value: true,
+                                        number: true,
                                         unit: true,
                                     },
                                     {
