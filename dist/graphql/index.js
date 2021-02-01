@@ -14,3 +14,4 @@ __exportStar(require("./build-create-item-mutation"), exports);
 __exportStar(require("./build-create-shape-mutation"), exports);
 __exportStar(require("./build-create-tenant-mutation"), exports);
 __exportStar(require("./build-tenant-query"), exports);
+__exportStar(require("./build-get-items-by-shape-query"), exports);
