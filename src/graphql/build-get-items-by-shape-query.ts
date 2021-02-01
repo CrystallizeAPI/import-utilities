@@ -17,6 +17,15 @@ export const buildGetItemsByShapeQuery = (
             __args: {
               language,
             },
+            __on: {
+              __typeName: 'Product',
+              variants: {
+                isDefault: true,
+                name: true,
+                sku: true,
+                price: true,
+              },
+            },
             id: true,
             name: true,
             components: {

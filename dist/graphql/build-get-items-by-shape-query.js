@@ -16,6 +16,15 @@ var buildGetItemsByShapeQuery = function (id, language) {
                         __args: {
                             language: language,
                         },
+                        __on: {
+                            __typeName: 'Product',
+                            variants: {
+                                isDefault: true,
+                                name: true,
+                                sku: true,
+                                price: true,
+                            },
+                        },
                         id: true,
                         name: true,
                         components: {

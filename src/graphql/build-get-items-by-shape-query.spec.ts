@@ -80,6 +80,14 @@ test('get items with id and language', (t) => {
                 }
               }
             }
+            ... on Product {
+              variants {
+                isDefault
+                name
+                sku
+                price
+              }
+            }
           }
         }
       }
