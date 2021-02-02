@@ -39,7 +39,8 @@ test('create mutation for product', (t) => {
                 sku: "cool-product",
                 name: "Cool Product"
               }
-            ]
+            ],
+            components: []
           },
           language: "en"
         ) {
@@ -70,7 +71,8 @@ test('create mutation for document', (t) => {
           input: {
             tenantId: "1234",
             shapeId: "1234",
-            name: "Cool Document"
+            name: "Cool Document",
+            components: []
           },
           language: "en"
         ) {
@@ -101,7 +103,8 @@ test('create mutation for folder', (t) => {
           input: {
             tenantId: "1234",
             shapeId: "1234",
-            name: "Cool Folder"
+            name: "Cool Folder",
+            components: []
           },
           language: "en"
         ) {
@@ -119,7 +122,6 @@ test('create mutation for folder', (t) => {
 
 test('create mutation for items with components', (t) => {
   const propertiesTableComponent: PropertiesTableComponentContentInput = {
-    componentId: 'properties',
     propertiesTable: {
       sections: [
         {
@@ -136,7 +138,6 @@ test('create mutation for items with components', (t) => {
   }
 
   const locationComponent: LocationComponentContentInput = {
-    componentId: 'location',
     location: {
       lat: 123,
       long: 123,
@@ -147,7 +148,10 @@ test('create mutation for items with components', (t) => {
     tenantId: '1234',
     shapeId: '1234',
     name: 'Cool Folder',
-    components: [propertiesTableComponent, locationComponent],
+    components: {
+      properties: propertiesTableComponent,
+      location: locationComponent,
+    },
   }
 
   const got = buildCreateItemMutation(input, 'folder', 'en').replace(/ /g, '')
@@ -161,7 +165,7 @@ test('create mutation for items with components', (t) => {
             name: "Cool Folder",
             components: [
               {
-              componentId: "properties",
+                componentId: "properties",
                 propertiesTable: {
                   sections: [
                     {

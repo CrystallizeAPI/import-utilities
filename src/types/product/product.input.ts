@@ -7,7 +7,9 @@ export interface ProductInput {
   vatTypeId: string
   name: string
   variants: ProductVariantInput[]
-  components?: ComponentContentInput[]
+  components?: {
+    [componentId: string]: ComponentContentInput
+  }
   tree?: {
     parentId: string
   }

@@ -1,3 +1,1 @@
-export interface ComponentContentInput {
-  componentId: string
-}
+export interface ComponentContentInput {}

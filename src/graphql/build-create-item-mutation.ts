@@ -11,10 +11,19 @@ export const buildCreateItemMutation = (
   const mutation: any = {
     mutation: {},
   }
+
+  const components = input.components || {}
+
   mutation.mutation[type] = {
     create: {
       __args: {
-        input,
+        input: {
+          ...input,
+          components: Object.keys(components).map((componentId: string) => ({
+            componentId,
+            ...components[componentId],
+          })),
+        },
         language,
       },
       id: true,
