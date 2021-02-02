@@ -21,7 +21,7 @@ var buildCreateItemMutation = function (input, type, language) {
     mutation.mutation[type] = {
         create: {
             __args: {
-                input: __assign(__assign({}, input), { components: Object.keys(components).map(function (componentId) { return (__assign({ componentId: componentId }, components[componentId])); }) }),
+                input: __assign(__assign({}, input), { components: Object.keys(components).map(function (componentId) { return (__assign(__assign({}, components[componentId]), { componentId: componentId })); }) }),
                 language: language,
             },
             id: true,

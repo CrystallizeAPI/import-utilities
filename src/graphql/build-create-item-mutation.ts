@@ -20,8 +20,8 @@ export const buildCreateItemMutation = (
         input: {
           ...input,
           components: Object.keys(components).map((componentId: string) => ({
-            componentId,
             ...components[componentId],
+            componentId,
           })),
         },
         language,

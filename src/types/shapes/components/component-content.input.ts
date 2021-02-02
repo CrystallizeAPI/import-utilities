@@ -1,1 +1,3 @@
-export interface ComponentContentInput {}
+export interface ComponentContentInput {
+  componentId?: string
+}

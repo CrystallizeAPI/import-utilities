@@ -1,6 +1,8 @@
 import test from 'ava'
 import {
+  ContentChunkComponentContentInput,
   LocationComponentContentInput,
+  NumericComponentContentInput,
   PropertiesTableComponentContentInput,
 } from '../types'
 import { DocumentInput } from '../types/document/document.input'
@@ -165,7 +167,6 @@ test('create mutation for items with components', (t) => {
             name: "Cool Folder",
             components: [
               {
-                componentId: "properties",
                 propertiesTable: {
                   sections: [
                     {
@@ -178,14 +179,92 @@ test('create mutation for items with components', (t) => {
                       ]
                     }
                   ]
-                }
+                },
+                componentId: "properties"
               },
               {
-                componentId: "location",
                 location: {
                   lat: 123,
                   long: 123
-                }
+                },
+                componentId: "location"
+              }
+            ]
+          },
+          language: "en"
+        ) {
+          id
+          name
+        }
+      }
+    }
+  `
+    .replace(/\n/g, '')
+    .replace(/ /g, '')
+
+  t.is(got, want, 'mutation string should match')
+})
+
+test('create mutation for items with content chunk component', (t) => {
+  const locationComponent: LocationComponentContentInput = {
+    componentId: 'location',
+    location: {
+      lat: 123,
+      long: 123,
+    },
+  }
+  const numericComponent: NumericComponentContentInput = {
+    componentId: 'numeric',
+    numeric: {
+      number: 123,
+    },
+  }
+  const chunkComponent: ContentChunkComponentContentInput = {
+    contentChunk: {
+      chunks: [[locationComponent, numericComponent]],
+    },
+  }
+
+  const input: FolderInput = {
+    tenantId: '1234',
+    shapeId: '1234',
+    name: 'Cool Folder',
+    components: {
+      chunk: chunkComponent,
+    },
+  }
+
+  const got = buildCreateItemMutation(input, 'folder', 'en').replace(/ /g, '')
+  const want: string = `
+    mutation {
+      folder {
+        create (
+          input: {
+            tenantId: "1234",
+            shapeId: "1234",
+            name: "Cool Folder",
+            components: [
+              {
+                contentChunk: {
+                  chunks: [
+                    [
+                      {
+                        componentId: "location",
+                        location: {
+                          lat: 123,
+                          long: 123
+                        }
+                      },
+                      {
+                        componentId: "numeric",
+                        numeric: {
+                          number: 123
+                        }
+                      }
+                    ]
+                  ]
+                },
+                componentId: "chunk"
               }
             ]
           },
