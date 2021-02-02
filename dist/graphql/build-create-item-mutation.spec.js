@@ -20,7 +20,7 @@ ava_1.default('create mutation for product', function (t) {
         ],
     };
     var got = build_create_item_mutation_1.buildCreateItemMutation(input, 'product', 'en').replace(/ /g, '');
-    var want = "\n    mutation {\n      product {\n        create (\n          input: {\n            tenantId: \"1234\",\n            shapeId: \"1234\",\n            vatTypeId: \"1234\",\n            name: \"Cool Product\",\n            variants: [\n              {\n                isDefault: true,\n                sku: \"cool-product\",\n                name: \"Cool Product\"\n              }\n            ]\n          },\n          language: \"en\"\n        ) {\n          id\n          name\n        }\n      }\n    }\n  "
+    var want = "\n    mutation {\n      product {\n        create (\n          input: {\n            tenantId: \"1234\",\n            shapeId: \"1234\",\n            vatTypeId: \"1234\",\n            name: \"Cool Product\",\n            variants: [\n              {\n                isDefault: true,\n                sku: \"cool-product\",\n                name: \"Cool Product\"\n              }\n            ],\n            components: []\n          },\n          language: \"en\"\n        ) {\n          id\n          name\n        }\n      }\n    }\n  "
         .replace(/\n/g, '')
         .replace(/ /g, '');
     t.is(got, want, 'mutation string should match');
@@ -32,7 +32,7 @@ ava_1.default('create mutation for document', function (t) {
         name: 'Cool Document',
     };
     var got = build_create_item_mutation_1.buildCreateItemMutation(input, 'document', 'en').replace(/ /g, '');
-    var want = "\n    mutation {\n      document {\n        create (\n          input: {\n            tenantId: \"1234\",\n            shapeId: \"1234\",\n            name: \"Cool Document\"\n          },\n          language: \"en\"\n        ) {\n          id\n          name\n        }\n      }\n    }\n  "
+    var want = "\n    mutation {\n      document {\n        create (\n          input: {\n            tenantId: \"1234\",\n            shapeId: \"1234\",\n            name: \"Cool Document\",\n            components: []\n          },\n          language: \"en\"\n        ) {\n          id\n          name\n        }\n      }\n    }\n  "
         .replace(/\n/g, '')
         .replace(/ /g, '');
     t.is(got, want, 'mutation string should match');
@@ -44,14 +44,13 @@ ava_1.default('create mutation for folder', function (t) {
         name: 'Cool Folder',
     };
     var got = build_create_item_mutation_1.buildCreateItemMutation(input, 'folder', 'en').replace(/ /g, '');
-    var want = "\n    mutation {\n      folder {\n        create (\n          input: {\n            tenantId: \"1234\",\n            shapeId: \"1234\",\n            name: \"Cool Folder\"\n          },\n          language: \"en\"\n        ) {\n          id\n          name\n        }\n      }\n    }\n  "
+    var want = "\n    mutation {\n      folder {\n        create (\n          input: {\n            tenantId: \"1234\",\n            shapeId: \"1234\",\n            name: \"Cool Folder\",\n            components: []\n          },\n          language: \"en\"\n        ) {\n          id\n          name\n        }\n      }\n    }\n  "
         .replace(/\n/g, '')
         .replace(/ /g, '');
     t.is(got, want, 'mutation string should match');
 });
 ava_1.default('create mutation for items with components', function (t) {
     var propertiesTableComponent = {
-        componentId: 'properties',
         propertiesTable: {
             sections: [
                 {
@@ -67,7 +66,6 @@ ava_1.default('create mutation for items with components', function (t) {
         },
     };
     var locationComponent = {
-        componentId: 'location',
         location: {
             lat: 123,
             long: 123,
@@ -77,10 +75,13 @@ ava_1.default('create mutation for items with components', function (t) {
         tenantId: '1234',
         shapeId: '1234',
         name: 'Cool Folder',
-        components: [propertiesTableComponent, locationComponent],
+        components: {
+            properties: propertiesTableComponent,
+            location: locationComponent,
+        },
     };
     var got = build_create_item_mutation_1.buildCreateItemMutation(input, 'folder', 'en').replace(/ /g, '');
-    var want = "\n    mutation {\n      folder {\n        create (\n          input: {\n            tenantId: \"1234\",\n            shapeId: \"1234\",\n            name: \"Cool Folder\",\n            components: [\n              {\n              componentId: \"properties\",\n                propertiesTable: {\n                  sections: [\n                    {\n                      title: \"Properties\",\n                      properties: [\n                        {\n                          key: \"Coolness\",\n                          value: \"100%\"\n                        }\n                      ]\n                    }\n                  ]\n                }\n              },\n              {\n                componentId: \"location\",\n                location: {\n                  lat: 123,\n                  long: 123\n                }\n              }\n            ]\n          },\n          language: \"en\"\n        ) {\n          id\n          name\n        }\n      }\n    }\n  "
+    var want = "\n    mutation {\n      folder {\n        create (\n          input: {\n            tenantId: \"1234\",\n            shapeId: \"1234\",\n            name: \"Cool Folder\",\n            components: [\n              {\n                componentId: \"properties\",\n                propertiesTable: {\n                  sections: [\n                    {\n                      title: \"Properties\",\n                      properties: [\n                        {\n                          key: \"Coolness\",\n                          value: \"100%\"\n                        }\n                      ]\n                    }\n                  ]\n                }\n              },\n              {\n                componentId: \"location\",\n                location: {\n                  lat: 123,\n                  long: 123\n                }\n              }\n            ]\n          },\n          language: \"en\"\n        ) {\n          id\n          name\n        }\n      }\n    }\n  "
         .replace(/\n/g, '')
         .replace(/ /g, '');
     t.is(got, want, 'mutation string should match');
