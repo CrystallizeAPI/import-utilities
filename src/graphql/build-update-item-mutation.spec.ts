@@ -10,7 +10,7 @@ import { FolderInput } from '../types/folder/folder.input'
 import { ProductInput } from '../types/product/product.input'
 import { buildUpdateItemMutation } from './build-update-item-mutation'
 
-test('create mutation for product', (t) => {
+test('update mutation for product', (t) => {
   const input: ProductInput = {
     tenantId: '1234',
     shapeId: '1234',
@@ -62,7 +62,7 @@ test('create mutation for product', (t) => {
   t.is(got, want, 'mutation string should match')
 })
 
-test('create mutation for document', (t) => {
+test('update mutation for document', (t) => {
   const input: DocumentInput = {
     tenantId: '1234',
     shapeId: '1234',
@@ -98,7 +98,7 @@ test('create mutation for document', (t) => {
   t.is(got, want, 'mutation string should match')
 })
 
-test('create mutation for folder', (t) => {
+test('update mutation for folder', (t) => {
   const input: FolderInput = {
     tenantId: '1234',
     shapeId: '1234',
@@ -134,7 +134,7 @@ test('create mutation for folder', (t) => {
   t.is(got, want, 'mutation string should match')
 })
 
-test('create mutation for items with components', (t) => {
+test('update mutation for items with components', (t) => {
   const propertiesTableComponent: PropertiesTableComponentContentInput = {
     propertiesTable: {
       sections: [
@@ -221,7 +221,7 @@ test('create mutation for items with components', (t) => {
   t.is(got, want, 'mutation string should match')
 })
 
-test('create mutation for items with content chunk component', (t) => {
+test('update mutation for items with content chunk component', (t) => {
   const locationComponent: LocationComponentContentInput = {
     componentId: 'location',
     location: {
