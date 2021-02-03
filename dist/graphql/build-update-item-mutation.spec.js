@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var ava_1 = __importDefault(require("ava"));
 var build_update_item_mutation_1 = require("./build-update-item-mutation");
-ava_1.default('create mutation for product', function (t) {
+ava_1.default('update mutation for product', function (t) {
     var input = {
         tenantId: '1234',
         shapeId: '1234',
@@ -25,7 +25,7 @@ ava_1.default('create mutation for product', function (t) {
         .replace(/ /g, '');
     t.is(got, want, 'mutation string should match');
 });
-ava_1.default('create mutation for document', function (t) {
+ava_1.default('update mutation for document', function (t) {
     var input = {
         tenantId: '1234',
         shapeId: '1234',
@@ -37,7 +37,7 @@ ava_1.default('create mutation for document', function (t) {
         .replace(/ /g, '');
     t.is(got, want, 'mutation string should match');
 });
-ava_1.default('create mutation for folder', function (t) {
+ava_1.default('update mutation for folder', function (t) {
     var input = {
         tenantId: '1234',
         shapeId: '1234',
@@ -49,7 +49,7 @@ ava_1.default('create mutation for folder', function (t) {
         .replace(/ /g, '');
     t.is(got, want, 'mutation string should match');
 });
-ava_1.default('create mutation for items with components', function (t) {
+ava_1.default('update mutation for items with components', function (t) {
     var propertiesTableComponent = {
         propertiesTable: {
             sections: [
@@ -86,7 +86,7 @@ ava_1.default('create mutation for items with components', function (t) {
         .replace(/ /g, '');
     t.is(got, want, 'mutation string should match');
 });
-ava_1.default('create mutation for items with content chunk component', function (t) {
+ava_1.default('update mutation for items with content chunk component', function (t) {
     var locationComponent = {
         componentId: 'location',
         location: {
