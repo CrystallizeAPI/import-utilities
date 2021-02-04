@@ -12,8 +12,6 @@ import { buildUpdateItemMutation } from './build-update-item-mutation'
 
 test('update mutation for product', (t) => {
   const input: ProductInput = {
-    tenantId: '1234',
-    shapeId: '1234',
     vatTypeId: '1234',
     name: 'Cool Product',
     variants: [
@@ -35,7 +33,6 @@ test('update mutation for product', (t) => {
         update (
           id: "1234",
           input: {
-            tenantId: "1234",
             vatTypeId: "1234",
             name: "Cool Product",
             variants: [
@@ -63,8 +60,6 @@ test('update mutation for product', (t) => {
 
 test('update mutation for document', (t) => {
   const input: DocumentInput = {
-    tenantId: '1234',
-    shapeId: '1234',
     name: 'Cool Document',
   }
 
@@ -78,7 +73,6 @@ test('update mutation for document', (t) => {
         update (
           id: "1234",
           input: {
-            tenantId: "1234",
             name: "Cool Document",
             components: []
           },
@@ -98,8 +92,6 @@ test('update mutation for document', (t) => {
 
 test('update mutation for folder', (t) => {
   const input: FolderInput = {
-    tenantId: '1234',
-    shapeId: '1234',
     name: 'Cool Folder',
   }
 
@@ -113,7 +105,6 @@ test('update mutation for folder', (t) => {
         update (
           id: "1234",
           input: {
-            tenantId: "1234",
             name: "Cool Folder",
             components: []
           },
@@ -156,8 +147,6 @@ test('update mutation for items with components', (t) => {
   }
 
   const input: FolderInput = {
-    tenantId: '1234',
-    shapeId: '1234',
     name: 'Cool Folder',
     components: {
       properties: propertiesTableComponent,
@@ -175,7 +164,6 @@ test('update mutation for items with components', (t) => {
         update (
           id: "1234",
           input: {
-            tenantId: "1234",
             name: "Cool Folder",
             components: [
               {
@@ -238,8 +226,6 @@ test('update mutation for items with content chunk component', (t) => {
   }
 
   const input: FolderInput = {
-    tenantId: '1234',
-    shapeId: '1234',
     name: 'Cool Folder',
     components: {
       chunk: chunkComponent,
@@ -256,7 +242,6 @@ test('update mutation for items with content chunk component', (t) => {
         update (
           id: "1234",
           input: {
-            tenantId: "1234",
             name: "Cool Folder",
             components: [
               {
