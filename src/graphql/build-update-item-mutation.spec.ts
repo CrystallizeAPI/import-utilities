@@ -36,7 +36,6 @@ test('update mutation for product', (t) => {
           id: "1234",
           input: {
             tenantId: "1234",
-            shapeId: "1234",
             vatTypeId: "1234",
             name: "Cool Product",
             variants: [
@@ -80,7 +79,6 @@ test('update mutation for document', (t) => {
           id: "1234",
           input: {
             tenantId: "1234",
-            shapeId: "1234",
             name: "Cool Document",
             components: []
           },
@@ -116,7 +114,6 @@ test('update mutation for folder', (t) => {
           id: "1234",
           input: {
             tenantId: "1234",
-            shapeId: "1234",
             name: "Cool Folder",
             components: []
           },
@@ -179,7 +176,6 @@ test('update mutation for items with components', (t) => {
           id: "1234",
           input: {
             tenantId: "1234",
-            shapeId: "1234",
             name: "Cool Folder",
             components: [
               {
@@ -261,7 +257,6 @@ test('update mutation for items with content chunk component', (t) => {
           id: "1234",
           input: {
             tenantId: "1234",
-            shapeId: "1234",
             name: "Cool Folder",
             components: [
               {

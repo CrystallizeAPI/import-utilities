@@ -2,7 +2,7 @@ import { ComponentContentInput } from '../shapes/components/component-content.in
 
 export interface DocumentInput {
   tenantId: string
-  shapeId: string
+  shapeId?: string
   name: string
   components?: {
     [componentId: string]: ComponentContentInput

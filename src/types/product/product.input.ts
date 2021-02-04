@@ -3,7 +3,7 @@ import { ProductVariantInput } from './product-variant.input'
 
 export interface ProductInput {
   tenantId: string
-  shapeId: string
+  shapeId?: string
   vatTypeId: string
   name: string
   variants: ProductVariantInput[]

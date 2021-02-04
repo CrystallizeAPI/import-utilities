@@ -14,6 +14,7 @@ export const buildUpdateItemMutation = (
   }
 
   const components = input.components || {}
+  delete input.shapeId
 
   mutation.mutation[type] = {
     update: {

@@ -18,6 +18,7 @@ var buildUpdateItemMutation = function (id, input, type, language) {
         mutation: {},
     };
     var components = input.components || {};
+    delete input.shapeId;
     mutation.mutation[type] = {
         update: {
             __args: {
