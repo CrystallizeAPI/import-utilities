@@ -1,7 +1,8 @@
 import { jsonToGraphQLQuery } from 'json-to-graphql-query'
 
 export const buildGetItemsByShapeQuery = (
-  id: string,
+  tenantId: string,
+  identifier: string,
   language: string
 ): string => {
   const query = {
@@ -9,7 +10,8 @@ export const buildGetItemsByShapeQuery = (
       shape: {
         get: {
           __args: {
-            id,
+            tenantId,
+            identifier,
           },
           identifier: true,
           name: true,

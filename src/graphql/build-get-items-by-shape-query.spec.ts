@@ -2,11 +2,14 @@ import test from 'ava'
 import { buildGetItemsByShapeQuery } from './build-get-items-by-shape-query'
 
 test('get items with id and language', (t) => {
-  const got = buildGetItemsByShapeQuery('1234', 'en').replace(/ /g, '')
+  const got = buildGetItemsByShapeQuery('1234', 'my-shape', 'en').replace(
+    / /g,
+    ''
+  )
   const want: string = `
     query {
       shape {
-        get (id: "1234") {
+        get (tenantId: "1234", identifier: "my-shape") {
           identifier
           name
           items(language: "en") {
