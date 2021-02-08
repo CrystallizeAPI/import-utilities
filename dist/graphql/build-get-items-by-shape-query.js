@@ -2,13 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildGetItemsByShapeQuery = void 0;
 var json_to_graphql_query_1 = require("json-to-graphql-query");
-var buildGetItemsByShapeQuery = function (id, language) {
+var buildGetItemsByShapeQuery = function (tenantId, identifier, language) {
     var query = {
         query: {
             shape: {
                 get: {
                     __args: {
-                        id: id,
+                        tenantId: tenantId,
+                        identifier: identifier,
                     },
                     identifier: true,
                     name: true,

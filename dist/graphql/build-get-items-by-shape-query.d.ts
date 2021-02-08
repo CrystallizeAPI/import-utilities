@@ -1,1 +1,1 @@
-export declare const buildGetItemsByShapeQuery: (id: string, language: string) => string;
+export declare const buildGetItemsByShapeQuery: (tenantId: string, identifier: string, language: string) => string;
