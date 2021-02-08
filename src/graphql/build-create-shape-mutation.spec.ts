@@ -5,6 +5,7 @@ import { buildCreateShapeMutation } from './build-create-shape-mutation'
 
 test('create mutation for shape without components', (t) => {
   const shape: ShapeInput = {
+    identifier: 'my-shape',
     tenantId: '1234',
     name: 'Some Shape',
     type: shapeTypes.product,
@@ -16,12 +17,13 @@ test('create mutation for shape without components', (t) => {
       shape {
         create (
           input: {
+            identifier: "my-shape",
             tenantId: "1234",
             name: "Some Shape",
             type: product
           }
         ) {
-          id
+          identifier
           name
         }
       }
@@ -35,6 +37,7 @@ test('create mutation for shape without components', (t) => {
 
 test('create mutation for shape with basic components', (t) => {
   const input: ShapeInput = {
+    identifier: 'my-shape',
     tenantId: '1234',
     name: 'Some Shape with Basic Components',
     type: shapeTypes.document,
@@ -58,6 +61,7 @@ test('create mutation for shape with basic components', (t) => {
       shape {
         create (
           input: {
+            identifier: "my-shape",
             tenantId: "1234",
             name: "Some Shape with Basic Components",
             type: document,
@@ -75,7 +79,7 @@ test('create mutation for shape with basic components', (t) => {
             ]
           }
         ) {
-          id
+          identifier
           name
         }
       }
@@ -88,6 +92,7 @@ test('create mutation for shape with basic components', (t) => {
 })
 test('create mutation for shape with complex components', (t) => {
   const input: ShapeInput = {
+    identifier: 'my-shape',
     tenantId: '1234',
     name: 'Some Shape with Complex Components',
     type: shapeTypes.document,
@@ -138,6 +143,7 @@ test('create mutation for shape with complex components', (t) => {
       shape {
         create (
           input: {
+            identifier: "my-shape",
             tenantId: "1234",
             name: "Some Shape with Complex Components",
             type: document,
@@ -182,7 +188,7 @@ test('create mutation for shape with complex components', (t) => {
             ]
           }
         ) {
-          id
+          identifier
           name
         }
       }

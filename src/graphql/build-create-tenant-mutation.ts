@@ -12,7 +12,7 @@ export const buildCreateTenantMutation = (input: TenantInput): string => {
           id: true,
           identifier: true,
           shapes: {
-            id: true,
+            identifier: true,
             name: true,
           },
         },

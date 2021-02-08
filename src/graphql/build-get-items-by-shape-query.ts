@@ -11,7 +11,7 @@ export const buildGetItemsByShapeQuery = (
           __args: {
             id,
           },
-          id: true,
+          identifier: true,
           name: true,
           items: {
             __args: {

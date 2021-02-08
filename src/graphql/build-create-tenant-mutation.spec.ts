@@ -22,7 +22,7 @@ test('create mutation for basic tenant', (t) => {
           id
           identifier
           shapes {
-            id
+            identifier
             name
           }
         }
@@ -41,10 +41,12 @@ test('create mutation for tenant with shapes', (t) => {
     name: 'Cool Shop',
     shapes: [
       {
+        identifier: 'cool-product',
         name: 'Cool Product',
         type: shapeTypes.product,
       },
       {
+        identifier: 'less-cool-product',
         name: 'Less Cool Product',
         type: shapeTypes.product,
       },
@@ -61,10 +63,12 @@ test('create mutation for tenant with shapes', (t) => {
             name: "Cool Shop",
             shapes: [
               {
+                identifier: "cool-product",
                 name: "Cool Product",
                 type: product
               },
               {
+                identifier: "less-cool-product",
                 name: "Less Cool Product",
                 type: product
               }
@@ -74,7 +78,7 @@ test('create mutation for tenant with shapes', (t) => {
           id
           identifier
           shapes {
-            id
+            identifier
             name
           }
         }

@@ -25,6 +25,7 @@ const input: TenantInput = {
   name: 'My Cooking Blog',
   shapes: [
     {
+      identifier: 'recipe',
       name: 'Recipe',
       type: shapeTypes.document,
       components: [
@@ -69,6 +70,7 @@ import {
 
 // Define the structure for the shape
 const input: ShapeInput = {
+  identifier: 'my-shape',
   tenantId: '<your tenant id>',
   name: 'My Custom Product Shape',
   type: shapeTypes.product,
@@ -97,6 +99,128 @@ shapes for your tenant.
 
 ### Creating Items
 
-TODO
+You can easily build mutations to create items by extending the shapes to
+provide a schema for different items types. This is kind of a two-step process.
+
+#### 1. Define the structure for the shape (as per the examples above)
+
+```ts
+import {
+  buildCreateShapeMutation,
+  ShapeInput,
+  shapeTypes,
+  componentTypes,
+} from '@crystallize/import-utilities'
+
+// Define the structure for the shape
+const recipeShape: ShapeInput = {
+  identifier: 'recipe',
+  tenantId: '<your tenant id>',
+  name: 'Recipe',
+  type: shapeTypes.document,
+  components: [
+    {
+      id: 'ingredients',
+      name: 'Ingredients',
+      type: componentTypes.propertiesTable,
+    },
+    {
+      id: 'instructions',
+      name: 'Intructions',
+      type: componentTypes.richText,
+    },
+  ],
+}
+
+// Build the mutation string
+const mutation = buildCreateShapeMutation(recipeShape)
+```
+
+You can also create this shape manually via the PIM UI, if you prefer.
+
+#### 2. Define the structure for the content
+
+```ts
+interface RecipeContent extends DocumentInput {
+  components: {
+    ingredients: PropertiesTableComponentContentInput
+    instructions: RichTextComponentContentInput
+  }
+}
+```
+
+#### 3. Importing the data
+
+Let's say we have some example JSON data that we want to import. This data could
+be in any format, you just need to map it to the `RecipeContent` type we've
+defined above.
+
+```ts
+// Example data. You could have this in any format, you just need to map the
+// data as shown below.
+const data = [
+  {
+    name: 'Cookies Recipe',
+    ingredients: [
+      {
+        name: 'Flour',
+        amount: '1 Cup',
+      },
+      {
+        name: 'Chocolate Chips',
+        amount: '1 Cup',
+      },
+    ],
+    instructions: 'Start by adding the flour, brown sugar...',
+  },
+  {
+    name: 'Banana Cake',
+    ingredients: [
+      {
+        name: 'Flour',
+        amount: '1 Cup',
+      },
+      {
+        name: 'Bananas',
+        amount: '2',
+      },
+    ],
+    instructions: 'Start by mashing the bananas...',
+  },
+]
+
+// Map the items to the RecipeContent schema.
+const items: RecipeContent[] = data.map(
+  ({ name, ingredients, instructions }): RecipeContent => {
+    return {
+      name,
+      components: {
+        ingredients: {
+          sections: {
+            title: 'Ingredients',
+            properties: ingredients.map(
+              ({ name, amount }): KeyValuePairInput => ({
+                key: name,
+                value: amount,
+              })
+            ),
+          },
+        },
+        instructions: {
+          richText: {
+            html: [instructions],
+          },
+        },
+      },
+    }
+  }
+)
+
+// Create an array of mutations that you can execute on the PIM API using your
+// GraphQL client.
+const mutations = items.map((item: RecipeContent): string =>
+  buildCreateItemMutation(item)
+)
+```
 
 [0]: https://crystallize.com/learn/developer-guides/api-overview/api-endpoints

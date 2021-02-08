@@ -9,7 +9,7 @@ export const buildCreateShapeMutation = (input: ShapeInput): string => {
           __args: {
             input,
           },
-          id: true,
+          identifier: true,
           name: true,
         },
       },

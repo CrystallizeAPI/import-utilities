@@ -7,7 +7,7 @@ test('get items with id and language', (t) => {
     query {
       shape {
         get (id: "1234") {
-          id
+          identifier
           name
           items(language: "en") {
             id

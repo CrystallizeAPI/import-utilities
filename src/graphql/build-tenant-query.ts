@@ -27,7 +27,7 @@ export const buildTenantQuery = (id: string): string => {
             percent: true,
           },
           shapes: {
-            id: true,
+            identifier: true,
             name: true,
           },
         },

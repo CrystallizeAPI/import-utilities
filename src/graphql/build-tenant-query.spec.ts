@@ -28,7 +28,7 @@ test('create tenant query with id', (t) => {
             percent
           }
           shapes {
-            id
+            identifier
             name
           }
         }

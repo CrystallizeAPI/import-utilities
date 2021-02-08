@@ -9,6 +9,7 @@ export const shapeTypes = {
 }
 
 export interface ShapeInput {
+  identifier?: string
   tenantId?: string
   name: string
   type: EnumType
