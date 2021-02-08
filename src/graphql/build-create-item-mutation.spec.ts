@@ -13,7 +13,7 @@ import { buildCreateItemMutation } from './build-create-item-mutation'
 test('create mutation for product', (t) => {
   const input: ProductInput = {
     tenantId: '1234',
-    shapeId: '1234',
+    shapeIdentifier: 'cool-product',
     vatTypeId: '1234',
     name: 'Cool Product',
     variants: [
@@ -32,7 +32,7 @@ test('create mutation for product', (t) => {
         create (
           input: {
             tenantId: "1234",
-            shapeId: "1234",
+            shapeIdentifier: "cool-product",
             vatTypeId: "1234",
             name: "Cool Product",
             variants: [
@@ -61,7 +61,7 @@ test('create mutation for product', (t) => {
 test('create mutation for document', (t) => {
   const input: DocumentInput = {
     tenantId: '1234',
-    shapeId: '1234',
+    shapeIdentifier: 'cool-document',
     name: 'Cool Document',
   }
 
@@ -72,7 +72,7 @@ test('create mutation for document', (t) => {
         create (
           input: {
             tenantId: "1234",
-            shapeId: "1234",
+            shapeIdentifier: "cool-document",
             name: "Cool Document",
             components: []
           },
@@ -93,7 +93,7 @@ test('create mutation for document', (t) => {
 test('create mutation for folder', (t) => {
   const input: FolderInput = {
     tenantId: '1234',
-    shapeId: '1234',
+    shapeIdentifier: 'cool-folder',
     name: 'Cool Folder',
   }
 
@@ -104,7 +104,7 @@ test('create mutation for folder', (t) => {
         create (
           input: {
             tenantId: "1234",
-            shapeId: "1234",
+            shapeIdentifier: "cool-folder",
             name: "Cool Folder",
             components: []
           },
@@ -148,7 +148,7 @@ test('create mutation for items with components', (t) => {
 
   const input: FolderInput = {
     tenantId: '1234',
-    shapeId: '1234',
+    shapeIdentifier: 'cool-folder',
     name: 'Cool Folder',
     components: {
       properties: propertiesTableComponent,
@@ -163,7 +163,7 @@ test('create mutation for items with components', (t) => {
         create (
           input: {
             tenantId: "1234",
-            shapeId: "1234",
+            shapeIdentifier: "cool-folder",
             name: "Cool Folder",
             components: [
               {
@@ -227,7 +227,7 @@ test('create mutation for items with content chunk component', (t) => {
 
   const input: FolderInput = {
     tenantId: '1234',
-    shapeId: '1234',
+    shapeIdentifier: 'cool-folder',
     name: 'Cool Folder',
     components: {
       chunk: chunkComponent,
@@ -241,7 +241,7 @@ test('create mutation for items with content chunk component', (t) => {
         create (
           input: {
             tenantId: "1234",
-            shapeId: "1234",
+            shapeIdentifier: "cool-folder",
             name: "Cool Folder",
             components: [
               {

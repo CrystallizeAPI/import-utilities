@@ -10,7 +10,7 @@ var buildGetItemsByShapeQuery = function (id, language) {
                     __args: {
                         id: id,
                     },
-                    id: true,
+                    identifier: true,
                     name: true,
                     items: {
                         __args: {

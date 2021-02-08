@@ -20,7 +20,7 @@ var buildUpdateItemMutation = function (id, input, type, language) {
     var components = input.components || {};
     // These are only allowed in the create mutation
     delete input.tenantId;
-    delete input.shapeId;
+    delete input.shapeIdentifier;
     delete input.tree;
     mutation.mutation[type] = {
         update: {

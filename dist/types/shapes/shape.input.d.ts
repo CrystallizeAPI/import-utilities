@@ -7,6 +7,7 @@ export declare const shapeTypes: {
     folder: EnumType;
 };
 export interface ShapeInput {
+    identifier?: string;
     tenantId?: string;
     name: string;
     type: EnumType;

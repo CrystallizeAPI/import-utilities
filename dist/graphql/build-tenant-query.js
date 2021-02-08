@@ -29,7 +29,7 @@ var buildTenantQuery = function (id) {
                         percent: true,
                     },
                     shapes: {
-                        id: true,
+                        identifier: true,
                         name: true,
                     },
                 },

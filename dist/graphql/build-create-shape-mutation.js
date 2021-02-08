@@ -10,7 +10,7 @@ var buildCreateShapeMutation = function (input) {
                     __args: {
                         input: input,
                     },
-                    id: true,
+                    identifier: true,
                     name: true,
                 },
             },

@@ -13,7 +13,7 @@ var buildCreateTenantMutation = function (input) {
                     id: true,
                     identifier: true,
                     shapes: {
-                        id: true,
+                        identifier: true,
                         name: true,
                     },
                 },

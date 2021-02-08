@@ -17,7 +17,7 @@ export const buildUpdateItemMutation = (
 
   // These are only allowed in the create mutation
   delete input.tenantId
-  delete input.shapeId
+  delete input.shapeIdentifier
   delete input.tree
 
   mutation.mutation[type] = {

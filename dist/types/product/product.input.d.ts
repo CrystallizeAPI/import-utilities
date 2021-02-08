@@ -2,7 +2,7 @@ import { ComponentContentInput } from '../shapes/components/component-content.in
 import { ProductVariantInput } from './product-variant.input';
 export interface ProductInput {
     tenantId?: string;
-    shapeId?: string;
+    shapeIdentifier?: string;
     vatTypeId: string;
     name: string;
     variants: ProductVariantInput[];
