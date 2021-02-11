@@ -25,6 +25,10 @@ test('create mutation for basic tenant', (t) => {
             identifier
             name
           }
+          defaults {
+            language
+            currency
+          }
         }
       }
     }
@@ -51,6 +55,10 @@ test('create mutation for tenant with shapes', (t) => {
         type: shapeTypes.product,
       },
     ],
+    defaults: {
+      language: 'no',
+      currency: 'NOK',
+    },
   }
 
   const got = buildCreateTenantMutation(input).replace(/ /g, '')
@@ -72,7 +80,11 @@ test('create mutation for tenant with shapes', (t) => {
                 name: "Less Cool Product",
                 type: product
               }
-            ]
+            ],
+            defaults: {
+              language: "no",
+              currency: "NOK"
+            }
           }
         ) {
           id
@@ -80,6 +92,10 @@ test('create mutation for tenant with shapes', (t) => {
           shapes {
             identifier
             name
+          }
+          defaults {
+            language
+            currency
           }
         }
       }

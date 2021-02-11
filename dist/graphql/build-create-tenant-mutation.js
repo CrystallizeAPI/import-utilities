@@ -16,6 +16,10 @@ var buildCreateTenantMutation = function (input) {
                         identifier: true,
                         name: true,
                     },
+                    defaults: {
+                        language: true,
+                        currency: true,
+                    },
                 },
             },
         },
