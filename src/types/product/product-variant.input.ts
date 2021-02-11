@@ -3,4 +3,8 @@ export interface ProductVariantInput {
   sku: string
   isDefault: boolean
   price?: number
+  priceVariants?: {
+    identifier: string
+    price?: number
+  }[]
 }
