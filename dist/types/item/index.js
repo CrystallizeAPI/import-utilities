@@ -10,7 +10,12 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./create-product-variant-input"), exports);
-__exportStar(require("./create-product-input"), exports);
-__exportStar(require("./update-product-input"), exports);
-__exportStar(require("./update-product-variant-input"), exports);
+exports.ItemType = void 0;
+__exportStar(require("./create-item-input"), exports);
+__exportStar(require("./update-item-input"), exports);
+var ItemType;
+(function (ItemType) {
+    ItemType["Product"] = "product";
+    ItemType["Document"] = "document";
+    ItemType["Folder"] = "folder";
+})(ItemType = exports.ItemType || (exports.ItemType = {}));
