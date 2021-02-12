@@ -1,10 +1,11 @@
-name: CI
+name: Publish Tag
 
 on:
   create:
     tags:
       - v*
 
+jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
