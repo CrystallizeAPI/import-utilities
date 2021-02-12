@@ -141,7 +141,7 @@ You can also create this shape manually via the PIM UI, if you prefer.
 #### 2. Define the structure for the content
 
 ```ts
-interface RecipeContent extends DocumentInput {
+interface RecipeContent extends CreateDocumentInput {
   components: {
     ingredients: PropertiesTableComponentContentInput
     instructions: RichTextComponentContentInput
