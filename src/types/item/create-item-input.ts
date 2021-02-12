@@ -1,12 +1,9 @@
 import { ComponentContentInput } from '../shapes/components/component-content.input'
-import { ProductVariantInput } from './product-variant.input'
 
-export interface ProductInput {
+export interface CreateItemInput {
+  name: string
   tenantId?: string
   shapeIdentifier?: string
-  vatTypeId: string
-  name: string
-  variants: ProductVariantInput[]
   components?: {
     [componentId: string]: ComponentContentInput
   }

@@ -1,12 +1,10 @@
 import { jsonToGraphQLQuery } from 'json-to-graphql-query'
-import { DocumentInput } from '../types/document/document.input'
-import { FolderInput } from '../types/folder/folder.input'
-import { ProductInput } from '../types/product/product.input'
+import { ItemType, UpdateItemInput } from '../types'
 
 export const buildUpdateItemMutation = (
   id: string,
-  input: ProductInput | DocumentInput | FolderInput,
-  type: 'product' | 'document' | 'folder',
+  input: UpdateItemInput,
+  type: ItemType,
   language: string
 ): string => {
   const mutation: any = {
@@ -14,11 +12,6 @@ export const buildUpdateItemMutation = (
   }
 
   const components = input.components || {}
-
-  // These are only allowed in the create mutation
-  delete input.tenantId
-  delete input.shapeIdentifier
-  delete input.tree
 
   mutation.mutation[type] = {
     update: {

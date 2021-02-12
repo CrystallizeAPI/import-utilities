@@ -1,1 +1,2 @@
-export * from './folder.input'
+export * from './create-folder-input'
+export * from './update-folder-input'

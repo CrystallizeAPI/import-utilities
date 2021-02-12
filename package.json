@@ -3,6 +3,9 @@
   "version": "0.11.1-6",
   "main": "dist/index.js",
   "author": "Brendan Goodenough <brendan@goodenough.nz>",
+  "files": [
+    "dist/**/*"
+  ],
   "ava": {
     "extensions": [
       "ts"

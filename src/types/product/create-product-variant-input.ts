@@ -1,4 +1,4 @@
-export interface ProductVariantInput {
+export interface CreateProductVariantInput {
   name?: string
   sku: string
   isDefault: boolean

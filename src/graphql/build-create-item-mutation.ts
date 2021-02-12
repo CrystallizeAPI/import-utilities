@@ -1,11 +1,9 @@
 import { jsonToGraphQLQuery } from 'json-to-graphql-query'
-import { DocumentInput } from '../types/document/document.input'
-import { FolderInput } from '../types/folder/folder.input'
-import { ProductInput } from '../types/product/product.input'
+import { CreateItemInput, ItemType } from '../types'
 
 export const buildCreateItemMutation = (
-  input: ProductInput | DocumentInput | FolderInput,
-  type: 'product' | 'document' | 'folder',
+  input: CreateItemInput,
+  type: ItemType,
   language: string
 ): string => {
   const mutation: any = {

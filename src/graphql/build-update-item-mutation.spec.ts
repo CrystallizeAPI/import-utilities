@@ -1,17 +1,18 @@
 import test from 'ava'
 import {
   ContentChunkComponentContentInput,
+  ItemType,
   LocationComponentContentInput,
   NumericComponentContentInput,
   PropertiesTableComponentContentInput,
 } from '../types'
-import { DocumentInput } from '../types/document/document.input'
-import { FolderInput } from '../types/folder/folder.input'
-import { ProductInput } from '../types/product/product.input'
+import { CreateDocumentInput } from '../types/document/create-document-input'
+import { CreateFolderInput } from '../types/folder/create-folder-input'
+import { CreateProductInput } from '../types/product/create-product-input'
 import { buildUpdateItemMutation } from './build-update-item-mutation'
 
 test('update mutation for product', (t) => {
-  const input: ProductInput = {
+  const input: CreateProductInput = {
     vatTypeId: '1234',
     name: 'Cool Product',
     variants: [
@@ -23,10 +24,12 @@ test('update mutation for product', (t) => {
     ],
   }
 
-  const got = buildUpdateItemMutation('1234', input, 'product', 'en').replace(
-    / /g,
-    ''
-  )
+  const got = buildUpdateItemMutation(
+    '1234',
+    input,
+    ItemType.Product,
+    'en'
+  ).replace(/ /g, '')
   const want: string = `
     mutation {
       product {
@@ -59,14 +62,16 @@ test('update mutation for product', (t) => {
 })
 
 test('update mutation for document', (t) => {
-  const input: DocumentInput = {
+  const input: CreateDocumentInput = {
     name: 'Cool Document',
   }
 
-  const got = buildUpdateItemMutation('1234', input, 'document', 'en').replace(
-    / /g,
-    ''
-  )
+  const got = buildUpdateItemMutation(
+    '1234',
+    input,
+    ItemType.Document,
+    'en'
+  ).replace(/ /g, '')
   const want: string = `
     mutation {
       document {
@@ -91,14 +96,16 @@ test('update mutation for document', (t) => {
 })
 
 test('update mutation for folder', (t) => {
-  const input: FolderInput = {
+  const input: CreateFolderInput = {
     name: 'Cool Folder',
   }
 
-  const got = buildUpdateItemMutation('1234', input, 'folder', 'en').replace(
-    / /g,
-    ''
-  )
+  const got = buildUpdateItemMutation(
+    '1234',
+    input,
+    ItemType.Folder,
+    'en'
+  ).replace(/ /g, '')
   const want: string = `
     mutation {
       folder {
@@ -146,7 +153,7 @@ test('update mutation for items with components', (t) => {
     },
   }
 
-  const input: FolderInput = {
+  const input: CreateFolderInput = {
     name: 'Cool Folder',
     components: {
       properties: propertiesTableComponent,
@@ -154,10 +161,12 @@ test('update mutation for items with components', (t) => {
     },
   }
 
-  const got = buildUpdateItemMutation('1234', input, 'folder', 'en').replace(
-    / /g,
-    ''
-  )
+  const got = buildUpdateItemMutation(
+    '1234',
+    input,
+    ItemType.Folder,
+    'en'
+  ).replace(/ /g, '')
   const want: string = `
     mutation {
       folder {
@@ -225,17 +234,19 @@ test('update mutation for items with content chunk component', (t) => {
     },
   }
 
-  const input: FolderInput = {
+  const input: CreateFolderInput = {
     name: 'Cool Folder',
     components: {
       chunk: chunkComponent,
     },
   }
 
-  const got = buildUpdateItemMutation('1234', input, 'folder', 'en').replace(
-    / /g,
-    ''
-  )
+  const got = buildUpdateItemMutation(
+    '1234',
+    input,
+    ItemType.Folder,
+    'en'
+  ).replace(/ /g, '')
   const want: string = `
     mutation {
       folder {

@@ -1,9 +1,7 @@
 import { jsonToGraphQLQuery } from 'json-to-graphql-query'
+import { ItemType } from '../types'
 
-export const buildDeleteItemMutation = (
-  id: string,
-  type: 'product' | 'document' | 'folder'
-): string => {
+export const buildDeleteItemMutation = (id: string, type: ItemType): string => {
   const mutation: any = {
     mutation: {},
   }
