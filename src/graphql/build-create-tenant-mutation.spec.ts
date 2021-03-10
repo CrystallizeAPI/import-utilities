@@ -30,6 +30,10 @@ test('create mutation for basic tenant', (t) => {
             language
             currency
           }
+          vatTypes {
+            id
+            name
+          }
         }
       }
     }
@@ -98,6 +102,10 @@ test('create mutation for tenant with shapes', (t) => {
           defaults {
             language
             currency
+          }
+          vatTypes {
+            id
+            name
           }
         }
       }

@@ -20,6 +20,10 @@ export const buildCreateTenantMutation = (input: TenantInput): string => {
             language: true,
             currency: true,
           },
+          vatTypes: {
+            id: true,
+            name: true,
+          },
         },
       },
     },
