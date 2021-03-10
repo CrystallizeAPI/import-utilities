@@ -22,6 +22,11 @@ test('create mutation for product', (t) => {
         isDefault: true,
         sku: 'cool-product',
         name: 'Cool Product',
+        images: [
+          {
+            key: 'some-key',
+          },
+        ],
       },
     ],
   }
@@ -43,7 +48,10 @@ test('create mutation for product', (t) => {
               {
                 isDefault: true,
                 sku: "cool-product",
-                name: "Cool Product"
+                name: "Cool Product",
+                images: [{
+                  key: "some-key"
+                }]
               }
             ],
             components: []

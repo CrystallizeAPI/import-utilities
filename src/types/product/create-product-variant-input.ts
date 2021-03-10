@@ -3,6 +3,11 @@ export interface CreateProductVariantInput {
   sku: string
   isDefault: boolean
   price?: number
+  images?: {
+    key: string
+    mimeType?: string
+    altText?: string
+  }[]
   priceVariants?: {
     identifier: string
     price?: number
