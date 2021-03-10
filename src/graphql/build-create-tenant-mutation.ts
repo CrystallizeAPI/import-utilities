@@ -11,6 +11,7 @@ export const buildCreateTenantMutation = (input: TenantInput): string => {
           },
           id: true,
           identifier: true,
+          rootItemId: true,
           shapes: {
             identifier: true,
             name: true,
