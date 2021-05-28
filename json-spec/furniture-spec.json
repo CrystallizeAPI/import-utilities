@@ -1,0 +1,178 @@
+{
+  "shapes": [
+    {
+      "type": "product",
+      "name": "Product",
+      "identifier": "frntr-product",
+      "components": [
+        {
+          "id": "summary",
+          "name": "Summary",
+          "type": "richText"
+        },
+        {
+          "id": "Specs",
+          "name": "Specs",
+          "type": "propertiesTable"
+        },
+        {
+          "id": "description",
+          "name": "Description",
+          "type": "paragraphCollection"
+        },
+        {
+          "id": "related-products",
+          "name": "Related products",
+          "type": "itemRelations"
+        }
+      ]
+    },
+    {
+      "identifier": "frntr-folder",
+      "name": "Folder",
+      "type": "folder",
+      "components": [
+        {
+          "id": "title",
+          "name": "Title",
+          "type": "singleLine"
+        },
+        {
+          "id": "brief",
+          "name": "Brief",
+          "type": "richText"
+        },
+        {
+          "id": "body",
+          "name": "Body",
+          "type": "paragraphCollection"
+        },
+        {
+          "id": "stackable-content",
+          "name": "Stackable content",
+          "type": "itemRelations"
+        }
+      ]
+    },
+    {
+      "name": "Article",
+      "identifier": "frntr-article",
+      "type": "document",
+      "components": [
+        {
+          "id": "title",
+          "name": "Title",
+          "type": "singleLine"
+        },
+        {
+          "id": "image",
+          "name": "Image",
+          "type": "images"
+        },
+        {
+          "id": "intro",
+          "name": "Intro",
+          "type": "richText"
+        },
+        {
+          "id": "body",
+          "name": "Body",
+          "type": "paragraphCollection"
+        },
+        {
+          "id": "video",
+          "name": "Video",
+          "type": "videos"
+        },
+        {
+          "id": "featured",
+          "name": "Featured",
+          "type": "itemRelations"
+        }
+      ]
+    },
+    {
+      "name": "Banner",
+      "identifier": "frntr-banner",
+      "type": "document",
+      "components": [
+        {
+          "id": "title",
+          "name": "Title",
+          "type": "singleLine"
+        },
+        {
+          "id": "description",
+          "name": "Description",
+          "type": "richText"
+        },
+        {
+          "id": "link",
+          "name": "Link",
+          "type": "singleLine"
+        },
+        {
+          "id": "link-text",
+          "name": "Link text",
+          "type": "singleLine"
+        },
+        {
+          "id": "image",
+          "name": "Image",
+          "type": "images"
+        },
+        {
+          "id": "add-text-as-overlay",
+          "name": "Add text as overlay",
+          "type": "boolean"
+        }
+      ]
+    }
+  ],
+  "priceVariants": [
+    {
+      "identifier": "default",
+      "name": "Retail",
+      "currency": "EUR"
+    },
+    {
+      "identifier": "norway",
+      "name": "Norway",
+      "currency": "NOK"
+    },
+    {
+      "identifier": "sales",
+      "name": "Sales",
+      "currency": "EUR"
+    }
+  ],
+  "languages": [
+    {
+      "code": "en",
+      "language": "English",
+      "isDefault": true
+    },
+    {
+      "code": "no",
+      "language": "Norsk",
+      "isDefault": false
+    },
+    {
+      "code": "es",
+      "language": "Spanish",
+      "isDefault": false
+    }
+  ],
+  "vatTypes": [
+    {
+      "name": "No tax",
+      "percent": 0
+    },
+    {
+      "name": "Standard",
+      "percent": 25
+    }
+  ],
+  "topics": [],
+  "items": []
+}
