@@ -1,3 +1,3 @@
 export * from './graphql'
 export * from './types'
-export { bootstrapper } from './bootstrapper'
+export { bootstrapTenant } from './bootstrapTenant'

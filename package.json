@@ -17,13 +17,17 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -p . --declaration",
-    "test": "ava"
+    "test": "ava",
+    "dev:bootstrapper": "ts-node src/bootstrapTenant/dev.ts"
   },
   "dependencies": {
-    "json-to-graphql-query": "^2.0.0"
+    "dotenv": "^10.0.0",
+    "json-to-graphql-query": "^2.0.0",
+    "node-fetch": "^2.6.1"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
+    "@types/node": "^15.6.1",
     "ava": "^3.15.0",
     "prettier": "^2.2.1",
     "ts-node": "^9.1.1",
