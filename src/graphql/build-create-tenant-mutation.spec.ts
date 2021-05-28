@@ -21,6 +21,7 @@ test('create mutation for basic tenant', (t) => {
         ) {
           id
           identifier
+          rootItemId
           shapes {
             identifier
             name
@@ -28,6 +29,10 @@ test('create mutation for basic tenant', (t) => {
           defaults {
             language
             currency
+          }
+          vatTypes {
+            id
+            name
           }
         }
       }
@@ -89,6 +94,7 @@ test('create mutation for tenant with shapes', (t) => {
         ) {
           id
           identifier
+          rootItemId
           shapes {
             identifier
             name
@@ -96,6 +102,10 @@ test('create mutation for tenant with shapes', (t) => {
           defaults {
             language
             currency
+          }
+          vatTypes {
+            id
+            name
           }
         }
       }

@@ -2,6 +2,7 @@ import { Shape } from '../shapes/shape'
 
 export interface Tenant {
   id: string
+  identifier: string
   rootItemId: string
   vatTypes: [
     {
