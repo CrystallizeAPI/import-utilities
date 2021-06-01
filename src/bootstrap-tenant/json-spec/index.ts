@@ -16,6 +16,7 @@ export interface ShapeComponent {
     | 'richText'
     | 'singleLine'
     | 'videos'
+  description?: string
 }
 
 export interface Shape {

@@ -8,22 +8,26 @@
         {
           "id": "summary",
           "name": "Summary",
-          "type": "richText"
+          "type": "richText",
+          "description": "The digest of the product"
         },
         {
           "id": "Specs",
           "name": "Specs",
-          "type": "propertiesTable"
+          "type": "propertiesTable",
+          "description": "Comparable properties"
         },
         {
           "id": "description",
           "name": "Description",
-          "type": "paragraphCollection"
+          "type": "paragraphCollection",
+          "description": "Description of the product in a longer storytelling format"
         },
         {
           "id": "related-products",
           "name": "Related products",
-          "type": "itemRelations"
+          "type": "itemRelations",
+          "description": "Other products that relate to this product"
         }
       ]
     },

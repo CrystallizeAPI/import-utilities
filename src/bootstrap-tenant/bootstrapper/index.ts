@@ -39,17 +39,17 @@ export class Bootstrapper extends EventEmitter {
     this.tenantId = r?.data?.me?.tenants?.find(
       (t: { tenant: { identifier: string } }) =>
         t.tenant.identifier === this.tenantIdentifier
-    )?.tenant.identifier
+    )?.tenant.id
     if (!this.tenantId) {
       throw new Error(`No access to tenant "${this.tenantIdentifier}"`)
     }
     setTenantId(this.tenantId)
   }
   async start() {
-    this.getTenantId().then(() => {
-      this.updateShapes()
-      this.on(EVENT_NAMES.SHAPES_DONE, () => this.emit(EVENT_NAMES.DONE))
-    })
+    await this.getTenantId()
+
+    this.updateShapes()
+    this.on(EVENT_NAMES.SHAPES_DONE, () => this.emit(EVENT_NAMES.DONE))
   }
   async updateShapes() {
     await updateShapes({
