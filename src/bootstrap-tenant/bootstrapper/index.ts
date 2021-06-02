@@ -47,9 +47,9 @@ export class Bootstrapper extends EventEmitter {
   }
   async start() {
     await this.getTenantId()
+    await this.updateShapes()
 
-    this.updateShapes()
-    this.on(EVENT_NAMES.SHAPES_DONE, () => this.emit(EVENT_NAMES.DONE))
+    this.emit(EVENT_NAMES.DONE)
   }
   async updateShapes() {
     await updateShapes({

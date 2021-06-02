@@ -1,23 +1,36 @@
-import { Shape as GQLShape, shapeTypes, componentTypes } from '../../types'
-import { buildCreateShapeMutation } from '../../graphql'
+import {
+  Shape,
+  shapeTypes,
+  componentTypes,
+  ComponentConfigInput,
+  PropertiesTableComponentContentInput,
+  Component,
+} from '../../types'
+import {
+  buildCreateShapeMutation,
+  buildUpdateShapeMutation,
+} from '../../graphql'
 
-import { JsonSpec, Shape } from '../json-spec'
+import { JsonSpec } from '../json-spec'
 import { callPIM, getTenantId, StepStatus } from './utils'
+import { EnumType } from 'json-to-graphql-query'
 
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: StepStatus): any
 }
 
-async function getExistingShapes(): Promise<GQLShape[]> {
+async function getExistingShapes(): Promise<Shape[]> {
   const tenantId = getTenantId()
   const r = await callPIM({
     query: `
       query GET_TENANT_SHAPES($tenantId: ID!) {
         shape {
           getMany(tenantId: $tenantId) {
+            id
             identifier
             type
+            name
             components {
               ...componentBase
               config {
@@ -82,36 +95,142 @@ async function getExistingShapes(): Promise<GQLShape[]> {
   return r.data?.shape?.getMany || []
 }
 
-async function createOrUpdateRootShape(
+function getShapeType(type: string): EnumType {
+  return (shapeTypes as Record<string, EnumType>)[type]
+}
+function getComponentType(type: string): EnumType {
+  return (componentTypes as Record<string, EnumType>)[type]
+}
+
+function buildComponentConfigInput(component: Component) {
+  switch (component.type) {
+    case 'propertiesTable': {
+      return {
+        config: {
+          propertiesTable: component.config,
+        },
+      }
+    }
+    case 'numeric': {
+      return {
+        config: {
+          numeric: component.config,
+        },
+      }
+    }
+    case 'selection': {
+      return {
+        config: {
+          selection: component.config,
+        },
+      }
+    }
+
+    case 'componentChoice': {
+      return {
+        config: {
+          componentChoice: {
+            ...component.config,
+            choices: component.config?.choices?.map((c: any) => ({
+              ...c,
+              type: getComponentType(c.type),
+              ...buildComponentConfigInput(c),
+            })),
+          },
+        },
+      }
+    }
+    case 'contentChunk': {
+      return {
+        config: {
+          contentChunk: {
+            ...component.config,
+            components: component.config?.components?.map((c: any) => ({
+              ...c,
+              type: getComponentType(c.type),
+              ...buildComponentConfigInput(c),
+            })),
+          },
+        },
+      }
+    }
+  }
+
+  return {}
+}
+
+async function createOrUpdateShape(
   shape: Shape,
-  existingShapes: GQLShape[]
+  existingShapes: Shape[],
+  onUpdate: (t: StepStatus) => {}
 ): Promise<string> {
+  const tenantId = getTenantId()
   const existingShape = existingShapes.find(
     (s) => s.identifier === shape.identifier
   )
+
   if (existingShape) {
-    // Add missing components
     const existingComponents = existingShape.components.map((c) => c.id)
+
+    // Add missing (root) components
     const missingComponents =
       shape.components?.filter((c) => !existingComponents.includes(c.id)) || []
     if (missingComponents.length > 0) {
-      console.log('Missing components for ', shape.identifier)
-      console.log(missingComponents.map((c) => c.id))
+      onUpdate({
+        done: false,
+        message: `Shape "${
+          shape.name
+        }": Adding the following components: ${missingComponents
+          .map((c) => c.name)
+          .join(',')}`,
+      })
+
+      const r = await callPIM({
+        query: buildUpdateShapeMutation({
+          id: existingShape.id,
+          identifier: existingShape.identifier,
+          tenantId,
+          input: {
+            components: [
+              ...existingShape.components.map((c) => ({
+                id: c.id,
+                name: c.name,
+                type: getComponentType(c.type),
+                ...buildComponentConfigInput(c),
+              })),
+              ...missingComponents.map((c) => ({
+                id: c.id,
+                name: c.name,
+                type: getComponentType(c.type),
+                ...(c.description && { description: c.description }),
+                ...buildComponentConfigInput(c),
+              })),
+            ],
+          },
+        }),
+      })
+
+      if (r?.data?.shape?.update) {
+        return 'updated'
+      } else {
+        console.log(JSON.stringify(r, null, 1))
+        return 'error'
+      }
     }
 
-    return 'updated'
+    return 'untouched'
   } else {
     const r = await callPIM({
       query: buildCreateShapeMutation({
         identifier: shape.identifier,
-        type: shapeTypes[shape.type],
+        type: getShapeType(shape.type),
         name: shape.name,
         tenantId: getTenantId(),
         components: shape.components?.map((c) => {
           return {
             id: c.id,
             name: c.name,
-            type: componentTypes[c.type],
+            type: getComponentType(c.type),
             description: c.description,
           }
         }),
@@ -148,13 +267,15 @@ export async function updateShapes({
     message: `Found ${existingShapes.length} existing shapes`,
   })
 
-  spec.shapes.forEach(async (shape) => {
-    const result = await createOrUpdateRootShape(shape, existingShapes)
-    onUpdate({
-      done: false,
-      message: `Shape ${shape.name} (${shape.identifier}): ${result}`,
+  await Promise.all(
+    spec.shapes.map(async (shape) => {
+      const result = await createOrUpdateShape(shape, existingShapes, onUpdate)
+      onUpdate({
+        done: false,
+        message: `Shape ${shape.name} (${shape.identifier}): ${result}`,
+      })
     })
-  })
+  )
 
   return {
     done: true,
