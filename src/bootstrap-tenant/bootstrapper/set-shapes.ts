@@ -1,11 +1,4 @@
-import {
-  Shape,
-  shapeTypes,
-  componentTypes,
-  ComponentConfigInput,
-  PropertiesTableComponentContentInput,
-  Component,
-} from '../../types'
+import { Shape, shapeTypes, componentTypes, Component } from '../../types'
 import {
   buildCreateShapeMutation,
   buildUpdateShapeMutation,
@@ -14,11 +7,6 @@ import {
 import { JsonSpec } from '../json-spec'
 import { callPIM, getTenantId, StepStatus } from './utils'
 import { EnumType } from 'json-to-graphql-query'
-
-export interface Props {
-  spec: JsonSpec | null
-  onUpdate(t: StepStatus): any
-}
 
 async function getExistingShapes(): Promise<Shape[]> {
   const tenantId = getTenantId()
@@ -244,7 +232,12 @@ async function createOrUpdateShape(
   return 'error'
 }
 
-export async function updateShapes({
+export interface Props {
+  spec: JsonSpec | null
+  onUpdate(t: StepStatus): any
+}
+
+export async function setShapes({
   spec,
   onUpdate,
 }: Props): Promise<StepStatus> {

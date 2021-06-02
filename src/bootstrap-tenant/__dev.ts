@@ -27,6 +27,10 @@ function bootstrap() {
     console.log(`.. Updating shapes... "${message}"`)
   })
 
+  bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_UPDATE, function (message) {
+    console.log(`.. Updating price variants... "${message}"`)
+  })
+
   bootstrapper.once(EVENT_NAMES.DONE, function (args) {
     console.log(`✓ Done bootstrapping ${tenantIdentifier}`)
   })

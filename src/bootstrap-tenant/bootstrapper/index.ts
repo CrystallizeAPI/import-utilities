@@ -3,8 +3,15 @@ import { EventEmitter } from 'events'
 import { JsonSpec } from '../json-spec'
 
 export * from './utils'
-import { callPIM, EVENT_NAMES, setAccessTokens, setTenantId } from './utils'
-import { updateShapes } from './update-shapes'
+import {
+  callPIM,
+  EVENT_NAMES,
+  setAccessTokens,
+  setTenantId,
+  StepStatus,
+} from './utils'
+import { setShapes } from './set-shapes'
+import { setPriceVariants } from './set-price-variants'
 
 export class Bootstrapper extends EventEmitter {
   CRYSTALLIZE_ACCESS_TOKEN_ID: string = ''
@@ -47,17 +54,27 @@ export class Bootstrapper extends EventEmitter {
   }
   async start() {
     await this.getTenantId()
-    await this.updateShapes()
+    await this.setShapes()
+    await this.setPriceVariants()
 
     this.emit(EVENT_NAMES.DONE)
   }
-  async updateShapes() {
-    await updateShapes({
+  async setShapes() {
+    await setShapes({
       spec: this.SPEC,
-      onUpdate: (status) => {
+      onUpdate: (status: StepStatus) => {
         this.emit(EVENT_NAMES.SHAPES_UPDATE, status.message)
       },
     })
     this.emit(EVENT_NAMES.SHAPES_DONE)
+  }
+  async setPriceVariants() {
+    await setPriceVariants({
+      spec: this.SPEC,
+      onUpdate: (status: StepStatus) => {
+        this.emit(EVENT_NAMES.PRICE_VARIANTS_UPDATE, status.message)
+      },
+    })
+    this.emit(EVENT_NAMES.PRICE_VARIANTS_DONE)
   }
 }
