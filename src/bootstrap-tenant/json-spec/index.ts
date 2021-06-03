@@ -8,7 +8,7 @@ export interface PriceVariant {
 
 export interface Language {
   code: string
-  language: string
+  name: string
   isDefault?: boolean
 }
 

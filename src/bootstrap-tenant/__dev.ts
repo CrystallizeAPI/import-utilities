@@ -30,6 +30,9 @@ function bootstrap() {
   bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_UPDATE, function (message) {
     console.log(`.. Updating price variants... "${message}"`)
   })
+  bootstrapper.on(EVENT_NAMES.LANGUAGES_UPDATE, function (message) {
+    console.log(`.. Updating languages... "${message}"`)
+  })
 
   bootstrapper.once(EVENT_NAMES.DONE, function (args) {
     console.log(`✓ Done bootstrapping ${tenantIdentifier}`)

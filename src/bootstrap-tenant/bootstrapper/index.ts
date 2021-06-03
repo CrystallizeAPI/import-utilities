@@ -12,6 +12,7 @@ import {
 } from './utils'
 import { setShapes } from './set-shapes'
 import { setPriceVariants } from './set-price-variants'
+import { setLanguages } from './set-languages'
 
 export class Bootstrapper extends EventEmitter {
   CRYSTALLIZE_ACCESS_TOKEN_ID: string = ''
@@ -56,6 +57,7 @@ export class Bootstrapper extends EventEmitter {
     await this.getTenantId()
     await this.setShapes()
     await this.setPriceVariants()
+    await this.setLanguages()
 
     this.emit(EVENT_NAMES.DONE)
   }
@@ -76,5 +78,14 @@ export class Bootstrapper extends EventEmitter {
       },
     })
     this.emit(EVENT_NAMES.PRICE_VARIANTS_DONE)
+  }
+  async setLanguages() {
+    await setLanguages({
+      spec: this.SPEC,
+      onUpdate: (status: StepStatus) => {
+        this.emit(EVENT_NAMES.LANGUAGES_UPDATE, status.message)
+      },
+    })
+    this.emit(EVENT_NAMES.LANGUAGES_DONE)
   }
 }

@@ -219,7 +219,8 @@ async function createOrUpdateShape(
             id: c.id,
             name: c.name,
             type: getComponentType(c.type),
-            description: c.description,
+            ...(c.description && { description: c.description }),
+            ...buildComponentConfigInput(c),
           }
         }),
       }),
@@ -227,6 +228,7 @@ async function createOrUpdateShape(
     if (r?.data?.shape?.create) {
       return 'created'
     }
+    console.log(JSON.stringify(r, null, 1))
   }
 
   return 'error'

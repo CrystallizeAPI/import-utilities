@@ -252,17 +252,17 @@
   "languages": [
     {
       "code": "en",
-      "language": "English",
+      "name": "English",
       "isDefault": true
     },
     {
       "code": "no",
-      "language": "Norsk",
+      "name": "Norsk",
       "isDefault": false
     },
     {
       "code": "es",
-      "language": "Spanish",
+      "name": "Spanish",
       "isDefault": false
     }
   ],
