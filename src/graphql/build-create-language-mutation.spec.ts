@@ -3,12 +3,12 @@ import test from 'ava'
 import { LanguageInput } from '../types/language/language'
 import { buildCreateLanguageMutation } from './build-create-language-mutation'
 
-test('create mutation for price variant', (t) => {
+test('create mutation for language', (t) => {
   const language: LanguageInput = {
     tenantId: '1234',
     input: {
-      code: 'no',
-      name: 'Norsk',
+      code: 'en',
+      name: 'English',
     },
   }
 
@@ -19,8 +19,8 @@ test('create mutation for price variant', (t) => {
         add (
           tenantId: "1234",
           input: {
-            code: "no",
-            name: "Norsk"
+            code: "en",
+            name: "English"
           }
         ) {
           code

@@ -268,10 +268,6 @@
   ],
   "vatTypes": [
     {
-      "name": "No tax",
-      "percent": 0
-    },
-    {
       "name": "Standard",
       "percent": 25
     }

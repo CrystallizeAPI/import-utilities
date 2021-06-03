@@ -71,6 +71,10 @@ export async function setLanguages({
           }),
         })
 
+        if (result?.errors) {
+          console.log(JSON.stringify(result?.errors, null, 1))
+        }
+
         onUpdate({
           done: false,
           message: `${language.name}: ${result?.errors ? 'error' : 'added'}`,

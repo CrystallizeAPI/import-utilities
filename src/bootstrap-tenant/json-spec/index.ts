@@ -21,5 +21,5 @@ export interface JsonSpec {
   shapes?: Shape[]
   priceVariants?: PriceVariant[]
   languages?: Language[]
-  vatType?: VatType[]
+  vatTypes?: VatType[]
 }
