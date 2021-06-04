@@ -1,20 +1,26 @@
-import { Language } from '../../types'
 import { buildCreateLanguageMutation } from '../../graphql'
 
-import { JsonSpec } from '../json-spec'
+import { JsonSpec, Language } from '../json-spec'
 import { callPIM, getTenantId, StepStatus } from './utils'
 
-async function getExistingLanguages(): Promise<Language[]> {
+interface TenantSettings {
+  availableLanguages: Language[]
+  defaultLanguage?: string
+}
+
+async function getTenantSettings(): Promise<TenantSettings> {
   const tenantId = getTenantId()
   const r = await callPIM({
     query: `
       query GET_TENANT_LANGUAGES($tenantId: ID!) {
         tenant {
           get(id: $tenantId) {
+            defaults {
+              language
+            }
             availableLanguages {
               code
               name
-              system
             }
           }
         }
@@ -25,7 +31,18 @@ async function getExistingLanguages(): Promise<Language[]> {
     },
   })
 
-  return r.data?.tenant?.get?.availableLanguages || []
+  const data = r.data?.tenant?.get || {}
+  const availableLanguages = data.availableLanguages || []
+  const defaultLanguage =
+    data?.defaults?.language || availableLanguages[0]?.code
+  availableLanguages.forEach(
+    (l: Language) => (l.isDefault = l.code === defaultLanguage)
+  )
+
+  return {
+    availableLanguages,
+    defaultLanguage,
+  }
 }
 
 export interface Props {
@@ -36,15 +53,14 @@ export interface Props {
 export async function setLanguages({
   spec,
   onUpdate,
-}: Props): Promise<StepStatus> {
-  if (!spec?.languages) {
-    return {
-      done: true,
-    }
-  }
+}: Props): Promise<Language[]> {
+  const tenantSettings = await getTenantSettings()
 
-  // Get all the price variants from the tenant
-  const existingLanguages = await getExistingLanguages()
+  const existingLanguages = tenantSettings.availableLanguages
+
+  if (!spec?.languages) {
+    return tenantSettings.availableLanguages
+  }
 
   const existingLanguagesIdentifiers = existingLanguages.map((l) => l.code)
   const missingLanguages = spec.languages.filter(
@@ -83,12 +99,58 @@ export async function setLanguages({
     )
   } else {
     onUpdate({
-      done: true,
+      done: false,
       message: `All languages already added`,
     })
   }
 
-  return {
-    done: true,
+  // Compose a list of all languages to be used later
+  const languages: Language[] = [...existingLanguages, ...missingLanguages]
+
+  const defaultLanguage =
+    spec.languages.find((l) => l.isDefault)?.code ||
+    tenantSettings.defaultLanguage ||
+    languages[0].code
+  languages.forEach((l) => {
+    l.isDefault = l.code === defaultLanguage
+  })
+
+  if (defaultLanguage !== tenantSettings.defaultLanguage) {
+    const result = await callPIM({
+      query: `
+        mutation {
+          tenant {
+            update(
+              id: "${getTenantId()}"
+              input: {
+                defaults: {
+                  language: "${defaultLanguage}"
+                }
+              }
+            ) {
+              id
+            }
+          }
+        }
+      `,
+    })
+
+    if (result?.errors) {
+      console.log(JSON.stringify(result?.errors, null, 1))
+    }
+
+    onUpdate({
+      done: false,
+      message: `Setting default language to "${defaultLanguage}": ${
+        result?.errors ? 'error' : 'success'
+      }`,
+    })
   }
+
+  onUpdate({
+    done: true,
+    message: 'Done',
+  })
+
+  return languages
 }

@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 
-import { JsonSpec } from '../json-spec'
+import { JsonSpec, PriceVariant, VatType } from '../json-spec'
 
 export * from './utils'
 import {
@@ -14,6 +14,7 @@ import { setShapes } from './set-shapes'
 import { setPriceVariants } from './set-price-variants'
 import { setLanguages } from './set-languages'
 import { setVatTypes } from './set-vat-types'
+import { Language, Shape } from '../json-spec'
 
 export class Bootstrapper extends EventEmitter {
   CRYSTALLIZE_ACCESS_TOKEN_ID: string = ''
@@ -21,6 +22,11 @@ export class Bootstrapper extends EventEmitter {
   SPEC: JsonSpec | null = null
   tenantId: string = ''
   tenantIdentifier: string = ''
+
+  shapes: Shape[] = []
+  priceVariants: PriceVariant[] = []
+  languages: Language[] = []
+  vatTypes: VatType[] = []
 
   setAccessToken = setAccessTokens
   setSpec(spec: JsonSpec) {
@@ -64,7 +70,7 @@ export class Bootstrapper extends EventEmitter {
     this.emit(EVENT_NAMES.DONE)
   }
   async setShapes() {
-    await setShapes({
+    this.shapes = await setShapes({
       spec: this.SPEC,
       onUpdate: (status: StepStatus) => {
         this.emit(EVENT_NAMES.SHAPES_UPDATE, status.message)
@@ -73,7 +79,7 @@ export class Bootstrapper extends EventEmitter {
     this.emit(EVENT_NAMES.SHAPES_DONE)
   }
   async setPriceVariants() {
-    await setPriceVariants({
+    this.priceVariants = await setPriceVariants({
       spec: this.SPEC,
       onUpdate: (status: StepStatus) => {
         this.emit(EVENT_NAMES.PRICE_VARIANTS_UPDATE, status.message)
@@ -82,7 +88,7 @@ export class Bootstrapper extends EventEmitter {
     this.emit(EVENT_NAMES.PRICE_VARIANTS_DONE)
   }
   async setLanguages() {
-    await setLanguages({
+    this.languages = await setLanguages({
       spec: this.SPEC,
       onUpdate: (status: StepStatus) => {
         this.emit(EVENT_NAMES.LANGUAGES_UPDATE, status.message)
@@ -91,7 +97,7 @@ export class Bootstrapper extends EventEmitter {
     this.emit(EVENT_NAMES.LANGUAGES_DONE)
   }
   async setVatTypes() {
-    await setVatTypes({
+    this.vatTypes = await setVatTypes({
       spec: this.SPEC,
       onUpdate: (status: StepStatus) => {
         this.emit(EVENT_NAMES.VAT_TYPES_UPDATE, status.message)

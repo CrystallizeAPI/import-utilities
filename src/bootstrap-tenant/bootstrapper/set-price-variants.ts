@@ -1,7 +1,7 @@
-import { PriceVariant, PriceVariantInput } from '../../types'
+import { PriceVariant } from '../../types'
 import { buildCreatePriceVariantMutation } from '../../graphql'
 
-import { JsonSpec } from '../json-spec'
+import { JsonSpec, PriceVariant as JsonPriceVariant } from '../json-spec'
 import { callPIM, getTenantId, StepStatus } from './utils'
 
 async function getExistingPriceVariants(): Promise<PriceVariant[]> {
@@ -14,7 +14,6 @@ async function getExistingPriceVariants(): Promise<PriceVariant[]> {
             identifier
             name
             currency
-            tenantId
           }
         }
       }
@@ -35,15 +34,13 @@ export interface Props {
 export async function setPriceVariants({
   spec,
   onUpdate,
-}: Props): Promise<StepStatus> {
-  if (!spec?.priceVariants) {
-    return {
-      done: true,
-    }
-  }
-
+}: Props): Promise<JsonPriceVariant[]> {
   // Get all the price variants from the tenant
   const existingPriceVariants = await getExistingPriceVariants()
+
+  if (!spec?.priceVariants) {
+    return existingPriceVariants
+  }
 
   const existingPriceVariantsIdentifiers = existingPriceVariants.map(
     (p) => p.identifier
@@ -86,7 +83,7 @@ export async function setPriceVariants({
     })
   }
 
-  return {
-    done: true,
-  }
+  const priceVariants = [...existingPriceVariants, ...missingPriceVariants]
+
+  return priceVariants
 }

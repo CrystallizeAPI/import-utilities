@@ -239,23 +239,13 @@ export interface Props {
   onUpdate(t: StepStatus): any
 }
 
-export async function setShapes({
-  spec,
-  onUpdate,
-}: Props): Promise<StepStatus> {
-  if (!spec?.shapes) {
-    return {
-      done: true,
-    }
-  }
-
-  onUpdate({
-    done: false,
-    message: 'Shapes: starting...',
-  })
-
+export async function setShapes({ spec, onUpdate }: Props): Promise<Shape[]> {
   // Get all the shapes from the tenant
   const existingShapes = await getExistingShapes()
+
+  if (!spec?.shapes) {
+    return existingShapes
+  }
 
   onUpdate({
     done: false,
@@ -272,7 +262,5 @@ export async function setShapes({
     })
   )
 
-  return {
-    done: true,
-  }
+  return await getExistingShapes()
 }

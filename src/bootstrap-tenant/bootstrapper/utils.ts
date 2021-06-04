@@ -1,5 +1,7 @@
 import fetch from 'node-fetch'
 
+import { Language } from '../json-spec'
+
 export const EVENT_NAMES = {
   DONE: 'BOOTSTRAPPER_DONE',
   SHAPES_UPDATE: 'BOOTSTRAPPER_SHAPES_UPDATE',
@@ -15,6 +17,7 @@ export const EVENT_NAMES = {
 export interface StepStatus {
   done: boolean
   message?: string
+  languages?: Language[]
 }
 
 export function sleep(ms: number) {
@@ -70,6 +73,7 @@ export async function callPIM({
 
   const json: IcallPIMResult = await response.json()
 
+  // Always sleep for some time between requests
   await sleep(250)
 
   return json

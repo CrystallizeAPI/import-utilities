@@ -257,13 +257,7 @@
     },
     {
       "code": "no",
-      "name": "Norsk",
-      "isDefault": false
-    },
-    {
-      "code": "es",
-      "name": "Spanish",
-      "isDefault": false
+      "name": "Norsk"
     }
   ],
   "vatTypes": [
@@ -272,6 +266,32 @@
       "percent": 25
     }
   ],
-  "topics": [],
+  "topics": [
+    {
+      "name": {
+        "en": "Geo",
+        "no": "Geo"
+      },
+      "children": [
+        {
+          "name": {
+            "en": "Europe",
+            "no": "Europa"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Channel",
+      "children": [
+        {
+          "name": "Web"
+        },
+        {
+          "name": "App"
+        }
+      ]
+    }
+  ],
   "items": []
 }

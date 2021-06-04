@@ -12,6 +12,8 @@ async function getExistingVatTypes(): Promise<VatType[]> {
         tenant {
           get(id: $tenantId) {
             vatTypes {
+              id
+              tenantId
               name
               percent
             }
@@ -35,15 +37,13 @@ export interface Props {
 export async function setVatTypes({
   spec,
   onUpdate,
-}: Props): Promise<StepStatus> {
-  if (!spec?.vatTypes) {
-    return {
-      done: true,
-    }
-  }
-
+}: Props): Promise<VatType[]> {
   // Get all the vat types from the tenant
   const existingVatTypes = await getExistingVatTypes()
+
+  if (!spec?.vatTypes) {
+    return existingVatTypes
+  }
 
   const existingVatTypesIdentifiers = existingVatTypes.map((l) => l.name)
   const missingVatTypes = spec.vatTypes.filter(
@@ -87,7 +87,5 @@ export async function setVatTypes({
     })
   }
 
-  return {
-    done: true,
-  }
+  return await getExistingVatTypes()
 }
