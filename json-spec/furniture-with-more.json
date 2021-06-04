@@ -46,8 +46,8 @@
           "type": "selection",
           "description": "Demonstration of the selection component",
           "config": {
-            "min": 2,
-            "max": 5,
+            "min": 1,
+            "max": 1,
             "options": [
               {
                 "key": "red",
@@ -268,6 +268,35 @@
   ],
   "topicMaps": [
     {
+      "name": "Channel",
+      "children": [
+        {
+          "name": "Web"
+        },
+        {
+          "name": "App"
+        },
+        {
+          "name": "TextTV"
+        },
+        {
+          "name": "Radio"
+        },
+        {
+          "name": {
+            "en": "bla_en",
+            "no": "bla_no"
+          }
+        },
+        {
+          "name": {
+            "en": "alskdj_en",
+            "no": "alskdj_no"
+          }
+        }
+      ]
+    },
+    {
       "name": {
         "en": "Geo",
         "no": "Geo"
@@ -278,17 +307,9 @@
             "en": "Europe",
             "no": "Europa"
           }
-        }
-      ]
-    },
-    {
-      "name": "Channel",
-      "children": [
-        {
-          "name": "Web"
         },
         {
-          "name": "App"
+          "name": "Asia"
         }
       ]
     }

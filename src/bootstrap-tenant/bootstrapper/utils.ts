@@ -72,26 +72,68 @@ export function setAccessTokens(id?: string, secret?: string) {
   CRYSTALLIZE_ACCESS_TOKEN_SECRET = secret
 }
 
-export async function callPIM({
-  query,
-  variables,
-}: IcallPIM): Promise<IcallPIMResult> {
-  const response = await fetch('https://pim-dev.crystallize.digital/graphql', {
-    method: 'post',
-    headers: {
-      'content-type': 'application/json',
-      'X-Crystallize-Access-Token-Id': CRYSTALLIZE_ACCESS_TOKEN_ID,
-      'X-Crystallize-Access-Token-Secret': CRYSTALLIZE_ACCESS_TOKEN_SECRET,
-    },
-    body: JSON.stringify({ query, variables }),
-  })
+interface QueuedRequest {
+  props: IcallPIM
+  resolve: (value: IcallPIMResult) => void
+}
 
-  const json: IcallPIMResult = await response.json()
+// Only allow one request at a time to PIM
+class PIMApiManager {
+  queue: QueuedRequest[] = []
+  status: 'idle' | 'working' = 'idle'
 
-  // Always sleep for some time between requests
-  await sleep(250)
+  constructor() {
+    setInterval(() => this.work(), 25)
+  }
 
-  return json
+  push(props: IcallPIM): Promise<IcallPIMResult> {
+    return new Promise((resolve) => {
+      this.queue.push({
+        resolve,
+        props,
+      })
+    })
+  }
+
+  async work() {
+    if (this.status === 'working' || this.queue.length === 0) {
+      return
+    }
+    this.status = 'working'
+
+    const item = this.queue[0]
+
+    const response = await fetch(
+      'https://pim-dev.crystallize.digital/graphql',
+      {
+        method: 'post',
+        headers: {
+          'content-type': 'application/json',
+          'X-Crystallize-Access-Token-Id': CRYSTALLIZE_ACCESS_TOKEN_ID,
+          'X-Crystallize-Access-Token-Secret': CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+        },
+        body: JSON.stringify(item.props),
+      }
+    )
+
+    const json: IcallPIMResult = await response.json()
+
+    item.resolve(json)
+
+    // Remove item from queue
+    this.queue.splice(0, 1)
+
+    // Always sleep for some time between requests
+    await sleep(250)
+
+    this.status = 'idle'
+  }
+}
+
+const MyPIMApiManager = new PIMApiManager()
+
+export function callPIM(props: IcallPIM) {
+  return MyPIMApiManager.push(props)
 }
 
 export function getTranslation(

@@ -26,6 +26,9 @@ export interface Topic {
   id?: string
   name: Translation
   children?: Topic[]
+  parentId?: string
+  hierarchyPath?: string
+  parentHierarchyPath?: string
 }
 
 export interface JsonSpec {

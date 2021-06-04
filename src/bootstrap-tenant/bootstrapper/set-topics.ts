@@ -1,42 +1,65 @@
 import { TopicInput } from '../../types'
 import { buildCreateTopicMutation } from '../../graphql'
 
-import { JsonSpec, Topic } from '../json-spec'
+import { JsonSpec, Topic, Translation } from '../json-spec'
 import {
   callPIM,
   getTenantId,
   getTranslation,
-  sleep,
   StepStatus,
   TenantContext,
 } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
+import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
+
+interface FlattenedTopic {
+  hierarchy: string[]
+  hierarchyPath: string
+  name: Translation
+}
+
+const QUERY_SEARCH_TOPIC = `
+  query SEARCH_TOPIC ($tenantId: ID! $language: String!, $searchTerm: String!) {
+    search {
+      topics (
+        tenantId: $tenantId,
+        language: $language
+        searchTerm: $searchTerm
+      ) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`
 
 async function getExistingRootTopics(language: string): Promise<Topic[]> {
   const tenantId = getTenantId()
+
   const r = await callPIM({
     query: `
-      query GET_TENANT_ROOT_TOPICS($tenantId: ID!) {
+      query GET_TENANT_ROOT_TOPICS($tenantId: ID!, $language: String!) {
         topic {
-          getRootTopics(id: $tenantId, language: $language) {
+          getRootTopics(tenantId: $tenantId, language: $language) {
             id
             name
           }
         }
-      }
+      }    
     `,
     variables: {
       tenantId,
+      language,
     },
   })
 
   return r.data?.topic?.getRootTopics || []
 }
 
-function translateTopicMapForInput(
-  topicMap: Topic,
-  language: string
-): TopicInput {
+function translateTopicForInput(topic: Topic, language: string): TopicInput {
   const tenantId = getTenantId()
   function translateChild(t: Topic): TopicChildInput {
     return {
@@ -47,29 +70,127 @@ function translateTopicMapForInput(
 
   return {
     tenantId,
-    name: getTranslation(topicMap.name, language) || '',
-    ...(topicMap.children && {
-      children: topicMap.children.map(translateChild),
+    name: getTranslation(topic.name, language) || '',
+    ...(topic.parentId && { parentId: topic.parentId }),
+    ...(topic.children && {
+      children: topic.children.map(translateChild),
     }),
   }
 }
 
-async function createTopicMap(topicMap: Topic, context: TenantContext) {
+function getNLevelTopics(numberOfLevels: number): Record<string, any> {
+  const levels: Record<string, any> = {}
+
+  let count = 0
+  function addNextLevel(current: Record<string, any>) {
+    current.name = true
+    current.id = true
+    current.parentId = true
+    count++
+    if (count < numberOfLevels) {
+      current.children = {}
+      addNextLevel(current.children)
+    }
+  }
+  addNextLevel(levels)
+
+  return levels
+}
+
+async function createTopic(
+  topic: Topic,
+  context: TenantContext,
+  parentId?: string
+) {
   const language = context.defaultLanguage.code
 
-  const translatedTopicMap = translateTopicMapForInput(topicMap, language)
+  const translatedTopic = translateTopicForInput(topic, language)
+  if (parentId) {
+    translatedTopic.parentId = parentId
+  }
 
-  // Create the initial map
+  // Create the topic (including children)
   const response = await callPIM({
-    query: buildCreateTopicMutation(translatedTopicMap, language),
+    query: buildCreateTopicMutation(
+      translatedTopic,
+      language,
+      getNLevelTopics(20)
+    ),
   })
 
   if (response.errors) {
     console.log(JSON.stringify(response.errors, null, 1))
   }
 
-  // Set translations for each node
-  console.log('todo: create translations for the rest')
+  const createdTopic = response.data?.topic?.create
+
+  // Get the languages to set topic for
+  const remainingLanguages = context.languages
+    .filter((l) => !l.isDefault)
+    .map((l) => l.code)
+
+  const topicsToUpdate: Promise<any>[] = []
+  remainingLanguages.forEach((language) => {
+    function handleLevel(level: Topic) {
+      if (level.id) {
+        if (language === 'no') {
+          console.log(
+            language,
+            getTranslation(level.name, language),
+            level.name
+          )
+        }
+        topicsToUpdate.push(
+          callPIM({
+            query: buildUpdateTopicMutation({
+              id: level.id,
+              language,
+              input: {
+                name: getTranslation(level.name, language) || '',
+                parentId: level.parentId,
+              },
+            }),
+          })
+        )
+      }
+
+      level.children?.forEach(handleLevel)
+    }
+
+    handleLevel(createdTopic)
+  })
+
+  await Promise.all(topicsToUpdate)
+
+  return createdTopic
+}
+
+function updateTopic(topic: Topic, context: TenantContext) {
+  async function handleLevel(level: Topic, parentId?: string) {
+    const existingTopicResponse = await callPIM({
+      query: QUERY_SEARCH_TOPIC,
+      variables: {
+        tenantId: getTenantId(),
+        language: context.defaultLanguage.code,
+        searchTerm: level.hierarchyPath,
+      },
+    })
+
+    const topicFromSearch =
+      existingTopicResponse?.data?.search?.topics?.edges?.[0]
+
+    // Can't find this topic, let's create it
+    if (!topicFromSearch) {
+      await createTopic(level, context, parentId)
+    } else if (level.children) {
+      level.id = topicFromSearch.node?.id
+      for (let i = 0; i < level.children.length; i++) {
+        await handleLevel(level.children[i], level.id)
+      }
+    }
+  }
+
+  return handleLevel(topic)
 }
 
 export interface Props {
@@ -87,22 +208,65 @@ export async function setTopics({
     return
   }
 
+  // Enrich the spec with hierachy paths
+  spec.topicMaps.forEach((topicMap) => {
+    function handleTopic(topic: Topic, currentHierarchy: string[]) {
+      const hierarchy = [
+        ...currentHierarchy,
+        getTranslation(topic.name, context.defaultLanguage.code) || '',
+      ]
+      topic.hierarchyPath = hierarchy.join('/')
+      topic.parentHierarchyPath = currentHierarchy.join('/')
+      topic.children?.forEach((c) => handleTopic(c, hierarchy))
+    }
+    handleTopic(topicMap, [])
+  })
+
   const existingRootTopics = await getExistingRootTopics(
     context.defaultLanguage.code
   )
 
-  const missingTopicMaps = spec?.topicMaps.filter((topicMap) => {
+  const existingTopicMaps: Topic[] = []
+  const missingTopicMaps: Topic[] = []
+
+  spec?.topicMaps.forEach((topicMap) => {
     const translatedName = getTranslation(
       topicMap.name,
       context.defaultLanguage.code
     )
-    return !existingRootTopics.some((t) => t.name === translatedName)
+    if (existingRootTopics.some((t) => t.name === translatedName)) {
+      existingTopicMaps.push(topicMap)
+    } else {
+      missingTopicMaps.push(topicMap)
+    }
   })
 
-  // Create root topics for the missing ones
   if (missingTopicMaps.length > 0) {
-    for (let i = 0; i < missingTopicMaps.length; i++) {
-      await createTopicMap(missingTopicMaps[i], context)
-    }
+    onUpdate({
+      done: false,
+      message: `Creating new topic map(s) ${missingTopicMaps
+        .map((t) => getTranslation(t.name, context.defaultLanguage.code))
+        .join(',')}`,
+    })
+  } else {
+    onUpdate({
+      done: false,
+      message: `No new topic maps found`,
+    })
+  }
+
+  // Create root topics for the missing ones
+  for (let i = 0; i < missingTopicMaps.length; i++) {
+    await createTopic(missingTopicMaps[i], context)
+  }
+
+  onUpdate({
+    done: false,
+    message: 'Updating existing topic maps...',
+  })
+
+  // Add new topics for the existing topic maps
+  for (let i = 0; i < existingTopicMaps.length; i++) {
+    await updateTopic(existingTopicMaps[i], context)
   }
 }

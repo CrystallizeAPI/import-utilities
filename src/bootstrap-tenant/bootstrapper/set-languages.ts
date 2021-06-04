@@ -100,7 +100,7 @@ export async function setLanguages({
   } else {
     onUpdate({
       done: false,
-      message: `All languages already added`,
+      message: `No new languages found`,
     })
   }
 
@@ -146,11 +146,6 @@ export async function setLanguages({
       }`,
     })
   }
-
-  onUpdate({
-    done: true,
-    message: 'Done',
-  })
 
   return languages
 }

@@ -26,15 +26,32 @@ function bootstrap() {
   bootstrapper.on(EVENT_NAMES.SHAPES_UPDATE, function (status) {
     console.log(`.. Updating shapes... "${status.message}"`)
   })
-
+  bootstrapper.on(EVENT_NAMES.SHAPES_DONE, function () {
+    console.log(`.. Updating shapes... ✓`)
+  })
   bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_UPDATE, function (status) {
     console.log(`.. Updating price variants... "${status.message}"`)
+  })
+  bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_DONE, function () {
+    console.log(`.. Updating price variants... ✓`)
   })
   bootstrapper.on(EVENT_NAMES.LANGUAGES_UPDATE, function (status) {
     console.log(`.. Updating languages... "${status.message}"`)
   })
+  bootstrapper.on(EVENT_NAMES.LANGUAGES_DONE, function () {
+    console.log(`.. Updating languages... ✓`)
+  })
   bootstrapper.on(EVENT_NAMES.VAT_TYPES_UPDATE, function (status) {
     console.log(`.. Updating vat types... "${status.message}"`)
+  })
+  bootstrapper.on(EVENT_NAMES.VAT_TYPES_DONE, function () {
+    console.log(`.. Updating vat types... ✓`)
+  })
+  bootstrapper.on(EVENT_NAMES.TOPICS_UPDATE, function (status) {
+    console.log(`.. Updating topics... "${status.message}"`)
+  })
+  bootstrapper.on(EVENT_NAMES.TOPICS_DONE, function () {
+    console.log(`.. Updating topics... ✓`)
   })
 
   bootstrapper.once(EVENT_NAMES.DONE, function (args) {

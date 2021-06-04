@@ -56,6 +56,7 @@ export class Bootstrapper extends EventEmitter {
       (t: { tenant: { identifier: string } }) =>
         t.tenant.identifier === this.tenantIdentifier
     )?.tenant.id
+
     if (!this.tenantId) {
       throw new Error(`No access to tenant "${this.tenantIdentifier}"`)
     }
@@ -63,9 +64,9 @@ export class Bootstrapper extends EventEmitter {
   }
   async start() {
     await this.getTenantId()
+    await this.setLanguages()
     // await this.setShapes()
     // await this.setPriceVariants()
-    // await this.setLanguages()
     // await this.setVatTypes()
     await this.setTopics()
 
