@@ -33,4 +33,5 @@ export interface JsonSpec {
   priceVariants?: PriceVariant[]
   languages?: Language[]
   vatTypes?: VatType[]
+  topicMaps?: Topic[]
 }

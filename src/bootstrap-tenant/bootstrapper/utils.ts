@@ -1,6 +1,12 @@
 import fetch from 'node-fetch'
 
-import { Language } from '../json-spec'
+import {
+  Language,
+  PriceVariant,
+  Shape,
+  Translation,
+  VatType,
+} from '../json-spec'
 
 export const EVENT_NAMES = {
   DONE: 'BOOTSTRAPPER_DONE',
@@ -12,12 +18,21 @@ export const EVENT_NAMES = {
   LANGUAGES_DONE: 'BOOTSTRAPPER_LANGUAGES_DONE',
   VAT_TYPES_UPDATE: 'BOOTSTRAPPER_VAT_TYPES_UPDATE',
   VAT_TYPES_DONE: 'BOOTSTRAPPER_VAT_TYPES_DONE',
+  TOPICS_UPDATE: 'BOOTSTRAPPER_TOPICS_UPDATE',
+  TOPICS_DONE: 'BOOTSTRAPPER_TOPICS_DONE',
 }
 
 export interface StepStatus {
   done: boolean
   message?: string
-  languages?: Language[]
+}
+
+export interface TenantContext {
+  defaultLanguage: Language
+  languages: Language[]
+  shapes?: Shape[]
+  priceVariants?: PriceVariant[]
+  vatTypes?: VatType[]
 }
 
 export function sleep(ms: number) {
@@ -77,4 +92,15 @@ export async function callPIM({
   await sleep(250)
 
   return json
+}
+
+export function getTranslation(
+  translation: Translation,
+  language: string
+): string | null {
+  if (typeof translation === 'string') {
+    return translation
+  }
+
+  return translation[language] ?? null
 }

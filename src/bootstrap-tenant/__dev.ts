@@ -23,18 +23,18 @@ function bootstrap() {
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
   })
 
-  bootstrapper.on(EVENT_NAMES.SHAPES_UPDATE, function (message) {
-    console.log(`.. Updating shapes... "${message}"`)
+  bootstrapper.on(EVENT_NAMES.SHAPES_UPDATE, function (status) {
+    console.log(`.. Updating shapes... "${status.message}"`)
   })
 
-  bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_UPDATE, function (message) {
-    console.log(`.. Updating price variants... "${message}"`)
+  bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_UPDATE, function (status) {
+    console.log(`.. Updating price variants... "${status.message}"`)
   })
-  bootstrapper.on(EVENT_NAMES.LANGUAGES_UPDATE, function (message) {
-    console.log(`.. Updating languages... "${message}"`)
+  bootstrapper.on(EVENT_NAMES.LANGUAGES_UPDATE, function (status) {
+    console.log(`.. Updating languages... "${status.message}"`)
   })
-  bootstrapper.on(EVENT_NAMES.VAT_TYPES_UPDATE, function (message) {
-    console.log(`.. Updating vat types... "${message}"`)
+  bootstrapper.on(EVENT_NAMES.VAT_TYPES_UPDATE, function (status) {
+    console.log(`.. Updating vat types... "${status.message}"`)
   })
 
   bootstrapper.once(EVENT_NAMES.DONE, function (args) {
