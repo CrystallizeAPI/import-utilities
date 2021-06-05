@@ -18,7 +18,8 @@
   "scripts": {
     "build": "tsc -p . --declaration",
     "test": "ava",
-    "dev:bootstrapper": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"ts-node src/bootstrap-tenant/__dev.ts\""
+    "dev:bootstrapper": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev.ts\"",
+    "dev:bootstrapper:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev.ts\""
   },
   "dependencies": {
     "dotenv": "^10.0.0",

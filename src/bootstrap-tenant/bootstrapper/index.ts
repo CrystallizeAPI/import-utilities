@@ -16,6 +16,7 @@ import { setPriceVariants } from './set-price-variants'
 import { setLanguages } from './set-languages'
 import { setVatTypes } from './set-vat-types'
 import { setTopics } from './set-topics'
+import { setItems } from './set-items'
 
 export class Bootstrapper extends EventEmitter {
   CRYSTALLIZE_ACCESS_TOKEN_ID: string = ''
@@ -68,7 +69,8 @@ export class Bootstrapper extends EventEmitter {
     await this.setShapes()
     await this.setPriceVariants()
     await this.setVatTypes()
-    await this.setTopics()
+    // await this.setTopics()
+    await this.setItems()
 
     this.emit(EVENT_NAMES.DONE)
   }
@@ -128,5 +130,15 @@ export class Bootstrapper extends EventEmitter {
       context: this.context,
     })
     this.emit(EVENT_NAMES.TOPICS_DONE)
+  }
+  async setItems() {
+    await setItems({
+      spec: this.SPEC,
+      onUpdate: (status: StepStatus) => {
+        this.emit(EVENT_NAMES.ITEMS_UPDATE, status)
+      },
+      context: this.context,
+    })
+    this.emit(EVENT_NAMES.ITEMS_DONE)
   }
 }

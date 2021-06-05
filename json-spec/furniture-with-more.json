@@ -1,9 +1,9 @@
 {
   "shapes": [
     {
+      "identifier": "frntr-product",
       "type": "product",
       "name": "Product",
-      "identifier": "frntr-product",
       "components": [
         {
           "id": "summary",
@@ -328,5 +328,47 @@
       ]
     }
   ],
-  "items": []
+  "items": [
+    {
+      "name": "Shop",
+      "shape": "frntr-folder",
+      "components": {
+        "title": {
+          "en": "Awesome title",
+          "no": "Dødsfet tittel"
+        },
+        "brief": {
+          "en": "This could be a rich(er) text",
+          "no": {
+            "json": null,
+            "html": null,
+            "plainText": "Dette kunne vært en rikere tekst"
+          }
+        },
+        "body": [
+          {
+            "title": "Paragraph title",
+            "body": "When rich text content is a string, it's plainText",
+            "images": [
+              {
+                "src": "https://example.com",
+                "altText": "An alt text",
+                "caption": "Rich text here"
+              }
+            ]
+          }
+        ],
+        "stackable-content": [
+          "itemId1",
+          "itemId2"
+        ]
+      },
+      "children": [
+        {
+          "name": "Furniture",
+          "shape": "frntr-folder"
+        }
+      ]
+    }
+  ]
 }

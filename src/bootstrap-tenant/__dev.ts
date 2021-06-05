@@ -24,34 +24,40 @@ function bootstrap() {
   })
 
   bootstrapper.on(EVENT_NAMES.SHAPES_UPDATE, function (status) {
-    console.log(`.. Updating shapes... "${status.message}"`)
+    console.log(`.. Setting shapes... ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.SHAPES_DONE, function () {
-    console.log(`.. Updating shapes... ✓`)
+    console.log(`.. Setting shapes... ✓`)
   })
   bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_UPDATE, function (status) {
-    console.log(`.. Updating price variants... "${status.message}"`)
+    console.log(`.. Setting price variants... ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_DONE, function () {
-    console.log(`.. Updating price variants... ✓`)
+    console.log(`.. Setting price variants... ✓`)
   })
   bootstrapper.on(EVENT_NAMES.LANGUAGES_UPDATE, function (status) {
-    console.log(`.. Updating languages... "${status.message}"`)
+    console.log(`.. Setting languages... ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.LANGUAGES_DONE, function () {
-    console.log(`.. Updating languages... ✓`)
+    console.log(`.. Setting languages... ✓`)
   })
   bootstrapper.on(EVENT_NAMES.VAT_TYPES_UPDATE, function (status) {
-    console.log(`.. Updating vat types... "${status.message}"`)
+    console.log(`.. Setting vat types... ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.VAT_TYPES_DONE, function () {
-    console.log(`.. Updating vat types... ✓`)
+    console.log(`.. Setting vat types... ✓`)
   })
   bootstrapper.on(EVENT_NAMES.TOPICS_UPDATE, function (status) {
-    console.log(`.. Updating topics... "${status.message}"`)
+    console.log(`.. Setting topics... ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.TOPICS_DONE, function () {
-    console.log(`.. Updating topics... ✓`)
+    console.log(`.. Setting topics... ✓`)
+  })
+  bootstrapper.on(EVENT_NAMES.ITEMS_UPDATE, function (status) {
+    console.log(`.. Setting items... ${status.message}`)
+  })
+  bootstrapper.on(EVENT_NAMES.ITEMS_DONE, function () {
+    console.log(`.. Setting items... ✓`)
   })
 
   bootstrapper.once(EVENT_NAMES.DONE, function (args) {

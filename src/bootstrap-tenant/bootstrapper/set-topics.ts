@@ -12,12 +12,6 @@ import {
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
 
-interface FlattenedTopic {
-  hierarchy: string[]
-  hierarchyPath: string
-  name: Translation
-}
-
 const QUERY_SEARCH_TOPIC = `
   query SEARCH_TOPIC ($tenantId: ID! $language: String!, $searchTerm: String!) {
     search {

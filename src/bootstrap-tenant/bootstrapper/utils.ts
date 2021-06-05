@@ -20,6 +20,8 @@ export const EVENT_NAMES = {
   VAT_TYPES_DONE: 'BOOTSTRAPPER_VAT_TYPES_DONE',
   TOPICS_UPDATE: 'BOOTSTRAPPER_TOPICS_UPDATE',
   TOPICS_DONE: 'BOOTSTRAPPER_TOPICS_DONE',
+  ITEMS_UPDATE: 'BOOTSTRAPPER_ITEMS_UPDATE',
+  ITEMS_DONE: 'BOOTSTRAPPER_ITEMS_DONE',
 }
 
 export interface StepStatus {
@@ -136,13 +138,13 @@ export function callPIM(props: IcallPIM) {
   return MyPIMApiManager.push(props)
 }
 
-export function getTranslation(
-  translation: Translation,
-  language: string
-): string | null {
+export function getTranslation(translation?: any, language?: string): string {
+  if (!translation || !language) {
+    return ''
+  }
   if (typeof translation === 'string') {
     return translation
   }
 
-  return translation[language] ?? null
+  return translation[language] ?? ''
 }
