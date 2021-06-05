@@ -306,10 +306,24 @@
           "name": {
             "en": "Europe",
             "no": "Europa"
-          }
+          },
+          "children": [
+            {
+              "name": {
+                "en": "Norway",
+                "no": "Norge"
+              }
+            }
+          ]
         },
         {
           "name": "Asia"
+        },
+        {
+          "name": {
+            "en": "Africa",
+            "no": "Afrika"
+          }
         }
       ]
     }

@@ -131,22 +131,19 @@ async function createTopic(
 
   const topicsToUpdate: Promise<any>[] = []
   remainingLanguages.forEach((language) => {
-    function handleLevel(level: Topic) {
+    function handleLevel(level: Topic, levelFromSpec?: Topic) {
+      if (!levelFromSpec) {
+        return
+      }
+
       if (level.id) {
-        if (language === 'no') {
-          console.log(
-            language,
-            getTranslation(level.name, language),
-            level.name
-          )
-        }
         topicsToUpdate.push(
           callPIM({
             query: buildUpdateTopicMutation({
               id: level.id,
               language,
               input: {
-                name: getTranslation(level.name, language) || '',
+                name: getTranslation(levelFromSpec.name, language) || '',
                 parentId: level.parentId,
               },
             }),
@@ -154,10 +151,19 @@ async function createTopic(
         )
       }
 
-      level.children?.forEach(handleLevel)
+      if (level.children && levelFromSpec.children) {
+        for (let i = 0; i < level.children.length; i++) {
+          handleLevel(
+            level.children[i],
+            levelFromSpec.children.find(
+              (l) => level.name === getTranslation(l.name, language)
+            )
+          )
+        }
+      }
     }
 
-    handleLevel(createdTopic)
+    handleLevel(createdTopic, topic)
   })
 
   await Promise.all(topicsToUpdate)
@@ -257,16 +263,25 @@ export async function setTopics({
 
   // Create root topics for the missing ones
   for (let i = 0; i < missingTopicMaps.length; i++) {
+    onUpdate({
+      done: false,
+      message: `Creating topic map ${getTranslation(
+        missingTopicMaps[i].name,
+        context.defaultLanguage.code
+      )}...`,
+    })
     await createTopic(missingTopicMaps[i], context)
   }
 
-  onUpdate({
-    done: false,
-    message: 'Updating existing topic maps...',
-  })
-
   // Add new topics for the existing topic maps
   for (let i = 0; i < existingTopicMaps.length; i++) {
+    onUpdate({
+      done: false,
+      message: `Updating topic map ${getTranslation(
+        existingTopicMaps[i].name,
+        context.defaultLanguage.code
+      )}...`,
+    })
     await updateTopic(existingTopicMaps[i], context)
   }
 }
