@@ -4,91 +4,93 @@ export { Shape } from '../../types'
 
 export type JSONTranslation =
   | Record<string, string>
-  | Record<string, RichTextStructured>
+  | Record<string, JSONRichTextStructured>
   | string
 
-export interface PriceVariant {
+export interface JSONPriceVariant {
   identifier: string
   name: string
   currency: string
 }
 
-export interface Language {
+export interface JSONLanguage {
   code: string
   name: string
   isDefault?: boolean
 }
 
-export interface VatType {
+export interface JSONVatType {
   id?: string
   name: string
   percent: number
 }
 
-export interface Topic {
+export interface JSONTopic {
   id?: string
   name: JSONTranslation
-  children?: Topic[]
+  children?: JSONTopic[]
   parentId?: string
   hierarchyPath?: string
   parentHierarchyPath?: string
 }
 
-export interface RichTextStructured {
+export interface JSONRichTextStructured {
   plainText?: string
   html?: string
   json?: JSON
 }
-export type RichText = RichTextStructured | string | null
-export interface Image {
+export type RichText = JSONRichTextStructured | string | null
+export interface JSONImage {
   src: string
+  key?: string
+  mimeType?: string
   altText?: string
   caption?: RichText
 }
 
-export type ItemSingleLineContent = string
+export type JSONSingleLine = string
 
-export interface ItemParagraphCollectionContent {
+export interface JSONParagraphCollection {
   title?: string
   body: RichText
-  images?: Image[]
+  images?: JSONImage[]
 }
-export type ItemImagesContent = Image[]
-export type ItemBooleanContent = boolean
+export type JSONImages = JSONImage[]
+export type JSONBoolean = boolean
 export type ComponentId = string
 
-export type ComponentContent =
-  | ItemSingleLineContent
+export type JSONComponentContent =
+  | JSONSingleLine
   | RichText
-  | ItemParagraphCollectionContent[]
-  | ItemImagesContent
-  | ItemBooleanContent
-  | ComponentContentChunkContent
-  | ItemComponentChoiceContent
+  | JSONParagraphCollection[]
+  | JSONImages
+  | JSONBoolean
+  | JSONContentChunk
+  | JSONComponentChoice
   | null
-export type ItemComponents = Record<ComponentId, ComponentContent>
-export interface ComponentContentChunkContent {
+export type JSONComponents = Record<ComponentId, JSONComponentContent>
+export interface JSONContentChunk {
   repeatable: boolean
-  chunks: ItemComponents[]
+  chunks: JSONComponents[]
 }
-export interface ItemComponentChoiceContent {
-  selectedComponent?: ComponentContent
+export interface JSONComponentChoice {
+  selectedComponent?: JSONComponentContent
 }
 
-export interface Item {
+export interface JSONItem {
   path?: string
   id?: string
   name: JSONTranslation
   shape: string
-  components?: ItemComponents
-  children?: Item[]
+  components?: JSONComponents
+  children?: JSONItem[]
 }
 
 export interface JsonSpec {
   shapes?: Shape[]
-  priceVariants?: PriceVariant[]
-  languages?: Language[]
-  vatTypes?: VatType[]
-  topicMaps?: Topic[]
-  items?: Item[]
+  priceVariants?: JSONPriceVariant[]
+  languages?: JSONLanguage[]
+  vatTypes?: JSONVatType[]
+  topicMaps?: JSONTopic[]
+  items?: JSONItem[]
 }

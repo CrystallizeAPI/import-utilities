@@ -1,7 +1,7 @@
 import { PriceVariant } from '../../types'
 import { buildCreatePriceVariantMutation } from '../../graphql'
 
-import { JsonSpec, PriceVariant as JsonPriceVariant } from '../json-spec'
+import { JsonSpec, JSONPriceVariant as JsonPriceVariant } from '../json-spec'
 import { callPIM, getTenantId, StepStatus } from './utils'
 
 async function getExistingPriceVariants(): Promise<PriceVariant[]> {

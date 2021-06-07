@@ -1,7 +1,7 @@
 import { TopicInput } from '../../types'
 import { buildCreateTopicMutation } from '../../graphql'
 
-import { JsonSpec, Topic, JSONTranslation } from '../json-spec'
+import { JsonSpec, JSONTopic, JSONTranslation } from '../json-spec'
 import {
   callPIM,
   getTenantId,
@@ -30,7 +30,7 @@ const QUERY_SEARCH_TOPIC = `
   }
 `
 
-async function getExistingRootTopics(language: string): Promise<Topic[]> {
+async function getExistingRootTopics(language: string): Promise<JSONTopic[]> {
   const tenantId = getTenantId()
 
   const r = await callPIM({
@@ -53,9 +53,12 @@ async function getExistingRootTopics(language: string): Promise<Topic[]> {
   return r.data?.topic?.getRootTopics || []
 }
 
-function translateTopicForInput(topic: Topic, language: string): TopicInput {
+function translateTopicForInput(
+  topic: JSONTopic,
+  language: string
+): TopicInput {
   const tenantId = getTenantId()
-  function translateChild(t: Topic): TopicChildInput {
+  function translateChild(t: JSONTopic): TopicChildInput {
     return {
       name: getTranslation(t.name, language) || '',
       ...(t.children && { children: t.children.map(translateChild) }),
@@ -92,7 +95,7 @@ function getNLevelTopics(numberOfLevels: number): Record<string, any> {
 }
 
 async function createTopic(
-  topic: Topic,
+  topic: JSONTopic,
   context: TenantContext,
   parentId?: string
 ) {
@@ -125,7 +128,7 @@ async function createTopic(
 
   const topicsToUpdate: Promise<any>[] = []
   remainingLanguages.forEach((language) => {
-    function handleLevel(level: Topic, levelFromSpec?: Topic) {
+    function handleLevel(level: JSONTopic, levelFromSpec?: JSONTopic) {
       if (!levelFromSpec) {
         return
       }
@@ -165,8 +168,8 @@ async function createTopic(
   return createdTopic
 }
 
-function updateTopic(topic: Topic, context: TenantContext) {
-  async function handleLevel(level: Topic, parentId?: string) {
+function updateTopic(topic: JSONTopic, context: TenantContext) {
+  async function handleLevel(level: JSONTopic, parentId?: string) {
     const existingTopicResponse = await callPIM({
       query: QUERY_SEARCH_TOPIC,
       variables: {
@@ -210,7 +213,7 @@ export async function setTopics({
 
   // Enrich the spec with hierachy paths
   spec.topicMaps.forEach((topicMap) => {
-    function handleTopic(topic: Topic, currentHierarchy: string[]) {
+    function handleTopic(topic: JSONTopic, currentHierarchy: string[]) {
       const hierarchy = [
         ...currentHierarchy,
         getTranslation(topic.name, context.defaultLanguage.code) || '',
@@ -226,8 +229,8 @@ export async function setTopics({
     context.defaultLanguage.code
   )
 
-  const existingTopicMaps: Topic[] = []
-  const missingTopicMaps: Topic[] = []
+  const existingTopicMaps: JSONTopic[] = []
+  const missingTopicMaps: JSONTopic[] = []
 
   spec?.topicMaps.forEach((topicMap) => {
     const translatedName = getTranslation(

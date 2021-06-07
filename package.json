@@ -23,11 +23,17 @@
   },
   "dependencies": {
     "dotenv": "^10.0.0",
+    "download": "^8.0.0",
+    "file-type": "^16.5.0",
+    "form-data": "^4.0.0",
     "json-to-graphql-query": "^2.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "slugify": "^1.5.3",
+    "xml-js": "^1.6.11"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
+    "@types/download": "^8.0.0",
     "@types/node": "^15.6.1",
     "@types/node-fetch": "^2.5.10",
     "ava": "^3.15.0",

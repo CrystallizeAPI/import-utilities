@@ -3,11 +3,13 @@ import { EnumType } from 'json-to-graphql-query'
 import {
   ComponentContentInput,
   CreateItemInput,
+  ImageComponentContentInput,
   ImagesComponentContentInput,
   ItemType,
   Language,
   ParagraphCollectionComponentContentInput,
   RichTextComponentContentInput,
+  RichTextContentInput,
   Shape,
   shapeTypes,
   SingleLineComponentContentInput,
@@ -15,13 +17,14 @@ import {
 import { buildCreateItemMutation, buildUpdateItemMutation } from '../../graphql'
 
 import {
-  Item,
-  ItemParagraphCollectionContent,
-  ItemSingleLineContent,
+  JSONItem,
+  JSONParagraphCollection,
+  JSONSingleLine,
   JsonSpec,
   RichText,
-  RichTextStructured,
+  JSONRichTextStructured,
   JSONTranslation,
+  JSONImages,
 } from '../json-spec'
 import {
   callPIM,
@@ -29,6 +32,7 @@ import {
   getTranslation,
   StepStatus,
   TenantContext,
+  uploadFileFromUrl,
 } from './utils'
 
 export interface Props {
@@ -70,11 +74,9 @@ function createRichTextInput(content: RichText, language: string) {
     ]
   }
 
-  const inp: RichTextComponentContentInput = {
-    richText: {},
-  }
+  const inp: RichTextContentInput = {}
   if (typeof content === 'string') {
-    inp.richText.json = stringToJson(content)
+    inp.json = stringToJson(content)
   } else if (typeof content === 'object') {
     /**
      * Determine if the rich text content is one of
@@ -99,14 +101,14 @@ function createRichTextInput(content: RichText, language: string) {
     const translatedContent = isNotTranslated ? c : getTranslation(c, language)
 
     if (typeof translatedContent === 'string') {
-      inp.richText.json = stringToJson(translatedContent)
+      inp.json = stringToJson(translatedContent)
     } else {
       if (translatedContent.json) {
-        inp.richText.json = [translatedContent.json]
+        inp.json = translatedContent.json
       } else if (translatedContent.html) {
-        inp.richText.html = [translatedContent.html]
+        inp.html = [translatedContent.html]
       } else if (translatedContent.plainText) {
-        inp.richText.json = stringToJson(translatedContent.plainText)
+        inp.json = stringToJson(translatedContent.plainText)
       }
     }
   }
@@ -114,19 +116,41 @@ function createRichTextInput(content: RichText, language: string) {
   return inp
 }
 
-async function createImageInput(
-  images,
+async function createImagesInput(
+  images: JSONImages,
   language: string
-): Promise<ImagesComponentContentInput[]> {
-  const inp = {
-    images: [],
+): Promise<ImageComponentContentInput[]> {
+  const imgs: ImageComponentContentInput[] = []
+
+  for (let i = 0; i < images.length; i++) {
+    const image = images[i]
+    let { key, mimeType } = image
+
+    if (!key) {
+      const uploadResult = await uploadFileFromUrl(image.src)
+      key = uploadResult.key
+      mimeType = uploadResult.mimeType
+
+      // Store the values so that we don't re-upload again during import
+      image.key = uploadResult.key
+      image.mimeType = uploadResult.mimeType
+    }
+
+    imgs.push({
+      key,
+      mimeType,
+      altText: getTranslation(image.altText, language),
+      ...(image.caption && {
+        caption: createRichTextInput(image.caption, language),
+      }),
+    })
   }
 
-  return inp
+  return imgs
 }
 
 async function createComponentsInput(
-  item: Item,
+  item: JSONItem,
   shape: Shape,
   language: string
 ) {
@@ -158,13 +182,15 @@ async function createComponentsInput(
               break
             }
             case 'richText': {
-              const inp: RichTextComponentContentInput = createRichTextInput(
+              const inp: RichTextContentInput = createRichTextInput(
                 component as RichText,
                 language
               )
 
               if (Object.keys(inp).length > 0) {
-                content = inp
+                content = {
+                  richText: inp,
+                }
               }
               break
             }
@@ -176,19 +202,17 @@ async function createComponentsInput(
                 },
               }
 
-              const paragraphs = content as ItemParagraphCollectionContent[]
+              const paragraphs = component as JSONParagraphCollection[]
               for (let i = 0; i < paragraphs.length; i++) {
                 const { title, body, images } = paragraphs[i]
 
                 inp.paragraphCollection.paragraphs.push({
                   title: {
-                    singleLine: {
-                      text: getTranslation(title, language),
-                    },
+                    text: getTranslation(title, language),
                   },
                   ...(body && { body: createRichTextInput(body, language) }),
                   ...(images && {
-                    images: await createImageInput(images, language),
+                    images: await createImagesInput(images, language),
                   }),
                 })
               }
@@ -225,7 +249,7 @@ export async function setItems({
   }
 
   async function createItem(
-    item: Item,
+    item: JSONItem,
     parentId: string
   ): Promise<string | null> {
     // Get the shape type
@@ -236,7 +260,7 @@ export async function setItems({
       return null
     }
 
-    function createForLanguage(language: string) {
+    async function createForLanguage(language: string) {
       if (!shape) {
         return
       }
@@ -250,7 +274,8 @@ export async function setItems({
             tree: {
               parentId,
             },
-            components: createComponentsInput(item, shape, language) || {},
+            components:
+              (await createComponentsInput(item, shape, language)) || {},
           },
           // @ts-ignore
           shape?.type,
@@ -259,7 +284,7 @@ export async function setItems({
       })
     }
 
-    function updateForLanguage(language: string, itemId: string) {
+    async function updateForLanguage(language: string, itemId: string) {
       if (!shape) {
         return
       }
@@ -269,8 +294,8 @@ export async function setItems({
           itemId,
           {
             name: getTranslation(item.name, language) || '',
-
-            components: createComponentsInput(item, shape, language) || {},
+            components:
+              (await createComponentsInput(item, shape, language)) || {},
           },
           shape.type as ItemType,
           language
@@ -298,7 +323,7 @@ export async function setItems({
 
   const rootItemId = await getTenantRootItemId()
 
-  async function handleItem(item: Item, parentId?: string) {
+  async function handleItem(item: JSONItem, parentId?: string) {
     const itemId = await createItem(item, parentId || rootItemId)
 
     if (itemId && item.children) {

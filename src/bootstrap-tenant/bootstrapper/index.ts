@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 
-import { JsonSpec, PriceVariant, VatType } from '../json-spec'
+import { JsonSpec, JSONPriceVariant, JSONVatType } from '../json-spec'
 
 export * from './utils'
 import {

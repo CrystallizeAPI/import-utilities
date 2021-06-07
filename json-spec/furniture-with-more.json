@@ -330,7 +330,10 @@
   ],
   "items": [
     {
-      "name": "Shop",
+      "name": {
+        "en": "Shop",
+        "no": "Butikk"
+      },
       "shape": "frntr-folder",
       "components": {
         "title": {
@@ -340,27 +343,43 @@
         "brief": {
           "en": "This could be a rich(er) text",
           "no": {
-            "json": null,
-            "html": null,
-            "plainText": "Dette kunne vært en rikere tekst"
+            "json": [
+              {
+                "kind": "block",
+                "type": "paragraph",
+                "textContent": "Dette kunne vært en rikere tekst"
+              }
+            ]
           }
         },
         "body": [
           {
-            "title": "Paragraph title",
-            "body": "When rich text content is a string, it's plainText",
+            "title": {
+              "en": "Paragraph title",
+              "no": "Paragraftittel"
+            },
+            "body": {
+              "en": "When rich text content is a string, it's plainText",
+              "no": "Når riktekstinnhold er en streng, regnes det som uformatert tekst"
+            },
             "images": [
               {
-                "src": "https://example.com",
-                "altText": "An alt text",
-                "caption": "Rich text here"
+                "src": "https://media.crystallize.com/crystallize_marketing/21/6/7/27/118bbb17a2719d4bd35cd661fddcceda_preview.png",
+                "altText": {
+                  "en": "The alt text goes here",
+                  "no": "Altteksten her"
+                },
+                "caption": {
+                  "en": "Some cool rich text",
+                  "no": "Noe kult her"
+                }
               }
             ]
           }
         ],
         "stackable-content": [
-          "itemId1",
-          "itemId2"
+          "item-path/1",
+          "item-path/2"
         ]
       },
       "children": [
