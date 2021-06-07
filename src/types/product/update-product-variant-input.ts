@@ -3,4 +3,8 @@ export interface UpdateProductVariantInput {
   sku: string
   name?: string
   id?: string
+  priceVariants?: {
+    identifier: string
+    price?: number
+  }[]
 }

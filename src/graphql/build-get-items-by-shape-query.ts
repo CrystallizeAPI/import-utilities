@@ -22,6 +22,7 @@ export const buildGetItemsByShapeQuery = (
             __on: {
               __typeName: 'Product',
               variants: {
+                id: true,
                 isDefault: true,
                 name: true,
                 sku: true,
