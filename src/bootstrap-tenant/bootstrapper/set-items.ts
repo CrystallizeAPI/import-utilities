@@ -3,8 +3,10 @@ import { EnumType } from 'json-to-graphql-query'
 import {
   ComponentContentInput,
   CreateItemInput,
+  ImagesComponentContentInput,
   ItemType,
   Language,
+  ParagraphCollectionComponentContentInput,
   RichTextComponentContentInput,
   Shape,
   shapeTypes,
@@ -14,11 +16,12 @@ import { buildCreateItemMutation, buildUpdateItemMutation } from '../../graphql'
 
 import {
   Item,
+  ItemParagraphCollectionContent,
   ItemSingleLineContent,
   JsonSpec,
   RichText,
   RichTextStructured,
-  Translation,
+  JSONTranslation,
 } from '../json-spec'
 import {
   callPIM,
@@ -111,14 +114,31 @@ function createRichTextInput(content: RichText, language: string) {
   return inp
 }
 
-function createComponentsInput(item: Item, shape: Shape, language: string) {
+async function createImageInput(
+  images,
+  language: string
+): Promise<ImagesComponentContentInput[]> {
+  const inp = {
+    images: [],
+  }
+
+  return inp
+}
+
+async function createComponentsInput(
+  item: Item,
+  shape: Shape,
+  language: string
+) {
   if (!item.components) {
     return null
   }
 
   const input: Record<string, ComponentContentInput> = {}
 
-  Object.keys(item.components).forEach((componentId) => {
+  const componentIds = Object.keys(item.components)
+  for (let i = 0; i < componentIds.length; i++) {
+    const componentId = componentIds[i]
     const componentDefinition = shape.components.find(
       (c) => c.id === componentId
     )
@@ -148,6 +168,37 @@ function createComponentsInput(item: Item, shape: Shape, language: string) {
               }
               break
             }
+            case 'paragraphCollection': {
+              const inp: ParagraphCollectionComponentContentInput = {
+                componentId,
+                paragraphCollection: {
+                  paragraphs: [],
+                },
+              }
+
+              const paragraphs = content as ItemParagraphCollectionContent[]
+              for (let i = 0; i < paragraphs.length; i++) {
+                const { title, body, images } = paragraphs[i]
+
+                inp.paragraphCollection.paragraphs.push({
+                  title: {
+                    singleLine: {
+                      text: getTranslation(title, language),
+                    },
+                  },
+                  ...(body && { body: createRichTextInput(body, language) }),
+                  ...(images && {
+                    images: await createImageInput(images, language),
+                  }),
+                })
+              }
+
+              if (Object.keys(inp).length > 0) {
+                content = inp
+              }
+
+              break
+            }
           }
 
           if (typeof content !== 'undefined') {
@@ -159,7 +210,7 @@ function createComponentsInput(item: Item, shape: Shape, language: string) {
         }
       }
     }
-  })
+  }
 
   return input
 }

@@ -4,7 +4,7 @@ import {
   Language,
   PriceVariant,
   Shape,
-  Translation,
+  JSONTranslation,
   VatType,
 } from '../json-spec'
 

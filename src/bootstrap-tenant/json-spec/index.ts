@@ -2,7 +2,7 @@ import { Shape } from '../../types'
 
 export { Shape } from '../../types'
 
-export type Translation =
+export type JSONTranslation =
   | Record<string, string>
   | Record<string, RichTextStructured>
   | string
@@ -27,7 +27,7 @@ export interface VatType {
 
 export interface Topic {
   id?: string
-  name: Translation
+  name: JSONTranslation
   children?: Topic[]
   parentId?: string
   hierarchyPath?: string
@@ -60,7 +60,7 @@ export type ComponentId = string
 export type ComponentContent =
   | ItemSingleLineContent
   | RichText
-  | ItemParagraphCollectionContent
+  | ItemParagraphCollectionContent[]
   | ItemImagesContent
   | ItemBooleanContent
   | ComponentContentChunkContent
@@ -78,7 +78,7 @@ export interface ItemComponentChoiceContent {
 export interface Item {
   path?: string
   id?: string
-  name: Translation
+  name: JSONTranslation
   shape: string
   components?: ItemComponents
   children?: Item[]

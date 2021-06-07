@@ -1,7 +1,7 @@
 import { TopicInput } from '../../types'
 import { buildCreateTopicMutation } from '../../graphql'
 
-import { JsonSpec, Topic, Translation } from '../json-spec'
+import { JsonSpec, Topic, JSONTranslation } from '../json-spec'
 import {
   callPIM,
   getTenantId,
