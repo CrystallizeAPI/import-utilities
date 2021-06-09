@@ -105,6 +105,7 @@ export const buildGetItemsByShapeQuery = (
             name: true,
             components: {
               componentId: true,
+              type: true,
               content: {
                 __on: [
                   ...basicComponentContent,
