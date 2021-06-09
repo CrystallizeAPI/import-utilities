@@ -17,6 +17,7 @@ test('get items with id and language', (t) => {
             name
             components {
               componentId
+              type
               content {
                 ... on BooleanContent {
                   value
