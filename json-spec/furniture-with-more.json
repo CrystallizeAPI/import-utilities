@@ -1,0 +1,586 @@
+{
+  "shapes": [
+    {
+      "identifier": "frntr-product",
+      "type": "product",
+      "name": "Product",
+      "components": [
+        {
+          "id": "summary",
+          "name": "Summary",
+          "type": "richText",
+          "description": "The digest of the product"
+        },
+        {
+          "id": "Specs",
+          "name": "Specs",
+          "type": "propertiesTable",
+          "description": "Comparable properties",
+          "config": {
+            "sections": [
+              {
+                "title": "General props",
+                "keys": [
+                  "height",
+                  "width"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "description",
+          "name": "Description",
+          "type": "paragraphCollection",
+          "description": "Description of the product in a longer storytelling format"
+        },
+        {
+          "id": "related-products",
+          "name": "Related products",
+          "type": "itemRelations",
+          "description": "Other products that relate to this product"
+        },
+        {
+          "id": "selection",
+          "name": "Selection",
+          "type": "selection",
+          "description": "Demonstration of the selection component",
+          "config": {
+            "min": 1,
+            "max": 1,
+            "options": [
+              {
+                "key": "red",
+                "value": "Red",
+                "isPreselected": true
+              },
+              {
+                "key": "blue",
+                "value": "Blue",
+                "isPreselected": false
+              }
+            ]
+          }
+        },
+        {
+          "id": "example-numeric",
+          "name": "Numeric",
+          "type": "numeric",
+          "description": "Demonstration of the numeric component",
+          "config": {
+            "decimalPlaces": 2,
+            "units": [
+              "kg",
+              "mg"
+            ]
+          }
+        },
+        {
+          "id": "example-boolean",
+          "name": "Boolean example",
+          "type": "boolean",
+          "description": "This is an example of a boolan component"
+        },
+        {
+          "id": "example-location",
+          "name": "Location example",
+          "type": "location",
+          "description": "This is an example of a location component"
+        },
+        {
+          "id": "example-properties-table",
+          "name": "Example properties table",
+          "type": "propertiesTable",
+          "description": "This is an example of a properties table component",
+          "config": {
+            "sections": [
+              {
+                "title": "Example props",
+                "keys": [
+                  "prop1",
+                  "prop2"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "id": "example-datetime",
+          "name": "Example datetime",
+          "type": "datetime",
+          "description": "Example of a date time component"
+        },
+        {
+          "id": "example-images",
+          "name": "Example images",
+          "type": "images",
+          "description": "Example of an images component"
+        },
+        {
+          "id": "content-chunk",
+          "name": "Content chunk",
+          "type": "contentChunk",
+          "description": "Demonstration of the content-chunk component",
+          "config": {
+            "repeatable": true,
+            "components": [
+              {
+                "id": "numeric",
+                "name": "Numeric",
+                "type": "numeric",
+                "description": "Demonstration of the numeric component",
+                "config": {
+                  "decimalPlaces": 2,
+                  "units": [
+                    "kg",
+                    "mg"
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "component-choice",
+          "name": "Component choice",
+          "type": "componentChoice",
+          "description": "Demonstration of the component-choice component",
+          "config": {
+            "choices": [
+              {
+                "id": "numeric",
+                "name": "Numeric",
+                "type": "numeric",
+                "description": "Demonstration of the numeric component",
+                "config": {
+                  "decimalPlaces": 2,
+                  "units": [
+                    "kg",
+                    "mg"
+                  ]
+                }
+              },
+              {
+                "id": "description",
+                "name": "Description",
+                "type": "paragraphCollection",
+                "description": "Description of the product in a longer storytelling format"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "identifier": "frntr-folder",
+      "name": "Folder",
+      "type": "folder",
+      "components": [
+        {
+          "id": "title",
+          "name": "Title",
+          "type": "singleLine"
+        },
+        {
+          "id": "brief",
+          "name": "Brief",
+          "type": "richText"
+        },
+        {
+          "id": "body",
+          "name": "Body",
+          "type": "paragraphCollection"
+        },
+        {
+          "id": "stackable-content",
+          "name": "Stackable content",
+          "type": "itemRelations"
+        },
+        {
+          "id": "content-chunk",
+          "name": "Content chunk",
+          "type": "contentChunk",
+          "description": "Demonstration of the content-chunk component",
+          "config": {
+            "repeatable": true,
+            "components": [
+              {
+                "id": "numeric",
+                "name": "Numeric",
+                "type": "numeric",
+                "description": "Demonstration of the numeric component",
+                "config": {
+                  "decimalPlaces": 2,
+                  "units": [
+                    "kg",
+                    "mg"
+                  ]
+                }
+              },
+              {
+                "id": "related-products",
+                "name": "Related products",
+                "type": "itemRelations",
+                "description": "Other products that relate to this product"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Article",
+      "identifier": "frntr-article",
+      "type": "document",
+      "components": [
+        {
+          "id": "title",
+          "name": "Title",
+          "type": "singleLine"
+        },
+        {
+          "id": "image",
+          "name": "Image",
+          "type": "images"
+        },
+        {
+          "id": "intro",
+          "name": "Intro",
+          "type": "richText"
+        },
+        {
+          "id": "body",
+          "name": "Body",
+          "type": "paragraphCollection"
+        },
+        {
+          "id": "video",
+          "name": "Video",
+          "type": "videos"
+        },
+        {
+          "id": "featured",
+          "name": "Featured",
+          "type": "itemRelations"
+        }
+      ]
+    },
+    {
+      "name": "Banner",
+      "identifier": "frntr-banner",
+      "type": "document",
+      "components": [
+        {
+          "id": "title",
+          "name": "Title",
+          "type": "singleLine"
+        },
+        {
+          "id": "description",
+          "name": "Description",
+          "type": "richText"
+        },
+        {
+          "id": "link",
+          "name": "Link",
+          "type": "singleLine"
+        },
+        {
+          "id": "link-text",
+          "name": "Link text",
+          "type": "singleLine"
+        },
+        {
+          "id": "image",
+          "name": "Image",
+          "type": "images"
+        },
+        {
+          "id": "add-text-as-overlay",
+          "name": "Add text as overlay",
+          "type": "boolean"
+        }
+      ]
+    }
+  ],
+  "priceVariants": [
+    {
+      "identifier": "default",
+      "name": "Retail",
+      "currency": "EUR"
+    },
+    {
+      "identifier": "norway",
+      "name": "Norway",
+      "currency": "NOK"
+    },
+    {
+      "identifier": "sales",
+      "name": "Sales",
+      "currency": "EUR"
+    }
+  ],
+  "languages": [
+    {
+      "code": "en",
+      "name": "English",
+      "isDefault": true
+    },
+    {
+      "code": "no",
+      "name": "Norsk"
+    }
+  ],
+  "vatTypes": [
+    {
+      "name": "Standard",
+      "percent": 25
+    }
+  ],
+  "topicMaps": [
+    {
+      "name": "Channel",
+      "children": [
+        {
+          "name": "Web"
+        },
+        {
+          "name": "App"
+        },
+        {
+          "name": "TextTV"
+        },
+        {
+          "name": "Radio"
+        },
+        {
+          "name": {
+            "en": "bla_en",
+            "no": "bla_no"
+          }
+        },
+        {
+          "name": {
+            "en": "alskdj_en",
+            "no": "alskdj_no"
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "Geo",
+        "no": "Geo"
+      },
+      "children": [
+        {
+          "name": {
+            "en": "Europe",
+            "no": "Europa"
+          },
+          "children": [
+            {
+              "name": {
+                "en": "Norway",
+                "no": "Norge"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Asia"
+        },
+        {
+          "name": {
+            "en": "Africa",
+            "no": "Afrika"
+          }
+        }
+      ]
+    }
+  ],
+  "items": [
+    {
+      "name": {
+        "en": "Shop",
+        "no": "Butikk"
+      },
+      "shape": "frntr-folder",
+      "components": {
+        "title": {
+          "en": "Awesome title",
+          "no": "Dødsfet tittel"
+        },
+        "brief": {
+          "en": "This could be a rich(er) text",
+          "no": {
+            "json": [
+              {
+                "kind": "block",
+                "type": "paragraph",
+                "textContent": "Dette kunne vært en rikere tekst"
+              }
+            ]
+          }
+        },
+        "body": [
+          {
+            "title": {
+              "en": "Paragraph title",
+              "no": "Paragraftittel"
+            },
+            "body": {
+              "en": "When rich text content is a string, it's plainText",
+              "no": "Når riktekstinnhold er en streng, regnes det som uformatert tekst"
+            },
+            "images": [
+              {
+                "src": "https://media.crystallize.com/crystallize_marketing/21/6/7/27/118bbb17a2719d4bd35cd661fddcceda_preview.png",
+                "altText": {
+                  "en": "The alt text goes here",
+                  "no": "Altteksten her"
+                },
+                "caption": {
+                  "en": "Some cool rich text",
+                  "no": "Noe kult her"
+                }
+              }
+            ]
+          }
+        ],
+        "stackable-content": [
+          {
+            "cataloguePath": "/shop/item2"
+          },
+          {
+            "cataloguePath": "/shop/item1"
+          }
+        ],
+        "content-chunk": [
+          {
+            "numeric": {
+              "number": 99,
+              "unit": "kg"
+            },
+            "related-products": [
+              {
+                "cataloguePath": "/shop/awesome-product"
+              }
+            ]
+          }
+        ]
+      },
+      "children": [
+        {
+          "name": {
+            "en": "Awesome product",
+            "no": "Kult produkt"
+          },
+          "shape": "frntr-product",
+          "vatType": "Standard",
+          "topics": [
+            {
+              "hierarchy": "Channel/Web"
+            }
+          ],
+          "variants": [
+            {
+              "isDefault": true,
+              "name": {
+                "en": "Awesome variant",
+                "no": "Kul variant"
+              },
+              "sku": "awesome-variant",
+              "price": {
+                "default": 25,
+                "norway": 295
+              },
+              "stock": 99,
+              "images": [
+                {
+                  "src": "https://media.crystallize.com/crystallize_marketing/21/6/7/27/118bbb17a2719d4bd35cd661fddcceda_preview.png"
+                }
+              ],
+              "attributes": {
+                "size": "s",
+                "color": "black"
+              },
+              "externalReference": "some-external-system-id"
+            }
+          ],
+          "components": {
+            "summary": "A nice summary goes here",
+            "description": [
+              {
+                "title": "Awesome product",
+                "body": "This aweseome blablablablablabla"
+              }
+            ],
+            "Specs": [
+              {
+                "title": "spec section title",
+                "properties": {
+                  "height": "42",
+                  "width": "24"
+                }
+              }
+            ],
+            "example-boolean": true,
+            "example-numeric": {
+              "number": 42,
+              "unit": "kg"
+            },
+            "example-location": {
+              "lat": 2,
+              "long": 2
+            },
+            "example-properties-table": [
+              {
+                "title": "first section",
+                "properties": {
+                  "prop1": "it",
+                  "prop2": "works"
+                }
+              }
+            ],
+            "example-datetime": "2021",
+            "example-images": [
+              {
+                "src": "https://media.crystallize.com/bos-no-ecom-2/21/4/7/2/logo-noscale-cloudsvg-imagelogo-20180312094632.svg",
+                "altText": "The alt text goes here",
+                "caption": "Some cool rich text"
+              }
+            ],
+            "component-choice": {
+              "numeric": {
+                "number": 42,
+                "unit": "kg"
+              }
+            },
+            "content-chunk": [
+              {
+                "numeric": {
+                  "number": 99,
+                  "unit": "kg"
+                }
+              },
+              {
+                "numeric": {
+                  "number": 42,
+                  "unit": "kg"
+                }
+              }
+            ],
+            "related-products": [
+              {
+                "cataloguePath": "/existing-product"
+              }
+            ],
+            "selection": "red"
+          }
+        }
+      ]
+    }
+  ],
+  "grids": []
+}
