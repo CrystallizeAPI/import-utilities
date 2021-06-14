@@ -8,7 +8,7 @@ interface TenantSettings {
   defaultLanguage?: string
 }
 
-async function getTenantSettings(): Promise<TenantSettings> {
+export async function getTenantSettings(): Promise<TenantSettings> {
   const tenantId = getTenantId()
   const r = await callPIM({
     query: `
@@ -87,10 +87,6 @@ export async function setLanguages({
           }),
         })
 
-        if (result?.errors) {
-          console.log(JSON.stringify(result?.errors, null, 1))
-        }
-
         onUpdate({
           done: false,
           message: `${language.name}: ${result?.errors ? 'error' : 'added'}`,
@@ -134,10 +130,6 @@ export async function setLanguages({
         }
       `,
     })
-
-    if (result?.errors) {
-      console.log(JSON.stringify(result?.errors, null, 1))
-    }
 
     onUpdate({
       done: false,

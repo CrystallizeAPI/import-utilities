@@ -4,7 +4,7 @@ import { buildCreateVatTypeMutation } from '../../graphql'
 import { JsonSpec } from '../json-spec'
 import { callPIM, getTenantId, StepStatus } from './utils'
 
-async function getExistingVatTypes(): Promise<VatType[]> {
+export async function getExistingVatTypes(): Promise<VatType[]> {
   const tenantId = getTenantId()
   const r = await callPIM({
     query: `
@@ -69,10 +69,6 @@ export async function setVatTypes({
             },
           }),
         })
-
-        if (result?.errors) {
-          console.log(JSON.stringify(result?.errors, null, 1))
-        }
 
         onUpdate({
           done: false,

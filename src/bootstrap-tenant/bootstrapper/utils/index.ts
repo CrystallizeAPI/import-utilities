@@ -2,7 +2,6 @@ import {
   JSONLanguage,
   JSONPriceVariant,
   Shape,
-  JSONTranslation,
   JSONVatType,
 } from '../../json-spec'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
@@ -62,4 +61,13 @@ export function uploadFileFromUrl(
   url: string
 ): Promise<RemoteFileUploadResult> {
   return remoteFileUpload(url, getTenantId())
+}
+
+export function validShapeIdentifier(str: string) {
+  if (str.length <= 24) return str
+
+  const validIdentifier = str.substr(0, 11) + '-' + str.substr(str.length - 12)
+  console.log(`Truncating shape identifier "${str}" to "${validIdentifier}"`)
+
+  return validIdentifier
 }

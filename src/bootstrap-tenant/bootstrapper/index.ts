@@ -8,15 +8,17 @@ import {
   EVENT_NAMES,
   setAccessTokens,
   setTenantId,
+  setTenantIdentifier,
   StepStatus,
   TenantContext,
 } from './utils'
-import { setShapes } from './set-shapes'
-import { setPriceVariants } from './set-price-variants'
-import { setLanguages } from './set-languages'
-import { setVatTypes } from './set-vat-types'
-import { setTopics } from './set-topics'
-import { setItems } from './set-items'
+import { getExistingShapesForSpec, setShapes } from './shapes'
+import { setPriceVariants, getExistingPriceVariants } from './price-variants'
+import { setLanguages, getTenantSettings } from './languages'
+import { setVatTypes, getExistingVatTypes } from './vat-types'
+import { getAllTopicsForSpec, setTopics } from './topics'
+import { setItems } from './items'
+import { getAllCatalogueItems } from './utils/get-all-catalogue-items'
 
 export class Bootstrapper extends EventEmitter {
   CRYSTALLIZE_ACCESS_TOKEN_ID: string = ''
@@ -36,6 +38,7 @@ export class Bootstrapper extends EventEmitter {
   }
   setTenantIdentifier(tenantIdentifier: string) {
     this.tenantIdentifier = tenantIdentifier
+    setTenantIdentifier(this.tenantIdentifier)
   }
   async getTenantId() {
     const r = await callPIM({
@@ -63,16 +66,55 @@ export class Bootstrapper extends EventEmitter {
     }
     setTenantId(this.tenantId)
   }
-  async start() {
+  async createSpec(): Promise<JsonSpec> {
     await this.getTenantId()
-    await this.setLanguages()
-    await this.setShapes()
-    await this.setPriceVariants()
-    await this.setVatTypes()
-    // await this.setTopics()
-    await this.setItems()
 
-    this.emit(EVENT_NAMES.DONE)
+    const spec: JsonSpec = {}
+
+    const tenantLanguageSettings = await getTenantSettings()
+
+    // Languages
+    spec.languages = tenantLanguageSettings.availableLanguages.map((l) => ({
+      code: l.code,
+      name: l.name,
+      isDefault: l.code === tenantLanguageSettings.defaultLanguage,
+    }))
+    if (!spec.languages.some((l) => l.isDefault)) {
+      spec.languages[0].isDefault = true
+    }
+    const defaultLanguage =
+      spec.languages.find((s) => s.isDefault)?.code || 'en'
+
+    // VAT types
+    spec.vatTypes = await getExistingVatTypes()
+
+    // Price variants
+    spec.priceVariants = await getExistingPriceVariants()
+
+    // Topic maps (in just 1 language right now)
+    spec.topicMaps = await getAllTopicsForSpec(defaultLanguage)
+
+    // Shapes
+    spec.shapes = await getExistingShapesForSpec()
+
+    // Items
+    spec.items = await getAllCatalogueItems(defaultLanguage, spec.topicMaps)
+
+    return spec
+  }
+  async start() {
+    try {
+      await this.getTenantId()
+      await this.setLanguages()
+      await this.setShapes()
+      await this.setPriceVariants()
+      await this.setVatTypes()
+      await this.setTopics()
+      await this.setItems()
+      this.emit(EVENT_NAMES.DONE)
+    } catch (e) {
+      console.log(e)
+    }
   }
   async setShapes() {
     this.context.shapes = await setShapes({

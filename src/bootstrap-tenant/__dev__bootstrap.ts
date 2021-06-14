@@ -10,13 +10,22 @@ import { EVENT_NAMES } from './bootstrapper'
 function bootstrap() {
   const tenantIdentifier = 'furniture-hkn'
   const spec = readFileSync(
-    resolve(__dirname, '../../json-spec/furniture-with-more.json'),
+    resolve(__dirname, '../../json-spec/furniture-with-more-update-1.json'),
     'utf-8'
   )
 
-  console.log(`✨ Bootstrapping ${tenantIdentifier}... ✨`)
+  if (
+    !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
+    !process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
+  ) {
+    throw new Error(
+      'CRYSTALLIZE_ACCESS_TOKEN_ID and CRYSTALLIZE_ACCESS_TOKEN_SECRET must be set'
+    )
+  }
+
+  console.log(`✨ Bootstrapping ${tenantIdentifier} ✨`)
   const bootstrapper = bootstrapTenant({
-    tenantIdentifier: 'furniture-hkn',
+    tenantIdentifier,
     jsonSpec: JSON.parse(spec),
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
@@ -24,40 +33,40 @@ function bootstrap() {
   })
 
   bootstrapper.on(EVENT_NAMES.SHAPES_UPDATE, function (status) {
-    console.log(`.. Setting shapes... ${status.message}`)
+    console.log(`[Shapes] ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.SHAPES_DONE, function () {
-    console.log(`.. Setting shapes... ✓`)
+    console.log(`[Shapes] ✓`)
   })
   bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_UPDATE, function (status) {
-    console.log(`.. Setting price variants... ${status.message}`)
+    console.log(`[Price variants] ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_DONE, function () {
-    console.log(`.. Setting price variants... ✓`)
+    console.log(`[Price variants] ✓`)
   })
   bootstrapper.on(EVENT_NAMES.LANGUAGES_UPDATE, function (status) {
-    console.log(`.. Setting languages... ${status.message}`)
+    console.log(`[Languages] ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.LANGUAGES_DONE, function () {
-    console.log(`.. Setting languages... ✓`)
+    console.log(`[Languages] ✓`)
   })
   bootstrapper.on(EVENT_NAMES.VAT_TYPES_UPDATE, function (status) {
-    console.log(`.. Setting vat types... ${status.message}`)
+    console.log(`[Vat types] ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.VAT_TYPES_DONE, function () {
-    console.log(`.. Setting vat types... ✓`)
+    console.log(`[Vat types] ✓`)
   })
   bootstrapper.on(EVENT_NAMES.TOPICS_UPDATE, function (status) {
-    console.log(`.. Setting topics... ${status.message}`)
+    console.log(`[Topics] ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.TOPICS_DONE, function () {
-    console.log(`.. Setting topics... ✓`)
+    console.log(`[Topics] ✓`)
   })
   bootstrapper.on(EVENT_NAMES.ITEMS_UPDATE, function (status) {
-    console.log(`.. Setting items... ${status.message}`)
+    console.log(`Items ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.ITEMS_DONE, function () {
-    console.log(`.. Setting items... ✓`)
+    console.log(`Items ✓`)
   })
 
   bootstrapper.once(EVENT_NAMES.DONE, function (args) {

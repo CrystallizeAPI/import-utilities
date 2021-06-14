@@ -2,6 +2,11 @@ import fetch from 'node-fetch'
 
 let CRYSTALLIZE_ACCESS_TOKEN_ID = ''
 let CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
+let CRYSTALLIZE_TENANT_IDENTIFIER = ''
+
+export function setTenantIdentifier(identifier: string) {
+  CRYSTALLIZE_TENANT_IDENTIFIER = identifier
+}
 
 export function setAccessTokens(id?: string, secret?: string) {
   if (!id) {
@@ -14,12 +19,12 @@ export function setAccessTokens(id?: string, secret?: string) {
   CRYSTALLIZE_ACCESS_TOKEN_SECRET = secret
 }
 
-export interface IcallPIM {
+export interface IcallAPI {
   query: string
   variables?: any
 }
 
-export interface IcallPIMResult {
+export interface IcallAPIResult {
   data: null | Record<string, any>
   errors?: Record<string, any>[]
 }
@@ -29,20 +34,24 @@ export function sleep(ms: number) {
 }
 
 interface QueuedRequest {
-  props: IcallPIM
-  resolve: (value: IcallPIMResult) => void
+  props: IcallAPI
+  resolve: (value: IcallAPIResult) => void
 }
 
 // Only allow one request at a time to PIM
-class PIMApiManager {
+class ApiManager {
   queue: QueuedRequest[] = []
   status: 'idle' | 'working' = 'idle'
+  url: string = ''
+  graphQLErrors: any[] = []
+  networkErrors: any[] = []
 
-  constructor() {
+  constructor(url: string) {
+    this.url = url
     setInterval(() => this.work(), 25)
   }
 
-  push(props: IcallPIM): Promise<IcallPIMResult> {
+  push(props: IcallAPI): Promise<IcallAPIResult> {
     return new Promise((resolve) => {
       this.queue.push({
         resolve,
@@ -59,35 +68,57 @@ class PIMApiManager {
 
     const item = this.queue[0]
 
-    const response = await fetch(
-      'https://pim-dev.crystallize.digital/graphql',
-      {
-        method: 'post',
-        headers: {
-          'content-type': 'application/json',
-          'X-Crystallize-Access-Token-Id': CRYSTALLIZE_ACCESS_TOKEN_ID,
-          'X-Crystallize-Access-Token-Secret': CRYSTALLIZE_ACCESS_TOKEN_SECRET,
-        },
-        body: JSON.stringify(item.props),
-      }
-    )
+    const response = await fetch(this.url, {
+      method: 'post',
+      headers: {
+        'content-type': 'application/json',
+        'X-Crystallize-Access-Token-Id': CRYSTALLIZE_ACCESS_TOKEN_ID,
+        'X-Crystallize-Access-Token-Secret': CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+      },
+      body: JSON.stringify(item.props),
+    })
 
-    const json: IcallPIMResult = await response.json()
+    // Always sleep for some time between requests
+    await sleep(50)
+
+    // When failing, try again
+    if (!response.ok) {
+      this.status = 'idle'
+      this.networkErrors.push({
+        status: response.status,
+        statusText: response.statusText,
+      })
+      return
+    }
+
+    const json: IcallAPIResult = await response.json()
+
+    if (json.errors) {
+      this.graphQLErrors.push(json.errors)
+      console.log(JSON.stringify(json.errors, null, 1))
+    }
 
     item.resolve(json)
 
     // Remove item from queue
     this.queue.splice(0, 1)
 
-    // Always sleep for some time between requests
-    await sleep(250)
-
     this.status = 'idle'
   }
 }
 
-const MyPIMApiManager = new PIMApiManager()
+const MyPIMApiManager = new ApiManager('https://pim.crystallize.com/graphql')
 
-export function callPIM(props: IcallPIM) {
+export function callPIM(props: IcallAPI) {
   return MyPIMApiManager.push(props)
+}
+
+let MyCatalogueApiManager: ApiManager
+export function callCatalogue(props: IcallAPI) {
+  if (!MyCatalogueApiManager) {
+    MyCatalogueApiManager = new ApiManager(
+      `https://api.crystallize.com/${CRYSTALLIZE_TENANT_IDENTIFIER}/catalogue`
+    )
+  }
+  return MyCatalogueApiManager.push(props)
 }

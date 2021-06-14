@@ -1,4 +1,4 @@
-import { Shape } from '../../types'
+import { KeyValuePairInput, Shape } from '../../types'
 
 export { Shape } from '../../types'
 
@@ -39,51 +39,101 @@ export interface JSONRichTextStructured {
   html?: string
   json?: JSON
 }
-export type RichText = JSONRichTextStructured | string | null
+export type JSONRichText = JSONRichTextStructured | string | null
 export interface JSONImage {
   src: string
   key?: string
   mimeType?: string
   altText?: string
-  caption?: RichText
+  caption?: JSONRichText
 }
 
 export type JSONSingleLine = string
 
 export interface JSONParagraphCollection {
   title?: string
-  body: RichText
+  body: JSONRichText
   images?: JSONImage[]
 }
 export type JSONImages = JSONImage[]
 export type JSONBoolean = boolean
+export type JSONDateTime = string
+
+export interface JSONLocation {
+  lat: number
+  long: number
+}
+export interface JSONNumeric {
+  number: number
+  unit?: string
+}
+export interface JSONPropertiesTableSection {
+  title: string
+  properties?: Record<string, any>
+}
+export type JSONPropertiesTable = JSONPropertiesTableSection[]
+export interface JSONItemRelationConfig {
+  cataloguePath: string
+}
+export type JSONItemRelation = string | JSONItemRelationConfig
+export type JSONItemRelations = JSONItemRelation[]
+export type JSONSelection = string[] | string
 export type ComponentId = string
 
 export type JSONComponentContent =
   | JSONSingleLine
-  | RichText
+  | JSONRichText
   | JSONParagraphCollection[]
   | JSONImages
   | JSONBoolean
-  | JSONContentChunk
-  | JSONComponentChoice
+  | JSONDateTime
+  | JSONLocation
+  | JSONPropertiesTable
+  | JSONItemRelations
+  | JSONSelection
   | null
-export type JSONComponents = Record<ComponentId, JSONComponentContent>
-export interface JSONContentChunk {
-  repeatable: boolean
-  chunks: JSONComponents[]
-}
-export interface JSONComponentChoice {
-  selectedComponent?: JSONComponentContent
-}
+export type JSONComponents = Record<
+  ComponentId,
+  JSONComponentContent | JSONComponentChoice
+>
+export type JSONContentChunk = JSONComponents[]
+export type JSONComponentChoice = Record<string, JSONComponentContent>
 
-export interface JSONItem {
-  path?: string
+export type JSONItem = JSONProduct | JSONDocument | JSONFolder
+export type JSONStructuredTopic = {
+  hierarchy: string
+}
+export type JSONItemTopic = JSONStructuredTopic | string
+export interface JSONItemBase {
+  cataloguePath?: string
   id?: string
   name: JSONTranslation
   shape: string
-  components?: JSONComponents
+  components?: Record<string, JSONComponentContent>
+  topics?: JSONItemTopic[]
+  _componentsData?: Record<string, any>
+  _topicsData?: Record<string, string[]>
+}
+
+export interface JSONFolder extends JSONItemBase {
   children?: JSONItem[]
+}
+export interface JSONDocument extends JSONItemBase {}
+
+export interface JSONProductVariant {
+  isDefault?: boolean
+  name: JSONTranslation
+  sku: string
+  price: Record<string, number> | number
+  images?: JSONImage[]
+  stock?: number
+  attributes?: Record<string, string>
+  externalReference?: string
+}
+
+export interface JSONProduct extends JSONItemBase {
+  variants: JSONProductVariant[]
+  vatType: string
 }
 
 export interface JsonSpec {

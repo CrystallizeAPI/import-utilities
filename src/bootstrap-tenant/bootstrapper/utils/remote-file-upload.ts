@@ -4,7 +4,7 @@ import FormData from 'form-data'
 import fetch from 'node-fetch'
 import xmlJS from 'xml-js'
 import download from 'download'
-import fileType from 'file-type'
+import fileType, { FileTypeResult } from 'file-type'
 
 import { callPIM } from './api'
 
@@ -25,17 +25,30 @@ async function downloadFile(fileURL: string) {
   )
 
   const fileBuffer = await download(fileURL)
-  const contentType = await fileType.fromBuffer(fileBuffer)
 
-  if (!contentType || !(contentType.mime in mimeArray)) {
-    throw new Error(`Unsupported mime type "${contentType?.mime}}"`)
+  const fType = await fileType.fromBuffer(fileBuffer)
+  if (!fType) {
+    throw new Error(`Cannot determine filetype for "${fileURL}"`)
   }
 
-  const completeFilename = `${urlSafeFilename}.${contentType.ext}`
+  let contentType: MimeType | undefined | string = fType?.mime
+  let ext = fType.ext as string
+
+  // Override for SVG files that get wrong mime type back
+  if (fileURL.endsWith('.svg')) {
+    ext = 'svg'
+    contentType = 'image/svg+xml'
+  }
+
+  if (!contentType || !(contentType in mimeArray)) {
+    throw new Error(`Unsupported mime type "${contentType}"`)
+  }
+
+  const completeFilename = `${urlSafeFilename}.${ext}`
 
   return {
     filename: completeFilename,
-    contentType: contentType.mime,
+    contentType,
     file: fileBuffer,
   }
 }
@@ -109,7 +122,6 @@ export async function remoteFileUpload(
 
   const jsonResponse = JSON.parse(xmlJS.xml2json(await uploadResponse.text()))
 
-  // Return to caller if needed
   const attrs = jsonResponse.elements[0].elements.map((el: any) => ({
     name: el.name,
     value: el.elements[0].text,

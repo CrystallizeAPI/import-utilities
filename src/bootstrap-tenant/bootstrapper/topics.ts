@@ -30,6 +30,66 @@ const QUERY_SEARCH_TOPIC = `
   }
 `
 
+export async function getAllTopicsForSpec(
+  language: string
+): Promise<JSONTopic[]> {
+  const tenantId = getTenantId()
+
+  const r = await callPIM({
+    query: `
+      query GET_TENANT_ROOT_TOPICS($tenantId: ID!, $language: String!) {
+        topic {
+          getRootTopics(tenantId: $tenantId, language: $language) {
+            id
+            name
+            children {
+              id
+              name
+              children {
+                id
+                name
+                children {
+                  id
+                  name
+                  children {
+                    id
+                    name
+                    children {
+                      id
+                      name
+                      children {
+                        id
+                        name
+                        children {
+                          id
+                          name
+                          children {
+                            id
+                            name
+                            children {
+                              id
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }    
+    `,
+    variables: {
+      tenantId,
+      language,
+    },
+  })
+  return r.data?.topic?.getRootTopics || []
+}
+
 async function getExistingRootTopics(language: string): Promise<JSONTopic[]> {
   const tenantId = getTenantId()
 
@@ -114,10 +174,6 @@ async function createTopic(
       getNLevelTopics(20)
     ),
   })
-
-  if (response.errors) {
-    console.log(JSON.stringify(response.errors, null, 1))
-  }
 
   const createdTopic = response.data?.topic?.create
 
