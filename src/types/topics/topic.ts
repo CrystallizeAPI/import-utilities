@@ -6,3 +6,14 @@ export interface TopicInput {
   name: string
   children?: TopicChildInput[]
 }
+
+export interface TopicUpdateInputInput {
+  parentId?: string
+  name: string
+}
+
+export interface TopicUpdateInput {
+  id: string
+  language: string
+  input: TopicUpdateInputInput
+}

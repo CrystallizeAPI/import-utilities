@@ -16,3 +16,16 @@ export interface ShapeInput {
   meta?: KeyValuePairInput[]
   components?: ComponentInput[]
 }
+
+export interface ShapeUpdateInput {
+  id: string
+  identifier: string
+  tenantId: string
+  input: ShapeUpdateInputInput
+}
+
+export interface ShapeUpdateInputInput {
+  name?: string
+  meta?: KeyValuePairInput[]
+  components?: ComponentInput[]
+}

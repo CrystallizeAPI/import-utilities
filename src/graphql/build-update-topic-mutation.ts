@@ -1,9 +1,8 @@
 import { jsonToGraphQLQuery } from 'json-to-graphql-query'
-import { TopicInput } from '../types'
+import { TopicUpdateInput } from '../types'
 
-export const buildCreateTopicMutation = (
-  input: TopicInput,
-  language: string,
+export const buildUpdateTopicMutation = (
+  args: TopicUpdateInput,
   queryFields: Record<string, any> = {
     id: true,
     name: true
@@ -12,13 +11,8 @@ export const buildCreateTopicMutation = (
   const mutation = {
     mutation: {
       topic: {
-        create: {
-          __args: {
-            input: {
-              ...input,
-            },
-            language,
-          },
+        update: {
+          __args: args,
           ...queryFields
         },
       },

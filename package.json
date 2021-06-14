@@ -17,14 +17,29 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -p . --declaration",
-    "test": "ava"
+    "test": "ava",
+    "dev:spec": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__create-spec.ts\"",
+    "dev:spec:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__create-spec.ts\"",
+    "dev:bootstrapper": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
+    "dev:bootstrapper:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\""
   },
   "dependencies": {
-    "json-to-graphql-query": "^2.0.0"
+    "dotenv": "^10.0.0",
+    "download": "^8.0.0",
+    "file-type": "^16.5.0",
+    "form-data": "^4.0.0",
+    "json-to-graphql-query": "^2.0.0",
+    "node-fetch": "^2.6.1",
+    "slugify": "^1.5.3",
+    "xml-js": "^1.6.11"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
+    "@types/download": "^8.0.0",
+    "@types/node": "^15.6.1",
+    "@types/node-fetch": "^2.5.10",
     "ava": "^3.15.0",
+    "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.3"

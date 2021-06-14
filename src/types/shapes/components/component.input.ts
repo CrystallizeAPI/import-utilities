@@ -15,6 +15,7 @@ export const componentTypes = {
   richText: new EnumType('richText'),
   singleLine: new EnumType('singleLine'),
   videos: new EnumType('videos'),
+  selection: new EnumType('selection'),
 }
 
 export interface ComponentConfigInput {}
