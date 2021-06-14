@@ -214,6 +214,18 @@ async function createOrUpdateShape(
     })
 
     if (existingShape) {
+      existingShape.components.forEach((c) => {
+        if (!components.some((e) => e.id === c.id)) {
+          components.push({
+            id: c.id,
+            name: c.name,
+            type: getComponentType(c.type),
+            ...(c.description && { description: c.description }),
+            ...buildComponentConfigInput(c),
+          })
+        }
+      })
+
       const r = await callPIM({
         query: buildUpdateShapeMutation({
           id: existingShape.id,

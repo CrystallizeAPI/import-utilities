@@ -10,7 +10,7 @@ import { EVENT_NAMES } from './bootstrapper'
 function bootstrap() {
   const tenantIdentifier = 'furniture-hkn'
   const spec = readFileSync(
-    resolve(__dirname, '../../json-spec/furniture-with-more-update-1.json'),
+    resolve(__dirname, '../../json-spec/furniture.json'),
     'utf-8'
   )
 

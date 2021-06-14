@@ -179,7 +179,7 @@ export async function getAllCatalogueItems(
     return components
   }
 
-  return response.data?.catalogue?.children.map(handleItem) || []
+  return response.data?.catalogue?.children?.map(handleItem) || []
 }
 
 const QUERY = `
