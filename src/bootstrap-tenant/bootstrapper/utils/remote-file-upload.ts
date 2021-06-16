@@ -27,17 +27,17 @@ async function downloadFile(fileURL: string) {
   const fileBuffer = await download(fileURL)
 
   const fType = await fileType.fromBuffer(fileBuffer)
-  if (!fType) {
-    throw new Error(`Cannot determine filetype for "${fileURL}"`)
-  }
-
   let contentType: MimeType | undefined | string = fType?.mime
-  let ext = fType.ext as string
+  let ext = fType?.ext as string
 
-  // Override for SVG files that get wrong mime type back
+  // Override for SVG files that somtimes get wrong mime type back
   if (fileURL.endsWith('.svg')) {
     ext = 'svg'
     contentType = 'image/svg+xml'
+  }
+
+  if (!ext || !contentType) {
+    throw new Error(`Cannot determine filetype for "${fileURL}"`)
   }
 
   if (!contentType || !(contentType in mimeArray)) {

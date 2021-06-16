@@ -10,7 +10,7 @@ import { EVENT_NAMES } from './bootstrapper'
 function bootstrap() {
   const tenantIdentifier = 'furniture-hkn'
   const spec = readFileSync(
-    resolve(__dirname, '../../json-spec/furniture.json'),
+    resolve(__dirname, '../../json-spec/voyage.json'),
     'utf-8'
   )
 
@@ -63,10 +63,10 @@ function bootstrap() {
     console.log(`[Topics] ✓`)
   })
   bootstrapper.on(EVENT_NAMES.ITEMS_UPDATE, function (status) {
-    console.log(`Items ${status.message}`)
+    console.log(`[Items] ${status.message}`)
   })
   bootstrapper.on(EVENT_NAMES.ITEMS_DONE, function () {
-    console.log(`Items ✓`)
+    console.log(`[Items] ✓`)
   })
 
   bootstrapper.once(EVENT_NAMES.DONE, function (args) {

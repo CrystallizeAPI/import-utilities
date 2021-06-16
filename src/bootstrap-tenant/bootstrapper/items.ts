@@ -235,6 +235,7 @@ async function createImagesInput(
         image.key = uploadResult.key
         image.mimeType = uploadResult.mimeType
       } catch (e) {
+        console.log(e)
         console.log('Error: Could not upload image', image.src)
       }
     }
