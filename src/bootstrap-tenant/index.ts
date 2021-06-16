@@ -1,6 +1,8 @@
 import { JsonSpec } from './json-spec'
 import { Bootstrapper } from './bootstrapper'
 
+export { EVENT_NAMES } from './bootstrapper'
+
 interface BaseProps {
   tenantIdentifier: string
   CRYSTALLIZE_ACCESS_TOKEN_ID: string
