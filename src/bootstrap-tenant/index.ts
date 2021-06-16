@@ -1,5 +1,8 @@
 import { JsonSpec } from './json-spec'
-import { EVENT_NAMES as E, Bootstrapper } from './bootstrapper'
+import { Bootstrapper } from './bootstrapper'
+
+export { EVENT_NAMES } from './bootstrapper/utils'
+
 interface BaseProps {
   tenantIdentifier: string
   CRYSTALLIZE_ACCESS_TOKEN_ID: string
@@ -9,8 +12,6 @@ interface BaseProps {
 interface BootstrapperProps extends BaseProps {
   jsonSpec: JsonSpec
 }
-
-export const EVENT_NAMES = E
 
 export async function createJSONSpec(props: BaseProps): Promise<JsonSpec> {
   const bootstrapper = new Bootstrapper()
