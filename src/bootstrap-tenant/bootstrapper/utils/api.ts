@@ -79,7 +79,14 @@ class ApiManager {
     // Always sleep for some time between requests
     await sleep(50)
 
-    const json: IcallAPIResult = await response.json()
+    let json: IcallAPIResult
+    try {
+      json = await response.json()
+    } catch (e) {
+      console.log(e)
+      console.log(JSON.stringify(item.props, null, 1))
+      return
+    }
 
     if (json.errors) {
       console.log(JSON.stringify(item.props, null, 1))
