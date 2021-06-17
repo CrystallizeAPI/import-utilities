@@ -184,7 +184,7 @@ export async function getAllCatalogueItems(
 
 const QUERY = `
 query GET_ALL_CATALOGUE_ITEMS ($language: String!) {
-  catalogue(language: $language, path: "/", version: draft) {
+  catalogue(language: $language, path: "/) {
     children {
       ...item
       ...product
