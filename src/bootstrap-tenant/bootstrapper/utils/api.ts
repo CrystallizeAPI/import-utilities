@@ -43,8 +43,6 @@ class ApiManager {
   queue: QueuedRequest[] = []
   status: 'idle' | 'working' = 'idle'
   url: string = ''
-  graphQLErrors: any[] = []
-  networkErrors: any[] = []
 
   constructor(url: string) {
     this.url = url
@@ -81,21 +79,16 @@ class ApiManager {
     // Always sleep for some time between requests
     await sleep(50)
 
-    // When failing, try again
-    if (!response.ok) {
-      this.status = 'idle'
-      this.networkErrors.push({
-        status: response.status,
-        statusText: response.statusText,
-      })
-      return
-    }
-
     const json: IcallAPIResult = await response.json()
 
     if (json.errors) {
-      this.graphQLErrors.push(json.errors)
       console.log(JSON.stringify(json.errors, null, 1))
+    }
+
+    // When failing, try again
+    if (!response.ok) {
+      this.status = 'idle'
+      return
     }
 
     item.resolve(json)
