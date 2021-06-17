@@ -82,6 +82,7 @@ class ApiManager {
     const json: IcallAPIResult = await response.json()
 
     if (json.errors) {
+      console.log(JSON.stringify(item.props, null, 1))
       console.log(JSON.stringify(json.errors, null, 1))
     }
 
