@@ -95,6 +95,11 @@ async function getTenantRootItemId(): Promise<string> {
 }
 
 function publishItem(language: string, id: string) {
+  if (!id) {
+    console.log('cannot publish without id')
+    return Promise.resolve();
+  }
+
   return callPIM({
     query: `
       mutation PUBLISH_ITEM($id: ID!, $language: String!) {
