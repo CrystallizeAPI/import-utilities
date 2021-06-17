@@ -1,3 +1,7 @@
 export * from './graphql'
 export * from './types'
-export { bootstrapTenant, createJSONSpec } from './bootstrap-tenant'
+export {
+  bootstrapTenant,
+  createJSONSpec,
+  EVENT_NAMES,
+} from './bootstrap-tenant'
