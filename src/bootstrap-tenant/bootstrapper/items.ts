@@ -97,7 +97,7 @@ async function getTenantRootItemId(): Promise<string> {
 function publishItem(language: string, id: string) {
   if (!id) {
     console.log('cannot publish without id')
-    return Promise.resolve();
+    return Promise.resolve()
   }
 
   return callPIM({
@@ -274,9 +274,6 @@ async function createComponentsInput(
     componentDefinition: Component,
     component: JSONComponentContent
   ) {
-    if (!componentDefinition) {
-      debugger
-    }
     switch (componentDefinition.type) {
       case 'boolean': {
         const inp: BooleanComponentContentInput = {
@@ -506,15 +503,17 @@ async function createComponentsInput(
               (c: any) => c.id === componentId
             )
 
-            const content: any = await createComponentInput(
-              selectedComponentDefinition,
-              chunk[componentId]
-            )
-            if (content) {
-              newChunk.push({
-                componentId,
-                ...content,
-              })
+            if (selectedComponentDefinition) {
+              const content: any = await createComponentInput(
+                selectedComponentDefinition,
+                chunk[componentId]
+              )
+              if (content) {
+                newChunk.push({
+                  componentId,
+                  ...content,
+                })
+              }
             }
           }
           if (newChunk.length > 0) {

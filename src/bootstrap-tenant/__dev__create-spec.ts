@@ -7,7 +7,7 @@ import { resolve } from 'path'
 import { createJSONSpec } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'voyage'
+  const tenantIdentifier = 'furniture'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
