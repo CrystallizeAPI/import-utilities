@@ -66,21 +66,28 @@ class ApiManager {
 
     const item = this.queue[0]
 
-    const response = await fetch(this.url, {
-      method: 'post',
-      headers: {
-        'content-type': 'application/json',
-        'X-Crystallize-Access-Token-Id': CRYSTALLIZE_ACCESS_TOKEN_ID,
-        'X-Crystallize-Access-Token-Secret': CRYSTALLIZE_ACCESS_TOKEN_SECRET,
-      },
-      body: JSON.stringify(item.props),
-    })
+    let json: IcallAPIResult
 
     // Always sleep for some time between requests
     await sleep(50)
 
-    let json: IcallAPIResult
     try {
+      const response = await fetch(this.url, {
+        method: 'post',
+        headers: {
+          'content-type': 'application/json',
+          'X-Crystallize-Access-Token-Id': CRYSTALLIZE_ACCESS_TOKEN_ID,
+          'X-Crystallize-Access-Token-Secret': CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+        },
+        body: JSON.stringify(item.props),
+      })
+
+      // When failing, try again
+      if (!response.ok) {
+        this.status = 'idle'
+        return
+      }
+
       json = await response.json()
     } catch (e) {
       console.log(e)
@@ -91,12 +98,6 @@ class ApiManager {
     if (json.errors) {
       console.log(JSON.stringify(item.props, null, 1))
       console.log(JSON.stringify(json.errors, null, 1))
-    }
-
-    // When failing, try again
-    if (!response.ok) {
-      this.status = 'idle'
-      return
     }
 
     item.resolve(json)
