@@ -15,6 +15,7 @@ import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutat
 const QUERY_SEARCH_TOPIC = `
   query SEARCH_TOPIC ($tenantId: ID! $language: String!, $searchTerm: String!) {
     search {
+      first: 100
       topics (
         tenantId: $tenantId,
         language: $language
@@ -235,8 +236,11 @@ function updateTopic(topic: JSONTopic, context: TenantContext) {
       },
     })
 
-    const topicFromSearch =
-      existingTopicResponse?.data?.search?.topics?.edges?.[0]
+    const topicsFromSearch =
+      existingTopicResponse?.data?.search?.topics?.edges || []
+
+    // Search has references to old topics. Remove this when it's resolved
+    const topicFromSearch = topicsFromSearch[topicsFromSearch.length - 1]
 
     // Can't find this topic, let's create it
     if (!topicFromSearch) {
