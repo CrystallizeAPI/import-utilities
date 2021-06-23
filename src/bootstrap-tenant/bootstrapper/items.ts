@@ -626,7 +626,13 @@ export async function setItems({
     }
 
     async function updateForLanguage(language: string, itemId: string) {
-      if (!shape) {
+      if (!shape || !itemId) {
+        console.log(
+          'Cannot update',
+          getTranslation(item.name, language),
+          'for',
+          language
+        )
         return
       }
 
