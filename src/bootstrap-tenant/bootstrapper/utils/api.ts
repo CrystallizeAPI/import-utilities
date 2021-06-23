@@ -82,21 +82,22 @@ class ApiManager {
         body: JSON.stringify(item.props),
       })
 
+      json = await response.json()
+
       // When failing, try again
       if (!response.ok) {
+        console.log(JSON.stringify(item.props, null, 1))
+        console.log(JSON.stringify(json, null, 1))
         this.status = 'idle'
         return
       }
-
-      json = await response.json()
     } catch (e) {
-      console.log(e)
       console.log(JSON.stringify(item.props, null, 1))
+      console.log(e)
       return
     }
 
     if (json.errors) {
-      console.log(JSON.stringify(item.props, null, 1))
       console.log(JSON.stringify(json.errors, null, 1))
     }
 

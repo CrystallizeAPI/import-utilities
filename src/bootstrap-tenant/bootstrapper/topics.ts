@@ -15,7 +15,6 @@ import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutat
 const QUERY_SEARCH_TOPIC = `
   query SEARCH_TOPIC ($tenantId: ID! $language: String!, $searchTerm: String!) {
     search {
-      first: 100
       topics (
         tenantId: $tenantId,
         language: $language
@@ -227,29 +226,36 @@ async function createTopic(
 
 function updateTopic(topic: JSONTopic, context: TenantContext) {
   async function handleLevel(level: JSONTopic, parentId?: string) {
-    const existingTopicResponse = await callPIM({
-      query: QUERY_SEARCH_TOPIC,
-      variables: {
-        tenantId: getTenantId(),
-        language: context.defaultLanguage.code,
-        searchTerm: level.hierarchyPath,
-      },
-    })
+    console.log('handle level', level, parentId)
+    try {
+      const existingTopicResponse = await callPIM({
+        query: QUERY_SEARCH_TOPIC,
+        variables: {
+          tenantId: getTenantId(),
+          language: context.defaultLanguage.code,
+          searchTerm: level.hierarchyPath,
+        },
+      })
 
-    const topicsFromSearch =
-      existingTopicResponse?.data?.search?.topics?.edges || []
+      const topicsFromSearch =
+        existingTopicResponse?.data?.search?.topics?.edges || []
+      console.log('topicsFromSearch', topicsFromSearch.length)
 
-    // Search has references to old topics. Remove this when it's resolved
-    const topicFromSearch = topicsFromSearch[topicsFromSearch.length - 1]
+      // Search has references to old topics. Remove this when it's resolved
+      const topicFromSearch = topicsFromSearch[topicsFromSearch.length - 1]
+      console.log({ topicFromSearch })
 
-    // Can't find this topic, let's create it
-    if (!topicFromSearch) {
-      await createTopic(level, context, parentId)
-    } else if (level.children) {
-      level.id = topicFromSearch.node?.id
-      for (let i = 0; i < level.children.length; i++) {
-        await handleLevel(level.children[i], level.id)
+      // Can't find this topic, let's create it
+      if (!topicFromSearch) {
+        await createTopic(level, context, parentId)
+      } else if (level.children) {
+        level.id = topicFromSearch.node?.id
+        for (let i = 0; i < level.children.length; i++) {
+          await handleLevel(level.children[i], level.id)
+        }
       }
+    } catch (e) {
+      console.log(e)
     }
   }
 
