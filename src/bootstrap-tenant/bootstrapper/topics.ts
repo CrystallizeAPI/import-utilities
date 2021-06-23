@@ -226,7 +226,6 @@ async function createTopic(
 
 function updateTopic(topic: JSONTopic, context: TenantContext) {
   async function handleLevel(level: JSONTopic, parentId?: string) {
-    console.log('handle level', level, parentId)
     try {
       const existingTopicResponse = await callPIM({
         query: QUERY_SEARCH_TOPIC,
@@ -239,11 +238,9 @@ function updateTopic(topic: JSONTopic, context: TenantContext) {
 
       const topicsFromSearch =
         existingTopicResponse?.data?.search?.topics?.edges || []
-      console.log('topicsFromSearch', topicsFromSearch.length)
 
       // Search has references to old topics. Remove this when it's resolved
       const topicFromSearch = topicsFromSearch[topicsFromSearch.length - 1]
-      console.log({ topicFromSearch })
 
       // Can't find this topic, let's create it
       if (!topicFromSearch) {
