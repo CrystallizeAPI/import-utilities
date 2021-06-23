@@ -1,6 +1,6 @@
 {
   "name": "@crystallize/import-utilities",
-  "version": "0.16.14",
+  "version": "0.16.15",
   "main": "dist/index.js",
   "author": "Brendan Goodenough <brendan@goodenough.nz>",
   "files": [
