@@ -1,7 +1,7 @@
 import { TopicInput } from '../../types'
 import { buildCreateTopicMutation } from '../../graphql'
 
-import { JsonSpec, JSONTopic, JSONTranslation } from '../json-spec'
+import { JsonSpec, JSONTopic } from '../json-spec'
 import {
   callPIM,
   getTenantId,
@@ -11,24 +11,6 @@ import {
 } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
-
-const QUERY_SEARCH_TOPIC = `
-  query SEARCH_TOPIC ($tenantId: ID! $language: String!, $searchTerm: String!) {
-    search {
-      topics (
-        tenantId: $tenantId,
-        language: $language
-        searchTerm: $searchTerm
-      ) {
-        edges {
-          node {
-            id
-          }
-        }
-      }
-    }
-  }
-`
 
 export function removeTopicId(topic: JSONTopic): JSONTopic {
   const { id, children, ...rest } = topic
@@ -232,29 +214,40 @@ async function createTopic(
   return createdTopic
 }
 
-function updateTopic(topic: JSONTopic, context: TenantContext) {
+function updateTopic(
+  topic: JSONTopic,
+  context: TenantContext,
+  allTopics: JSONTopic[]
+) {
+  function findExistingTopic(
+    hierarchyPath: string | undefined
+  ): JSONTopic | null {
+    let existing = null
+
+    function handleTopic(topic: JSONTopic) {
+      if (topic.hierarchyPath === hierarchyPath) {
+        existing = topic
+      } else {
+        topic.children?.forEach(handleTopic)
+      }
+    }
+
+    if (hierarchyPath && allTopics) {
+      allTopics.forEach(handleTopic)
+    }
+
+    return existing
+  }
+
   async function handleLevel(level: JSONTopic, parentId?: string) {
     try {
-      const existingTopicResponse = await callPIM({
-        query: QUERY_SEARCH_TOPIC,
-        variables: {
-          tenantId: getTenantId(),
-          language: context.defaultLanguage.code,
-          searchTerm: level.hierarchyPath,
-        },
-      })
-
-      const topicsFromSearch =
-        existingTopicResponse?.data?.search?.topics?.edges || []
-
-      // Search has references to old topics. Remove this when it's resolved
-      const topicFromSearch = topicsFromSearch[topicsFromSearch.length - 1]
+      const existingTopic = findExistingTopic(level.hierarchyPath)
 
       // Can't find this topic, let's create it
-      if (!topicFromSearch) {
+      if (!existingTopic) {
         await createTopic(level, context, parentId)
       } else if (level.children) {
-        level.id = topicFromSearch.node?.id
+        level.id = existingTopic.id
         for (let i = 0; i < level.children.length; i++) {
           await handleLevel(level.children[i], level.id)
         }
@@ -265,6 +258,21 @@ function updateTopic(topic: JSONTopic, context: TenantContext) {
   }
 
   return handleLevel(topic)
+}
+
+function enrichWithHierarhyPath(topicMaps: JSONTopic[], language: string) {
+  topicMaps.forEach((topicMap) => {
+    function handleTopic(topic: JSONTopic, currentHierarchy: string[]) {
+      const hierarchy = [
+        ...currentHierarchy,
+        getTranslation(topic.name, language) || '',
+      ]
+      topic.hierarchyPath = hierarchy.join('/')
+      topic.parentHierarchyPath = currentHierarchy.join('/')
+      topic.children?.forEach((c) => handleTopic(c, hierarchy))
+    }
+    handleTopic(topicMap, [])
+  })
 }
 
 export interface Props {
@@ -283,18 +291,7 @@ export async function setTopics({
   }
 
   // Enrich the spec with hierachy paths
-  spec.topicMaps.forEach((topicMap) => {
-    function handleTopic(topic: JSONTopic, currentHierarchy: string[]) {
-      const hierarchy = [
-        ...currentHierarchy,
-        getTranslation(topic.name, context.defaultLanguage.code) || '',
-      ]
-      topic.hierarchyPath = hierarchy.join('/')
-      topic.parentHierarchyPath = currentHierarchy.join('/')
-      topic.children?.forEach((c) => handleTopic(c, hierarchy))
-    }
-    handleTopic(topicMap, [])
-  })
+  enrichWithHierarhyPath(spec.topicMaps, context.defaultLanguage.code)
 
   const existingRootTopics = await getExistingRootTopics(
     context.defaultLanguage.code
@@ -315,6 +312,7 @@ export async function setTopics({
     }
   })
 
+  // Create root topics for the missing ones
   if (missingTopicMaps.length > 0) {
     onUpdate({
       done: false,
@@ -322,6 +320,17 @@ export async function setTopics({
         .map((t) => getTranslation(t.name, context.defaultLanguage.code))
         .join(',')}`,
     })
+
+    for (let i = 0; i < missingTopicMaps.length; i++) {
+      onUpdate({
+        done: false,
+        message: `Creating topic map ${getTranslation(
+          missingTopicMaps[i].name,
+          context.defaultLanguage.code
+        )}...`,
+      })
+      await createTopic(missingTopicMaps[i], context)
+    }
   } else {
     onUpdate({
       done: false,
@@ -329,17 +338,9 @@ export async function setTopics({
     })
   }
 
-  // Create root topics for the missing ones
-  for (let i = 0; i < missingTopicMaps.length; i++) {
-    onUpdate({
-      done: false,
-      message: `Creating topic map ${getTranslation(
-        missingTopicMaps[i].name,
-        context.defaultLanguage.code
-      )}...`,
-    })
-    await createTopic(missingTopicMaps[i], context)
-  }
+  // Get all topics
+  const allTopics = await getAllTopicsForSpec(context.defaultLanguage.code)
+  enrichWithHierarhyPath(allTopics, context.defaultLanguage.code)
 
   // Add new topics for the existing topic maps
   for (let i = 0; i < existingTopicMaps.length; i++) {
@@ -350,6 +351,6 @@ export async function setTopics({
         context.defaultLanguage.code
       )}...`,
     })
-    await updateTopic(existingTopicMaps[i], context)
+    await updateTopic(existingTopicMaps[i], context, allTopics)
   }
 }
