@@ -16,9 +16,30 @@ import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
 import { setLanguages, getTenantSettings } from './languages'
 import { setVatTypes, getExistingVatTypes } from './vat-types'
-import { getAllTopicsForSpec, setTopics } from './topics'
+import { getAllTopicsForSpec, removeTopicId, setTopics } from './topics'
 import { setItems } from './items'
 import { getAllCatalogueItems } from './utils/get-all-catalogue-items'
+import { getAllGrids } from './utils/get-all-grids'
+
+export interface ICreateSpec {
+  shapes: boolean
+  grids: boolean
+  items: boolean
+  languages: boolean
+  priceVariants: boolean
+  vatTypes: boolean
+  topicMaps: boolean
+}
+
+export const createSpecDefaults = {
+  shapes: true,
+  grids: true,
+  items: true,
+  languages: true,
+  priceVariants: true,
+  vatTypes: true,
+  topicMaps: true,
+}
 
 export class Bootstrapper extends EventEmitter {
   CRYSTALLIZE_ACCESS_TOKEN_ID: string = ''
@@ -66,7 +87,7 @@ export class Bootstrapper extends EventEmitter {
     }
     setTenantId(this.tenantId)
   }
-  async createSpec(): Promise<JsonSpec> {
+  async createSpec(props: ICreateSpec = createSpecDefaults): Promise<JsonSpec> {
     await this.getTenantId()
 
     const spec: JsonSpec = {}
@@ -74,31 +95,58 @@ export class Bootstrapper extends EventEmitter {
     const tenantLanguageSettings = await getTenantSettings()
 
     // Languages
-    spec.languages = tenantLanguageSettings.availableLanguages.map((l) => ({
-      code: l.code,
-      name: l.name,
-      isDefault: l.code === tenantLanguageSettings.defaultLanguage,
-    }))
-    if (!spec.languages.some((l) => l.isDefault)) {
-      spec.languages[0].isDefault = true
+    const availableLanguages = tenantLanguageSettings.availableLanguages.map(
+      (l) => ({
+        code: l.code,
+        name: l.name,
+        isDefault: l.code === tenantLanguageSettings.defaultLanguage,
+      })
+    )
+    if (!availableLanguages.some((l) => l.isDefault)) {
+      availableLanguages[0].isDefault = true
     }
     const defaultLanguage =
-      spec.languages.find((s) => s.isDefault)?.code || 'en'
+      availableLanguages.find((s) => s.isDefault)?.code || 'en'
+
+    if (props.languages) {
+      spec.languages = availableLanguages
+    }
 
     // VAT types
-    spec.vatTypes = await getExistingVatTypes()
+    if (props.vatTypes) {
+      spec.vatTypes = await getExistingVatTypes()
+      spec.vatTypes.forEach((v) => {
+        delete v.id
+        // @ts-ignore
+        delete v.tenantId
+      })
+    }
 
     // Price variants
-    spec.priceVariants = await getExistingPriceVariants()
+    if (props.priceVariants) {
+      spec.priceVariants = await getExistingPriceVariants()
+    }
 
     // Topic maps (in just 1 language right now)
-    spec.topicMaps = await getAllTopicsForSpec(defaultLanguage)
+    const allTopicsWithIds = await getAllTopicsForSpec(defaultLanguage)
+    if (props.topicMaps) {
+      spec.topicMaps = allTopicsWithIds.map(removeTopicId)
+    }
 
     // Shapes
-    spec.shapes = await getExistingShapesForSpec()
+    if (props.shapes) {
+      spec.shapes = await getExistingShapesForSpec()
+    }
+
+    // Grids
+    if (props.grids) {
+      spec.grids = await getAllGrids(defaultLanguage)
+    }
 
     // Items
-    spec.items = await getAllCatalogueItems(defaultLanguage, spec.topicMaps)
+    if (props.items) {
+      spec.items = await getAllCatalogueItems(defaultLanguage, allTopicsWithIds)
+    }
 
     return spec
   }

@@ -39,7 +39,7 @@ function handlePropertiesTableSection(section: any) {
 
 export async function getAllCatalogueItems(
   language: string,
-  allTopics: JSONTopic[]
+  allTopics: JSONTopic[] = []
 ): Promise<JSONItem[]> {
   const response = await callCatalogue({
     query: QUERY,

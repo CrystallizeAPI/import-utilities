@@ -30,6 +30,14 @@ const QUERY_SEARCH_TOPIC = `
   }
 `
 
+export function removeTopicId(topic: JSONTopic): JSONTopic {
+  const { id, children, ...rest } = topic
+  return {
+    ...rest,
+    ...(children && { children: children.map(removeTopicId) }),
+  }
+}
+
 export async function getAllTopicsForSpec(
   language: string
 ): Promise<JSONTopic[]> {

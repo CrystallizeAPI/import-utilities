@@ -72,10 +72,10 @@ export interface JSONPropertiesTableSection {
   properties?: Record<string, any>
 }
 export type JSONPropertiesTable = JSONPropertiesTableSection[]
-export interface JSONItemRelationConfig {
+export interface JSONItemReference {
   cataloguePath: string
 }
-export type JSONItemRelation = string | JSONItemRelationConfig
+export type JSONItemRelation = string | JSONItemReference
 export type JSONItemRelations = JSONItemRelation[]
 export type JSONSelection = string[] | string
 export type ComponentId = string
@@ -136,6 +136,23 @@ export interface JSONProduct extends JSONItemBase {
   vatType: string
 }
 
+export interface JSONGridColumn {
+  item: JSONItemReference
+  layout: {
+    rowspan: number
+    colspan: number
+  }
+}
+
+export interface JSONGridRow {
+  columns: JSONGridColumn[]
+}
+
+export interface JSONGrid {
+  name: JSONTranslation
+  rows: JSONGridRow[]
+}
+
 export interface JsonSpec {
   shapes?: Shape[]
   priceVariants?: JSONPriceVariant[]
@@ -143,4 +160,5 @@ export interface JsonSpec {
   vatTypes?: JSONVatType[]
   topicMaps?: JSONTopic[]
   items?: JSONItem[]
+  grids?: JSONGrid[]
 }
