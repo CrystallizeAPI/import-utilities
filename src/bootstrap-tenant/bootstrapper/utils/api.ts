@@ -45,7 +45,7 @@ interface QueuedRequest {
 class ApiManager {
   queue: QueuedRequest[] = []
   url: string = ''
-  maxWorkers: number = 2
+  maxWorkers: number = 3
 
   constructor(url: string) {
     this.url = url
