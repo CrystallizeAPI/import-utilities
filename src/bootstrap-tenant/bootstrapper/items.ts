@@ -799,23 +799,23 @@ export async function setItems({
     }
 
     if (!item.id) {
-      onUpdate({
-        done: false,
-        message: `Creating ${getTranslation(
-          item.name,
-          context.defaultLanguage.code
-        )}`,
-      })
       item.id = (await createOrUpdateItem(item, parentId || rootItemId)) as string
-    } else {
       onUpdate({
         done: false,
-        message: `Updating ${getTranslation(
+        message: `Created ${getTranslation(
           item.name,
           context.defaultLanguage.code
         )}`,
       })
+    } else {
       await createOrUpdateItem(item, parentId || rootItemId)
+      onUpdate({
+        done: false,
+        message: `Updated ${getTranslation(
+          item.name,
+          context.defaultLanguage.code
+        )}`,
+      })
     }
 
     if (item.id && 'children' in item) {
