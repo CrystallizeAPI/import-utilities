@@ -37,6 +37,7 @@ export function sleep(ms: number) {
 interface QueuedRequest {
   id: string
   props: IcallAPI
+  failCount: number
   resolve: (value: IcallAPIResult) => void
   working?: boolean
 }
@@ -45,7 +46,7 @@ interface QueuedRequest {
 class ApiManager {
   queue: QueuedRequest[] = []
   url: string = ''
-  maxWorkers: number = 5;
+  maxWorkers: number = 2;
 
   constructor(url: string) {
     this.url = url
@@ -58,6 +59,7 @@ class ApiManager {
         id: uuid(),
         resolve,
         props,
+        failCount: 0
       })
     })
   }
@@ -78,7 +80,7 @@ class ApiManager {
     let json: IcallAPIResult | undefined
 
     // Always sleep for some time between requests
-    await sleep(100)
+    await sleep(50)
 
     let errorString: string = '';
 
@@ -107,8 +109,12 @@ class ApiManager {
       errorString = JSON.stringify(json.errors, null, 1);
     }
     if (errorString || !json) {
-      console.log(JSON.stringify(item.props, null, 1))
-      console.log(errorString);
+      item.failCount++;
+      
+      if (item.failCount > 5) {
+        console.log(JSON.stringify(item.props, null, 1))
+        console.log(errorString);
+      }
       item.working = false;
     } else {
       item.resolve(json)

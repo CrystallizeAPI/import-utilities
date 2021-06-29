@@ -66,6 +66,7 @@ type uploadFileRecord = {
 type fileUploadQueueItem = {
   url: string
   status: string
+  failCount?: number
   resolve: (result: RemoteFileUploadResult) => void
   reject: (r: any) => void
 }
@@ -97,9 +98,18 @@ class FileUploadManager {
       item.resolve(result);
       item.status = 'done';
     } catch (e) {
-      debugger;
-      item.reject(e)
-      item.status = 'not-started';
+      if (!item.failCount) {
+        item.failCount = 0;
+      }
+      item.failCount++;
+      
+      // Allow for 5 fails
+      if (item.failCount > 5) {
+        item.reject(e)
+        item.status = 'done';
+      } else {
+        item.status = 'not-started';
+      }
     }
   }
 
