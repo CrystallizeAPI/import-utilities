@@ -543,7 +543,10 @@ async function createComponentsInput(
   return input
 }
 
-async function getItemIdFromCataloguePath(path: string, language: string) : Promise<string> {
+async function getItemIdFromCataloguePath(
+  path: string,
+  language: string
+): Promise<string> {
   const response = await callCatalogue({
     query: `
       query GET_ID_FROM_PATH ($path: String, $language: String) {
@@ -554,42 +557,41 @@ async function getItemIdFromCataloguePath(path: string, language: string) : Prom
     `,
     variables: {
       path,
-      language
-    }
+      language,
+    },
   })
 
   return response.data?.catalogue?.id || ''
 }
 
-function getAllImageUrls(items: JSONItem[]) : string[] {
-  const allImageUrls: string[] = [];
+function getAllImageUrls(items: JSONItem[]): string[] {
+  const allImageUrls: string[] = []
   function handleItem(item: any) {
-    if (!item) {
-      return;
+    if (!item) {
+      return
     }
 
     Object.values(item).forEach((value: any) => {
-      if (!value) {
-        return;
+      if (!value) {
+        return
       }
 
-      if (typeof value === 'object') {
+      if (typeof value === 'object') {
         // Check for image signature
         if ('src' in value && 'altText' in value) {
-          allImageUrls.push(value.src);
+          allImageUrls.push(value.src)
         } else {
           Object.values(value).forEach(handleItem)
         }
-      } 
-      else if (Array.isArray(value)) {
+      } else if (Array.isArray(value)) {
         value.forEach(handleItem)
       }
     })
   }
 
-  items.forEach(handleItem);
+  items.forEach(handleItem)
 
-  return allImageUrls;
+  return allImageUrls
 }
 
 export async function setItems({
@@ -607,8 +609,13 @@ export async function setItems({
    * First off, let's start uploading all the images
    * in parallel with all the other PIM mutations
    */
-  const allImageUrls = getAllImageUrls(spec.items);
-  allImageUrls.forEach(uploadFileFromUrl);
+  const allImageUrls = getAllImageUrls(spec.items)
+  allImageUrls.forEach(uploadFileFromUrl)
+
+  onUpdate({
+    done: false,
+    message: `Initiating upload of ${allImageUrls.length} image(s)`,
+  })
 
   async function createOrUpdateItem(
     item: JSONItem,
@@ -765,7 +772,7 @@ export async function setItems({
       return inp
     }
 
-    let itemId = item.id;
+    let itemId = item.id
 
     if (itemId) {
       await updateForLanguage(context.defaultLanguage.code, itemId)
@@ -795,11 +802,17 @@ export async function setItems({
 
   async function handleItem(item: JSONItem, parentId?: string) {
     if (item.cataloguePath) {
-      item.id = await getItemIdFromCataloguePath(item.cataloguePath, context.defaultLanguage.code);
+      item.id = await getItemIdFromCataloguePath(
+        item.cataloguePath,
+        context.defaultLanguage.code
+      )
     }
 
     if (!item.id) {
-      item.id = (await createOrUpdateItem(item, parentId || rootItemId)) as string
+      item.id = (await createOrUpdateItem(
+        item,
+        parentId || rootItemId
+      )) as string
       onUpdate({
         done: false,
         message: `Created ${getTranslation(
@@ -822,7 +835,9 @@ export async function setItems({
       const itm = item as JSONFolder
 
       if (itm.children) {
-        await Promise.all(itm.children.map(child => handleItem(child, itm.id)))
+        await Promise.all(
+          itm.children.map((child) => handleItem(child, itm.id))
+        )
         // for (let i = 0; i < itm.children.length; i++) {
         //   await handleItem(itm.children[i], itm.id)
         // }

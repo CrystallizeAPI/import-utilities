@@ -73,7 +73,7 @@ type fileUploadQueueItem = {
 
 class FileUploadManager {
   uploads: uploadFileRecord[] = []
-  maxWorkers: number = 5
+  maxWorkers: number = 2
   workerQueue: fileUploadQueueItem[] = []
 
   constructor() {
@@ -81,34 +81,36 @@ class FileUploadManager {
   }
 
   async work() {
-    const currentWorkers = this.workerQueue.filter((q) => q.status === 'working').length
+    const currentWorkers = this.workerQueue.filter(
+      (q) => q.status === 'working'
+    ).length
     if (currentWorkers === this.maxWorkers) {
       return
     }
-    
+
     const item = this.workerQueue.find((q) => q.status === 'not-started')
     if (!item) {
       return
     }
 
-    item.status = 'working';
+    item.status = 'working'
 
     try {
-      const result = await remoteFileUpload(item.url, getTenantId());
-      item.resolve(result);
-      item.status = 'done';
+      const result = await remoteFileUpload(item.url, getTenantId())
+      item.resolve(result)
+      item.status = 'done'
     } catch (e) {
       if (!item.failCount) {
-        item.failCount = 0;
+        item.failCount = 0
       }
-      item.failCount++;
-      
+      item.failCount++
+
       // Allow for 5 fails
       if (item.failCount > 5) {
         item.reject(e)
-        item.status = 'done';
+        item.status = 'done'
       } else {
-        item.status = 'not-started';
+        item.status = 'not-started'
       }
     }
   }

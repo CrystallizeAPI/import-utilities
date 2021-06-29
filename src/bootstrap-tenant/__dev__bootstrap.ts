@@ -69,8 +69,10 @@ function bootstrap() {
     console.log(`[Items] ✓`)
   })
 
-  bootstrapper.once(EVENT_NAMES.DONE, function (args) {
-    console.log(`✓ Done bootstrapping ${tenantIdentifier}`)
+  bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
+    console.log(
+      `✓ Done bootstrapping ${tenantIdentifier}. Duration: ${duration}`
+    )
   })
 }
 

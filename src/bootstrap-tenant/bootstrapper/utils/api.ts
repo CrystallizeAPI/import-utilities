@@ -1,5 +1,5 @@
 import fetch from 'node-fetch'
-import { v4 as uuid} from 'uuid'
+import { v4 as uuid } from 'uuid'
 
 let CRYSTALLIZE_ACCESS_TOKEN_ID = ''
 let CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
@@ -42,11 +42,10 @@ interface QueuedRequest {
   working?: boolean
 }
 
-// Only allow one request at a time to PIM
 class ApiManager {
   queue: QueuedRequest[] = []
   url: string = ''
-  maxWorkers: number = 2;
+  maxWorkers: number = 2
 
   constructor(url: string) {
     this.url = url
@@ -59,30 +58,30 @@ class ApiManager {
         id: uuid(),
         resolve,
         props,
-        failCount: 0
+        failCount: 0,
       })
     })
   }
 
   async work() {
-    const currentWorkers = this.queue.filter(q => q.working).length;
+    const currentWorkers = this.queue.filter((q) => q.working).length
     if (currentWorkers === this.maxWorkers) {
       return
     }
 
-    const item = this.queue.find(q => !q.working);
+    const item = this.queue.find((q) => !q.working)
     if (!item) {
-      return;
+      return
     }
 
-    item.working = true;
+    item.working = true
 
     let json: IcallAPIResult | undefined
 
     // Always sleep for some time between requests
     await sleep(50)
 
-    let errorString: string = '';
+    let errorString: string = ''
 
     try {
       const response = await fetch(this.url, {
@@ -99,28 +98,40 @@ class ApiManager {
 
       // When failing, try again
       if (!response.ok) {
-        errorString = JSON.stringify(json, null, 1);
+        errorString = JSON.stringify(json, null, 1)
       }
     } catch (e) {
-      errorString = JSON.stringify(e, null, 1);
+      errorString = JSON.stringify(e, null, 1)
     }
-    
+
     if (json?.errors) {
-      errorString = JSON.stringify(json.errors, null, 1);
+      errorString = JSON.stringify(json.errors, null, 1)
     }
     if (errorString || !json) {
-      item.failCount++;
-      
+      item.failCount++
+
       if (item.failCount > 5) {
         console.log(JSON.stringify(item.props, null, 1))
-        console.log(errorString);
+        console.log(errorString)
+
+        /**
+         * Reduce the amount of workers to lessen the
+         * toll on the API
+         */
+        this.maxWorkers--
+        if (this.maxWorkers < 1) {
+          this.maxWorkers = 1
+        }
       }
-      item.working = false;
+      item.working = false
     } else {
       item.resolve(json)
-  
+
       // Remove item from queue
-      this.queue.splice(this.queue.findIndex(q => q.id === item.id), 1)
+      this.queue.splice(
+        this.queue.findIndex((q) => q.id === item.id),
+        1
+      )
     }
   }
 }

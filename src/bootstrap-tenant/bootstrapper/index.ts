@@ -1,6 +1,8 @@
 import { EventEmitter } from 'events'
+// @ts-ignore
+import Duration from 'duration'
 
-import { JsonSpec, JSONPriceVariant, JSONVatType } from '../json-spec'
+import { JsonSpec } from '../json-spec'
 
 export * from './utils'
 import {
@@ -152,6 +154,8 @@ export class Bootstrapper extends EventEmitter {
   }
   async start() {
     try {
+      const start = new Date()
+
       await this.getTenantId()
       await this.setLanguages()
       await this.setShapes()
@@ -159,7 +163,9 @@ export class Bootstrapper extends EventEmitter {
       await this.setVatTypes()
       await this.setTopics()
       await this.setItems()
-      this.emit(EVENT_NAMES.DONE)
+      this.emit(EVENT_NAMES.DONE, {
+        duration: new Duration(start, new Date()).toString(1),
+      })
     } catch (e) {
       console.log(e)
     }
