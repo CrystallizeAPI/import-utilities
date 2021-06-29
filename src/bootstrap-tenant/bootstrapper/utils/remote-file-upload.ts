@@ -66,7 +66,7 @@ const mimeArray = {
 export interface RemoteFileUploadResult {
   mimeType: string
   key: string
-}
+} 
 
 export async function remoteFileUpload(
   fileUrl: string,
@@ -117,7 +117,7 @@ export async function remoteFileUpload(
   })
 
   if (uploadResponse.status !== 201) {
-    throw new Error('Cannot upload file')
+    throw new Error('Cannot upload ' + fileUrl)
   }
 
   const jsonResponse = JSON.parse(xmlJS.xml2json(await uploadResponse.text()))

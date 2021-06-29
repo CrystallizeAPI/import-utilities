@@ -561,6 +561,37 @@ async function getItemIdFromCataloguePath(path: string, language: string) : Prom
   return response.data?.catalogue?.id || ''
 }
 
+function getAllImageUrls(items: JSONItem[]) : string[] {
+  const allImageUrls: string[] = [];
+  function handleItem(item: any) {
+    if (!item) {
+      return;
+    }
+
+    Object.values(item).forEach((value: any) => {
+      if (!value) {
+        return;
+      }
+
+      if (typeof value === 'object') {
+        // Check for image signature
+        if ('src' in value && 'altText' in value) {
+          allImageUrls.push(value.src);
+        } else {
+          Object.values(value).forEach(handleItem)
+        }
+      } 
+      else if (Array.isArray(value)) {
+        value.forEach(handleItem)
+      }
+    })
+  }
+
+  items.forEach(handleItem);
+
+  return allImageUrls;
+}
+
 export async function setItems({
   spec,
   onUpdate,
@@ -569,6 +600,15 @@ export async function setItems({
   if (!spec?.items) {
     return
   }
+
+  const rootItemId = await getTenantRootItemId()
+
+  /**
+   * First off, let's start uploading all the images
+   * in parallel with all the other PIM mutations
+   */
+  const allImageUrls = getAllImageUrls(spec.items);
+  allImageUrls.forEach(uploadFileFromUrl);
 
   async function createOrUpdateItem(
     item: JSONItem,
@@ -752,8 +792,6 @@ export async function setItems({
 
     return itemId
   }
-
-  const rootItemId = await getTenantRootItemId()
 
   async function handleItem(item: JSONItem, parentId?: string) {
     if (item.cataloguePath) {

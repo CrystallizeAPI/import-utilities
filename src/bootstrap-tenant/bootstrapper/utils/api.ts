@@ -49,7 +49,7 @@ class ApiManager {
 
   constructor(url: string) {
     this.url = url
-    setInterval(() => this.work(), 5)
+    setInterval(() => this.work(), 25)
   }
 
   push(props: IcallAPI): Promise<IcallAPIResult> {
@@ -75,11 +75,10 @@ class ApiManager {
 
     item.working = true;
 
-
     let json: IcallAPIResult | undefined
 
     // Always sleep for some time between requests
-    await sleep(50)
+    await sleep(100)
 
     let errorString: string = '';
 
