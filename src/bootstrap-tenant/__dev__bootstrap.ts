@@ -8,9 +8,9 @@ import { bootstrapTenant } from './index'
 import { EVENT_NAMES } from './bootstrapper'
 
 function bootstrap() {
-  const tenantIdentifier = 'hkn-bos'
+  const tenantIdentifier = 'furniture-hkn'
   const spec = readFileSync(
-    resolve(__dirname, '../../json-spec/hkn-bos.json'),
+    resolve(__dirname, '../../json-spec/furniture.json'),
     'utf-8'
   )
 

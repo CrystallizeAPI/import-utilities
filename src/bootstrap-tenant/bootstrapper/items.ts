@@ -1,32 +1,24 @@
-import { EnumType } from 'json-to-graphql-query'
-
 import {
   BooleanComponentContentInput,
   Component,
   ComponentChoiceComponentContentInput,
   ComponentContentInput,
   ContentChunkComponentContentInput,
-  CreateItemInput,
-  CreateProductInput,
   CreateProductVariantInput,
   DateTimeComponentContentInput,
   GridRelationsComponentContentInput,
   ImageComponentContentInput,
   ImagesComponentContentInput,
   ItemRelationsComponentContentInput,
-  ItemRelationsContentInput,
   ItemType,
   KeyValuePairInput,
-  Language,
   LocationComponentContentInput,
   NumericComponentContentInput,
   ParagraphCollectionComponentContentInput,
   PropertiesTableComponentContentInput,
-  RichTextComponentContentInput,
   RichTextContentInput,
   SelectionComponentContentInput,
   Shape,
-  shapeTypes,
   SingleLineComponentContentInput,
   VideosComponentContentInput,
 } from '../../types'
@@ -35,11 +27,8 @@ import { buildCreateItemMutation, buildUpdateItemMutation } from '../../graphql'
 import {
   JSONItem,
   JSONParagraphCollection,
-  JSONSingleLine,
   JsonSpec,
   JSONRichText,
-  JSONRichTextStructured,
-  JSONTranslation,
   JSONImages,
   JSONFolder,
   JSONProduct,
@@ -53,7 +42,6 @@ import {
   JSONContentChunk,
   JSONItemRelations,
   JSONItemRelation,
-  JSONTopic,
   JSONItemTopic,
   JSONSelection,
 } from '../json-spec'
@@ -555,6 +543,24 @@ async function createComponentsInput(
   return input
 }
 
+async function getItemIdFromCataloguePath(path: string, language: string) : Promise<string> {
+  const response = await callCatalogue({
+    query: `
+      query GET_ID_FROM_PATH ($path: String, $language: String) {
+        catalogue(path: $path, language: $language) {
+          id
+        }
+      }
+    `,
+    variables: {
+      path,
+      language
+    }
+  })
+
+  return response.data?.catalogue?.id || ''
+}
+
 export async function setItems({
   spec,
   onUpdate,
@@ -564,7 +570,7 @@ export async function setItems({
     return
   }
 
-  async function createItem(
+  async function createOrUpdateItem(
     item: JSONItem,
     parentId: string
   ): Promise<string | null> {
@@ -719,8 +725,18 @@ export async function setItems({
       return inp
     }
 
-    const response = await createForLanguage(context.defaultLanguage.code)
-    const itemId = response?.data?.[shape?.type]?.create?.id
+    let itemId = item.id;
+
+    if (itemId) {
+      await updateForLanguage(context.defaultLanguage.code, itemId)
+    } else {
+      const response = await createForLanguage(context.defaultLanguage.code)
+      itemId = response?.data?.[shape?.type]?.create?.id
+    }
+
+    if (!itemId) {
+      throw new Error('Could not create or update item')
+    }
 
     await publishItem(context.defaultLanguage.code, itemId)
 
@@ -740,25 +756,38 @@ export async function setItems({
   const rootItemId = await getTenantRootItemId()
 
   async function handleItem(item: JSONItem, parentId?: string) {
-    onUpdate({
-      done: false,
-      message: `Creating ${getTranslation(
-        item.name,
-        context.defaultLanguage.code
-      )}`,
-    })
-    const itemId = await createItem(item, parentId || rootItemId)
+    if (item.cataloguePath) {
+      item.id = await getItemIdFromCataloguePath(item.cataloguePath, context.defaultLanguage.code);
+    }
 
-    // The id will be used later for updating relations
-    item.id = itemId as string
+    if (!item.id) {
+      onUpdate({
+        done: false,
+        message: `Creating ${getTranslation(
+          item.name,
+          context.defaultLanguage.code
+        )}`,
+      })
+      item.id = (await createOrUpdateItem(item, parentId || rootItemId)) as string
+    } else {
+      onUpdate({
+        done: false,
+        message: `Updating ${getTranslation(
+          item.name,
+          context.defaultLanguage.code
+        )}`,
+      })
+      await createOrUpdateItem(item, parentId || rootItemId)
+    }
 
-    if (itemId && 'children' in item) {
+    if (item.id && 'children' in item) {
       const itm = item as JSONFolder
 
       if (itm.children) {
-        for (let i = 0; i < itm.children.length; i++) {
-          await handleItem(itm.children[i], itemId)
-        }
+        await Promise.all(itm.children.map(child => handleItem(child, itm.id)))
+        // for (let i = 0; i < itm.children.length; i++) {
+        //   await handleItem(itm.children[i], itm.id)
+        // }
       }
     }
   }

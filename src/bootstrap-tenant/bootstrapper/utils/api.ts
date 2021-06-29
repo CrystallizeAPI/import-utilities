@@ -1,4 +1,5 @@
 import fetch from 'node-fetch'
+import { v4 as uuid} from 'uuid'
 
 let CRYSTALLIZE_ACCESS_TOKEN_ID = ''
 let CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
@@ -34,24 +35,27 @@ export function sleep(ms: number) {
 }
 
 interface QueuedRequest {
+  id: string
   props: IcallAPI
   resolve: (value: IcallAPIResult) => void
+  working?: boolean
 }
 
 // Only allow one request at a time to PIM
 class ApiManager {
   queue: QueuedRequest[] = []
-  status: 'idle' | 'working' = 'idle'
   url: string = ''
+  maxWorkers: number = 5;
 
   constructor(url: string) {
     this.url = url
-    setInterval(() => this.work(), 25)
+    setInterval(() => this.work(), 5)
   }
 
   push(props: IcallAPI): Promise<IcallAPIResult> {
     return new Promise((resolve) => {
       this.queue.push({
+        id: uuid(),
         resolve,
         props,
       })
@@ -59,17 +63,25 @@ class ApiManager {
   }
 
   async work() {
-    if (this.status === 'working' || this.queue.length === 0) {
+    const currentWorkers = this.queue.filter(q => q.working).length;
+    if (currentWorkers === this.maxWorkers) {
       return
     }
-    this.status = 'working'
 
-    const item = this.queue[0]
+    const item = this.queue.find(q => !q.working);
+    if (!item) {
+      return;
+    }
 
-    let json: IcallAPIResult
+    item.working = true;
+
+
+    let json: IcallAPIResult | undefined
 
     // Always sleep for some time between requests
     await sleep(50)
+
+    let errorString: string = '';
 
     try {
       const response = await fetch(this.url, {
@@ -86,27 +98,25 @@ class ApiManager {
 
       // When failing, try again
       if (!response.ok) {
-        console.log(JSON.stringify(item.props, null, 1))
-        console.log(JSON.stringify(json, null, 1))
-        this.status = 'idle'
-        return
+        errorString = JSON.stringify(json, null, 1);
       }
     } catch (e) {
+      errorString = JSON.stringify(e, null, 1);
+    }
+    
+    if (json?.errors) {
+      errorString = JSON.stringify(json.errors, null, 1);
+    }
+    if (errorString || !json) {
       console.log(JSON.stringify(item.props, null, 1))
-      console.log(e)
-      return
+      console.log(errorString);
+      item.working = false;
+    } else {
+      item.resolve(json)
+  
+      // Remove item from queue
+      this.queue.splice(this.queue.findIndex(q => q.id === item.id), 1)
     }
-
-    if (json.errors) {
-      console.log(JSON.stringify(json.errors, null, 1))
-    }
-
-    item.resolve(json)
-
-    // Remove item from queue
-    this.queue.splice(0, 1)
-
-    this.status = 'idle'
   }
 }
 
