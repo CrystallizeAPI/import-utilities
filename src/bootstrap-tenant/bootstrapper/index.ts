@@ -159,11 +159,11 @@ export class Bootstrapper extends EventEmitter {
 
       await this.getTenantId()
       await this.setLanguages()
-      // await this.setShapes()
-      // await this.setPriceVariants()
-      // await this.setVatTypes()
+      await this.setShapes()
+      await this.setPriceVariants()
+      await this.setVatTypes()
       // await this.setTopics()
-      // await this.setItems()
+      await this.setItems()
       await this.setGrids()
       this.emit(EVENT_NAMES.DONE, {
         duration: new Duration(start, new Date()).toString(1),

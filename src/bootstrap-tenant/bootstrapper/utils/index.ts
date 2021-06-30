@@ -63,14 +63,14 @@ export function getTranslation(translation?: any, language?: string): string {
 
 type uploadFileRecord = {
   url: string
-  result: Promise<RemoteFileUploadResult>
+  result: Promise<RemoteFileUploadResult | null>
 }
 
 type fileUploadQueueItem = {
   url: string
   status: string
   failCount?: number
-  resolve: (result: RemoteFileUploadResult) => void
+  resolve: (result: RemoteFileUploadResult | null) => void
   reject: (r: any) => void
 }
 
@@ -123,7 +123,9 @@ class FileUploadManager {
     if (existing) {
       return existing.result
     }
-
+    if (url.endsWith('.m3u8')) {
+      console.log('schedule to upload', url)
+    }
     const result = this.scheduleUpload(url)
 
     this.uploads.push({
@@ -134,7 +136,7 @@ class FileUploadManager {
     return result
   }
 
-  scheduleUpload(url: string): Promise<RemoteFileUploadResult> {
+  scheduleUpload(url: string): Promise<RemoteFileUploadResult | null> {
     return new Promise((resolve, reject) => {
       this.workerQueue.push({
         url,
@@ -150,7 +152,7 @@ const fileUploader = new FileUploadManager()
 
 export function uploadFileFromUrl(
   url: string
-): Promise<RemoteFileUploadResult> {
+): Promise<RemoteFileUploadResult | null> {
   return fileUploader.uploadFromUrl(url)
 }
 

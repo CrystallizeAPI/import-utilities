@@ -20,6 +20,7 @@ import {
   SelectionComponentContentInput,
   Shape,
   SingleLineComponentContentInput,
+  VideoContentInput,
   VideosComponentContentInput,
 } from '../../types'
 import { buildCreateItemMutation, buildUpdateItemMutation } from '../../graphql'
@@ -44,6 +45,8 @@ import {
   JSONItemRelation,
   JSONItemTopic,
   JSONSelection,
+  JSONVideos,
+  JSONVideo,
 } from '../json-spec'
 import {
   callCatalogue,
@@ -222,12 +225,14 @@ async function createImagesInput(
     if (!key) {
       try {
         const uploadResult = await uploadFileFromUrl(image.src)
-        key = uploadResult.key
-        mimeType = uploadResult.mimeType
+        if (uploadResult) {
+          key = uploadResult.key
+          mimeType = uploadResult.mimeType
 
-        // Store the values so that we don't re-upload again during import
-        image.key = uploadResult.key
-        image.mimeType = uploadResult.mimeType
+          // Store the values so that we don't re-upload again during import
+          image.key = uploadResult.key
+          image.mimeType = uploadResult.mimeType
+        }
       } catch (e) {
         console.log('Error: Could not upload image', image.src)
       }
@@ -246,6 +251,44 @@ async function createImagesInput(
   }
 
   return imgs
+}
+
+async function createVideosInput(
+  videos: JSONVideos,
+  language: string
+): Promise<VideoContentInput[]> {
+  const vids: VideoContentInput[] = []
+
+  for (let i = 0; i < videos.length; i++) {
+    const video = videos[i]
+    let { key } = video
+
+    if (!key) {
+      try {
+        const uploadResult = await uploadFileFromUrl(video.src)
+        if (uploadResult) {
+          key = uploadResult.key
+
+          // Store the values so that we don't re-upload again during import
+          video.key = uploadResult.key
+        }
+      } catch (e) {
+        console.log('Error: Could not upload video', video.src)
+      }
+    }
+
+    if (key) {
+      vids.push({
+        key,
+        title: getTranslation(video.title, language),
+        ...(video.thumbnails && {
+          thumbnails: await createImagesInput(video.thumbnails, language),
+        }),
+      })
+    }
+  }
+
+  return vids
 }
 
 async function createComponentsInput(
@@ -342,8 +385,10 @@ async function createComponentsInput(
         return inp
       }
       case 'videos': {
+        const i = component as JSONVideo[]
+
         const inp: VideosComponentContentInput = {
-          videos: [], // Not supported atm.
+          videos: await createVideosInput(i, language),
         }
         return inp
       }
@@ -383,7 +428,7 @@ async function createComponentsInput(
 
         const paragraphs = component as JSONParagraphCollection[]
         for (let i = 0; i < paragraphs.length; i++) {
-          const { title, body, images } = paragraphs[i]
+          const { title, body, images, videos } = paragraphs[i]
 
           inp.paragraphCollection.paragraphs.push({
             title: {
@@ -392,6 +437,9 @@ async function createComponentsInput(
             ...(body && { body: createRichTextInput(body, language) }),
             ...(images && {
               images: await createImagesInput(images, language),
+            }),
+            ...(videos && {
+              videos: await createVideosInput(videos, language),
             }),
           })
         }
@@ -544,8 +592,9 @@ async function createComponentsInput(
   return input
 }
 
-function getAllImageUrls(items: JSONItem[]): string[] {
-  const allImageUrls: string[] = []
+function getAllMediaUrls(items: JSONItem[]): string[] {
+  const medias: string[] = []
+
   function handleItem(item: any) {
     if (!item) {
       return
@@ -557,9 +606,9 @@ function getAllImageUrls(items: JSONItem[]): string[] {
       }
 
       if (typeof value === 'object') {
-        // Check for image signature
-        if ('src' in value && 'altText' in value) {
-          allImageUrls.push(value.src)
+        // Check for media signature
+        if ('src' in value) {
+          medias.push(value.src)
         } else {
           Object.values(value).forEach(handleItem)
         }
@@ -571,7 +620,7 @@ function getAllImageUrls(items: JSONItem[]): string[] {
 
   items.forEach(handleItem)
 
-  return allImageUrls
+  return medias
 }
 
 export async function setItems({
@@ -589,12 +638,12 @@ export async function setItems({
    * First off, let's start uploading all the images
    * in parallel with all the other PIM mutations
    */
-  const allImageUrls = getAllImageUrls(spec.items)
-  allImageUrls.forEach(uploadFileFromUrl)
+  const allMediaUrls = getAllMediaUrls(spec.items)
+  allMediaUrls.forEach(uploadFileFromUrl)
 
   onUpdate({
     done: false,
-    message: `Initiating upload of ${allImageUrls.length} image(s)`,
+    message: `Initiating upload of ${allMediaUrls.length} media item(s)`,
   })
 
   async function createOrUpdateItem(

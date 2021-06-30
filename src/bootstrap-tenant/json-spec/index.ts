@@ -40,12 +40,21 @@ export interface JSONRichTextStructured {
   json?: JSON
 }
 export type JSONRichText = JSONRichTextStructured | string | null
-export interface JSONImage {
+
+export interface JSONMedia {
   src: string
   key?: string
+}
+
+export interface JSONImage extends JSONMedia {
   mimeType?: string
   altText?: string
   caption?: JSONRichText
+}
+
+export interface JSONVideo extends JSONMedia {
+  title?: string
+  thumbnails?: JSONImage[]
 }
 
 export type JSONSingleLine = string
@@ -53,9 +62,11 @@ export type JSONSingleLine = string
 export interface JSONParagraphCollection {
   title?: string
   body: JSONRichText
-  images?: JSONImage[]
+  images?: JSONImages
+  videos?: JSONVideos
 }
 export type JSONImages = JSONImage[]
+export type JSONVideos = JSONVideo[]
 export type JSONBoolean = boolean
 export type JSONDateTime = string
 
@@ -85,6 +96,7 @@ export type JSONComponentContent =
   | JSONRichText
   | JSONParagraphCollection[]
   | JSONImages
+  | JSONVideos
   | JSONBoolean
   | JSONDateTime
   | JSONLocation

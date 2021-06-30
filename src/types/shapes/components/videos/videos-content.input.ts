@@ -1,9 +1,9 @@
 import { ComponentContentInput } from '../component-content.input'
-import { ImagesComponentContentInput } from '../images/images-content.input'
+import { ImageComponentContentInput } from '../images/images-content.input'
 
 export interface VideoContentInput {
   key: string
-  thumbnails?: ImagesComponentContentInput
+  thumbnails?: ImageComponentContentInput[]
   title?: string
 }
 export interface VideosComponentContentInput extends ComponentContentInput {

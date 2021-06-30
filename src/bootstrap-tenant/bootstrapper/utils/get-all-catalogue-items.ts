@@ -18,11 +18,20 @@ function handleImage(image: any) {
   }
 }
 
+function handleVideo(video: any) {
+  return {
+    src: video.playlist,
+    title: video.title,
+    thumbnails: video.thumbnails?.map(handleImage),
+  }
+}
+
 function handleParagraph(paragraph: any) {
   return {
     title: paragraph?.title?.text,
     body: paragraph?.body,
     images: paragraph?.images?.map(handleImage),
+    videos: paragraph?.videos?.map(handleVideo),
   }
 }
 
@@ -125,6 +134,9 @@ export async function getAllCatalogueItems(
         }
         case 'images': {
           return c.content?.images?.map(handleImage)
+        }
+        case 'videos': {
+          return c.content?.videos?.map(handleVideo)
         }
         case 'datetime': {
           return c.content?.datetime
@@ -273,6 +285,7 @@ fragment primitiveComponentContent on ComponentContent {
   ...singleLineContent
   ...richTextContent
   ...imageContent
+  ...videoContent
   ...paragraphCollectionContent
   ...itemRelationsContent
   ...locationContent
@@ -318,6 +331,15 @@ fragment image on Image {
   }
 }
 
+fragment video on Video {
+  id
+  title
+  playlist(type: "m3u8")
+  thumbnails {
+    ...image
+  }
+}
+
 fragment dateTimeContent on DatetimeContent {
   datetime
 }
@@ -351,6 +373,12 @@ fragment selectionContent on SelectionContent {
 fragment imageContent on ImageContent {
   images {
     ...image
+  }
+}
+
+fragment videoContent on VideoContent {
+  videos {
+    ...video
   }
 }
 
