@@ -137,7 +137,8 @@ export interface JSONProduct extends JSONItemBase {
 }
 
 export interface JSONGridColumn {
-  item: JSONItemReference
+  item?: JSONItemReference
+  itemId?: string
   layout: {
     rowspan: number
     colspan: number

@@ -22,6 +22,7 @@ import { getAllTopicsForSpec, removeTopicId, setTopics } from './topics'
 import { setItems } from './items'
 import { getAllCatalogueItems } from './utils/get-all-catalogue-items'
 import { getAllGrids } from './utils/get-all-grids'
+import { setGrids } from './grids'
 
 export interface ICreateSpec {
   shapes: boolean
@@ -158,11 +159,12 @@ export class Bootstrapper extends EventEmitter {
 
       await this.getTenantId()
       await this.setLanguages()
-      await this.setShapes()
-      await this.setPriceVariants()
-      await this.setVatTypes()
-      await this.setTopics()
-      await this.setItems()
+      // await this.setShapes()
+      // await this.setPriceVariants()
+      // await this.setVatTypes()
+      // await this.setTopics()
+      // await this.setItems()
+      await this.setGrids()
       this.emit(EVENT_NAMES.DONE, {
         duration: new Duration(start, new Date()).toString(1),
       })
@@ -226,6 +228,16 @@ export class Bootstrapper extends EventEmitter {
       context: this.context,
     })
     this.emit(EVENT_NAMES.TOPICS_DONE)
+  }
+  async setGrids() {
+    await setGrids({
+      spec: this.SPEC,
+      onUpdate: (status: StepStatus) => {
+        this.emit(EVENT_NAMES.GRIDS_UPDATE, status)
+      },
+      context: this.context,
+    })
+    this.emit(EVENT_NAMES.GRIDS_DONE)
   }
   async setItems() {
     await setItems({

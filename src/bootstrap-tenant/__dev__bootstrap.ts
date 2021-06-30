@@ -68,6 +68,12 @@ function bootstrap() {
   bootstrapper.on(EVENT_NAMES.ITEMS_DONE, function () {
     console.log(`[Items] ✓`)
   })
+  bootstrapper.on(EVENT_NAMES.GRIDS_UPDATE, function (status) {
+    console.log(`[Grids] ${status.message}`)
+  })
+  bootstrapper.on(EVENT_NAMES.GRIDS_DONE, function () {
+    console.log(`[Grids] ✓`)
+  })
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     console.log(

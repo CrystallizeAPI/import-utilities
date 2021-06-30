@@ -48,6 +48,7 @@ import {
 import {
   callCatalogue,
   callPIM,
+  getItemIdFromCataloguePath,
   getTenantId,
   getTranslation,
   StepStatus,
@@ -541,27 +542,6 @@ async function createComponentsInput(
   }
 
   return input
-}
-
-async function getItemIdFromCataloguePath(
-  path: string,
-  language: string
-): Promise<string> {
-  const response = await callCatalogue({
-    query: `
-      query GET_ID_FROM_PATH ($path: String, $language: String) {
-        catalogue(path: $path, language: $language) {
-          id
-        }
-      }
-    `,
-    variables: {
-      path,
-      language,
-    },
-  })
-
-  return response.data?.catalogue?.id || ''
 }
 
 function getAllImageUrls(items: JSONItem[]): string[] {

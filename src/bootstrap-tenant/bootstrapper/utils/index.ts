@@ -5,6 +5,7 @@ import {
   Shape,
   JSONVatType,
 } from '../../json-spec'
+import { callCatalogue } from './api'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
 
 export * from './api'
@@ -21,6 +22,8 @@ export const EVENT_NAMES = {
   VAT_TYPES_DONE: 'BOOTSTRAPPER_VAT_TYPES_DONE',
   TOPICS_UPDATE: 'BOOTSTRAPPER_TOPICS_UPDATE',
   TOPICS_DONE: 'BOOTSTRAPPER_TOPICS_DONE',
+  GRIDS_UPDATE: 'BOOTSTRAPPER_GRIDS_UPDATE',
+  GRIDS_DONE: 'BOOTSTRAPPER_GRIDS_DONE',
   ITEMS_UPDATE: 'BOOTSTRAPPER_ITEMS_UPDATE',
   ITEMS_DONE: 'BOOTSTRAPPER_ITEMS_DONE',
 }
@@ -158,4 +161,25 @@ export function validShapeIdentifier(str: string) {
   console.log(`Truncating shape identifier "${str}" to "${validIdentifier}"`)
 
   return validIdentifier
+}
+
+export async function getItemIdFromCataloguePath(
+  path: string,
+  language: string
+): Promise<string> {
+  const response = await callCatalogue({
+    query: `
+      query GET_ID_FROM_PATH ($path: String, $language: String) {
+        catalogue(path: $path, language: $language) {
+          id
+        }
+      }
+    `,
+    variables: {
+      path,
+      language,
+    },
+  })
+
+  return response.data?.catalogue?.id || ''
 }
