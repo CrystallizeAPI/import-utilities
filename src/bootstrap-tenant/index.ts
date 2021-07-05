@@ -1,6 +1,7 @@
 import { JsonSpec } from './json-spec'
 import { Bootstrapper } from './bootstrapper'
 
+export { Bootstrapper } from './bootstrapper'
 export { EVENT_NAMES } from './bootstrapper/utils'
 
 interface BaseProps {
