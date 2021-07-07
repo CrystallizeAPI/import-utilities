@@ -882,7 +882,7 @@ export async function setItems({
     if (!item) {
       return;
     }
-    
+
     onUpdate({
       done: false,
       message: `Item relations: ${getTranslation(
@@ -896,7 +896,7 @@ export async function setItems({
     ): Promise<string[]> {
       const ids: string[] = []
 
-      if (!itemRelations) {
+      if (!itemRelations || !itemRelations.map || typeof itemRelations.map !== 'function') {
         return ids
       }
 
