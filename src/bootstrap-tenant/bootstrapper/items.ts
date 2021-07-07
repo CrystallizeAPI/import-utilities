@@ -879,6 +879,18 @@ export async function setItems({
   }
 
   async function handleItemRelations(item: JSONItem) {
+    if (!item) {
+      return;
+    }
+    
+    onUpdate({
+      done: false,
+      message: `Item relations: ${getTranslation(
+        item.name,
+        context.defaultLanguage.code
+      )}`,
+    })
+
     async function getItemIdsForItemRelation(
       itemRelations?: JSONItemRelation[]
     ): Promise<string[]> {
@@ -916,14 +928,6 @@ export async function setItems({
 
       return ids
     }
-
-    onUpdate({
-      done: false,
-      message: `Item relations: ${getTranslation(
-        item.name,
-        context.defaultLanguage.code
-      )}`,
-    })
 
     if (item.components) {
       await Promise.all(
