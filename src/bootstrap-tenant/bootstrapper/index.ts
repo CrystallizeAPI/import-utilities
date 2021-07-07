@@ -162,7 +162,7 @@ export class Bootstrapper extends EventEmitter {
       await this.setShapes()
       await this.setPriceVariants()
       await this.setVatTypes()
-      // await this.setTopics()
+      await this.setTopics()
       await this.setItems()
       await this.setGrids()
       this.emit(EVENT_NAMES.DONE, {

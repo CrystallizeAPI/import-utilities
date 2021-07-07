@@ -143,8 +143,13 @@ export function callPIM(props: IcallAPI) {
 }
 
 let MyCatalogueApiManager: ApiManager
+let MyCatalogueApiManagerTenantIdentifier = ''
 export function callCatalogue(props: IcallAPI) {
-  if (!MyCatalogueApiManager) {
+  if (
+    !MyCatalogueApiManager ||
+    MyCatalogueApiManagerTenantIdentifier !== CRYSTALLIZE_TENANT_IDENTIFIER
+  ) {
+    MyCatalogueApiManagerTenantIdentifier = CRYSTALLIZE_TENANT_IDENTIFIER
     MyCatalogueApiManager = new ApiManager(
       `https://api.crystallize.com/${CRYSTALLIZE_TENANT_IDENTIFIER}/catalogue`
     )
