@@ -830,6 +830,10 @@ export async function setItems({
   }
 
   async function handleItem(item: JSONItem, parentId?: string) {
+    if (!item) {
+      return;
+    }
+    
     if (item.cataloguePath) {
       item.id = await getItemIdFromCataloguePath(
         item.cataloguePath,

@@ -1,4 +1,3 @@
-import { resolve } from 'path/posix'
 import {
   JSONLanguage,
   JSONPriceVariant,
@@ -122,9 +121,6 @@ class FileUploadManager {
     const existing = this.uploads.find((u) => u.url === url)
     if (existing) {
       return existing.result
-    }
-    if (url.endsWith('.m3u8')) {
-      console.log('schedule to upload', url)
     }
     const result = this.scheduleUpload(url)
 
