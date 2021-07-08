@@ -129,6 +129,9 @@ export async function getAllCatalogueItems(
         case 'itemRelations': {
           return c.content?.items
         }
+        case 'gridRelations': {
+          return c.content?.grids
+        }
         case 'boolean': {
           return c.content?.value
         }
@@ -288,6 +291,7 @@ fragment primitiveComponentContent on ComponentContent {
   ...videoContent
   ...paragraphCollectionContent
   ...itemRelationsContent
+  ...gridRelationsContent
   ...locationContent
   ...selectionContent
   ...booleanContent
@@ -393,6 +397,12 @@ fragment richTextContent on RichTextContent {
 fragment itemRelationsContent on ItemRelationsContent {
   items {
     cataloguePath: path
+  }
+}
+
+fragment gridRelationsContent on GridRelationsContent {
+  grids {
+    name
   }
 }
 

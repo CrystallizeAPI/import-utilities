@@ -9,6 +9,7 @@ query GET_GRIDS($tenantId: ID!, $language: String!) {
       tenantId: $tenantId
       language: $language
     ) {
+      id
       name
       rows {
         columns {
@@ -52,7 +53,7 @@ export async function getAllGrids(language: string): Promise<JSONGrid[]> {
 
   function handleGrid(grid: any): JSONGrid {
     return {
-      name: grid.name,
+      ...grid,
       rows: grid.rows?.map(handleRow) || [],
     }
   }

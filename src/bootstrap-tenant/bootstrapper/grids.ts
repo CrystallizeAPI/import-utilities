@@ -1,4 +1,5 @@
 import { buildCreateGridMutation } from '../../graphql/build-create-grid-mutation'
+import { buildUpdateGridMutation } from '../../graphql/build-update-grid-mutation'
 import { GridRow } from '../../types'
 import { JSONGrid, JsonSpec } from '../json-spec'
 import {
@@ -15,14 +16,12 @@ interface ISetGrids {
   spec: JsonSpec | null
   onUpdate(t: StepStatus): any
   context: TenantContext
+  allowUpdate?: boolean
 }
 
-async function createGrid(
-  grid: JSONGrid,
-  language: string
-): Promise<string | null> {
-  // Get item ids from reference
-  await Promise.all(
+// Get item ids from reference
+async function setItemIds(grid: JSONGrid, language: string) {
+  return Promise.all(
     grid.rows.map(async (row) => {
       await Promise.all(
         row.columns.map(async (column) => {
@@ -38,6 +37,13 @@ async function createGrid(
       )
     })
   )
+}
+
+async function createGrid(
+  grid: JSONGrid,
+  language: string
+): Promise<string | null> {
+  await setItemIds(grid, language)
 
   const r = await callPIM({
     query: buildCreateGridMutation({
@@ -51,6 +57,29 @@ async function createGrid(
   })
 
   return r.data?.grid?.create?.id || null
+}
+
+async function updateGrid(
+  grid: JSONGrid,
+  language: string
+): Promise<string | null> {
+  if (!grid.id) {
+    return null
+  }
+
+  await setItemIds(grid, language)
+  const r = await callPIM({
+    query: buildUpdateGridMutation({
+      id: grid.id,
+      language,
+      input: {
+        name: getTranslation(grid.name, language),
+        rows: grid.rows as GridRow[],
+      },
+    }),
+  })
+
+  return r.data?.grid?.update?.id || null
 }
 
 async function publishGrid(id: string, language: string) {
@@ -72,7 +101,7 @@ async function publishGrid(id: string, language: string) {
 }
 
 export async function setGrids(props: ISetGrids) {
-  const { spec, context, onUpdate } = props
+  const { spec, context, onUpdate, allowUpdate } = props
 
   if (!spec?.grids) {
     return
@@ -91,16 +120,35 @@ export async function setGrids(props: ISetGrids) {
     }
   })
 
-  if (missingGrids.length > 0) {
+  // Add missing grids
+  await Promise.all(
+    missingGrids.map(async (grid) => {
+      const id = await createGrid(grid, language)
+      if (id) {
+        grid.id = id
+
+        await publishGrid(id, language)
+        onUpdate({
+          done: false,
+          message: `Created ${getTranslation(grid.name, language)}`,
+        })
+      }
+    })
+  )
+
+  // Update existing grids
+  if (allowUpdate) {
     await Promise.all(
-      missingGrids.map(async (grid) => {
-        const id = await createGrid(grid, language)
-        if (id) {
-          await publishGrid(id, language)
-          onUpdate({
-            done: false,
-            message: `Created ${getTranslation(grid.name, language)}`,
-          })
+      existingGrids.map(async (existingGrid) => {
+        const jsonGrid = spec.grids?.find(
+          (g) => getTranslation(g.name, language) === existingGrid.name
+        )
+        if (jsonGrid) {
+          jsonGrid.id = existingGrid.id
+          if (jsonGrid.id) {
+            await updateGrid(jsonGrid, language)
+            await publishGrid(jsonGrid.id, language)
+          }
         }
       })
     )

@@ -162,6 +162,7 @@ export interface JSONGridRow {
 }
 
 export interface JSONGrid {
+  id?: string
   name: JSONTranslation
   rows: JSONGridRow[]
 }

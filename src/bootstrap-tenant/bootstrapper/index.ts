@@ -163,8 +163,12 @@ export class Bootstrapper extends EventEmitter {
       await this.setPriceVariants()
       await this.setVatTypes()
       await this.setTopics()
-      await this.setItems()
       await this.setGrids()
+      await this.setItems()
+
+      // Set (update) grids again to update include the items
+      await this.setGrids(true)
+
       this.emit(EVENT_NAMES.DONE, {
         duration: new Duration(start, new Date()).toString(1),
       })
@@ -229,13 +233,14 @@ export class Bootstrapper extends EventEmitter {
     })
     this.emit(EVENT_NAMES.TOPICS_DONE)
   }
-  async setGrids() {
+  async setGrids(allowUpdate?: boolean) {
     await setGrids({
       spec: this.SPEC,
       onUpdate: (status: StepStatus) => {
         this.emit(EVENT_NAMES.GRIDS_UPDATE, status)
       },
       context: this.context,
+      allowUpdate,
     })
     this.emit(EVENT_NAMES.GRIDS_DONE)
   }

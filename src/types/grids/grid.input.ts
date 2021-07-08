@@ -8,3 +8,7 @@ export interface GridInput {
     rows?: GridRow[]
   }
 }
+
+export interface GridUpdateInput extends GridInput {
+  id: string
+}

@@ -47,6 +47,7 @@ import {
   JSONSelection,
   JSONVideos,
   JSONVideo,
+  JSONGrid,
 } from '../json-spec'
 import {
   callCatalogue,
@@ -59,6 +60,7 @@ import {
   uploadFileFromUrl,
   validShapeIdentifier,
 } from './utils'
+import { getAllGrids } from './utils/get-all-grids'
 
 export interface Props {
   spec: JsonSpec | null
@@ -294,7 +296,8 @@ async function createVideosInput(
 async function createComponentsInput(
   item: JSONItem,
   shape: Shape,
-  language: string
+  language: string,
+  grids: JSONGrid[]
 ) {
   if (!item.components) {
     return null
@@ -515,9 +518,21 @@ async function createComponentsInput(
         return inp
       }
       case 'gridRelations': {
+        const gridsComponent = component as JSONGrid[]
+        const gridIds: string[] = []
+
+        gridsComponent.forEach((g) => {
+          const found = grids.find(
+            (a) => a.name === getTranslation(g.name, language)
+          )
+          if (found?.id) {
+            gridIds.push(found.id)
+          }
+        })
+
         const inp: GridRelationsComponentContentInput = {
           gridRelations: {
-            gridIds: [], // Not supported atm.
+            gridIds,
           },
         }
         return inp
@@ -633,6 +648,7 @@ export async function setItems({
   }
 
   const rootItemId = await getTenantRootItemId()
+  const allGrids = await getAllGrids(context.defaultLanguage.code)
 
   /**
    * First off, let's start uploading all the images
@@ -673,7 +689,8 @@ export async function setItems({
       item._componentsData[language] = await createComponentsInput(
         item,
         shape,
-        language
+        language,
+        allGrids
       )
       item._topicsData = {}
       if (item.topics) {
@@ -722,7 +739,8 @@ export async function setItems({
       item._componentsData[language] = await createComponentsInput(
         item,
         shape,
-        language
+        language,
+        allGrids
       )
 
       return callPIM({
@@ -831,9 +849,9 @@ export async function setItems({
 
   async function handleItem(item: JSONItem, parentId?: string) {
     if (!item) {
-      return;
+      return
     }
-    
+
     if (item.cataloguePath) {
       item.id = await getItemIdFromCataloguePath(
         item.cataloguePath,
@@ -871,16 +889,13 @@ export async function setItems({
         await Promise.all(
           itm.children.map((child) => handleItem(child, itm.id))
         )
-        // for (let i = 0; i < itm.children.length; i++) {
-        //   await handleItem(itm.children[i], itm.id)
-        // }
       }
     }
   }
 
   async function handleItemRelations(item: JSONItem) {
     if (!item) {
-      return;
+      return
     }
 
     onUpdate({
@@ -896,7 +911,11 @@ export async function setItems({
     ): Promise<string[]> {
       const ids: string[] = []
 
-      if (!itemRelations || !itemRelations.map || typeof itemRelations.map !== 'function') {
+      if (
+        !itemRelations ||
+        !itemRelations.map ||
+        typeof itemRelations.map !== 'function'
+      ) {
         return ids
       }
 
