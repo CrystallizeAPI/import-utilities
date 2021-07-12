@@ -6,7 +6,7 @@ import {
   callPIM,
   getTenantId,
   getTranslation,
-  StepStatus,
+  AreaUpdate,
   TenantContext,
 } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
@@ -277,7 +277,7 @@ function enrichWithHierarhyPath(topicMaps: JSONTopic[], language: string) {
 
 export interface Props {
   spec: JsonSpec | null
-  onUpdate(t: StepStatus): any
+  onUpdate(t: AreaUpdate): any
   context: TenantContext
 }
 
@@ -312,28 +312,29 @@ export async function setTopics({
     }
   })
 
+  let finished = 0
+
   // Create root topics for the missing ones
   if (missingTopicMaps.length > 0) {
     onUpdate({
-      done: false,
       message: `Creating new topic map(s) ${missingTopicMaps
         .map((t) => getTranslation(t.name, context.defaultLanguage.code))
         .join(',')}`,
     })
 
     for (let i = 0; i < missingTopicMaps.length; i++) {
+      await createTopic(missingTopicMaps[i], context)
+      finished++
       onUpdate({
-        done: false,
-        message: `Creating topic map ${getTranslation(
+        progress: finished / spec.topicMaps.length,
+        message: `Created topic map ${getTranslation(
           missingTopicMaps[i].name,
           context.defaultLanguage.code
         )}...`,
       })
-      await createTopic(missingTopicMaps[i], context)
     }
   } else {
     onUpdate({
-      done: false,
       message: `No new topic maps found`,
     })
   }
@@ -344,13 +345,18 @@ export async function setTopics({
 
   // Add new topics for the existing topic maps
   for (let i = 0; i < existingTopicMaps.length; i++) {
+    await updateTopic(existingTopicMaps[i], context, allTopics)
+    finished++
     onUpdate({
-      done: false,
-      message: `Updating topic map ${getTranslation(
+      progress: finished / spec.topicMaps.length,
+      message: `Updated topic map ${getTranslation(
         existingTopicMaps[i].name,
         context.defaultLanguage.code
       )}...`,
     })
-    await updateTopic(existingTopicMaps[i], context, allTopics)
   }
+
+  onUpdate({
+    progress: 1,
+  })
 }

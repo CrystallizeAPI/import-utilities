@@ -2,7 +2,7 @@ import { PriceVariant } from '../../types'
 import { buildCreatePriceVariantMutation } from '../../graphql'
 
 import { JsonSpec, JSONPriceVariant as JsonPriceVariant } from '../json-spec'
-import { callPIM, getTenantId, StepStatus } from './utils'
+import { callPIM, getTenantId, AreaUpdate } from './utils'
 
 export async function getExistingPriceVariants(): Promise<PriceVariant[]> {
   const tenantId = getTenantId()
@@ -28,7 +28,7 @@ export async function getExistingPriceVariants(): Promise<PriceVariant[]> {
 
 export interface Props {
   spec: JsonSpec | null
-  onUpdate(t: StepStatus): any
+  onUpdate(t: AreaUpdate): any
 }
 
 export async function setPriceVariants({
@@ -51,11 +51,12 @@ export async function setPriceVariants({
 
   if (missingPriceVariants.length > 0) {
     onUpdate({
-      done: false,
       message: `Adding ${missingPriceVariants.length} price variant(s)...`,
     })
 
     const tenantId = getTenantId()
+
+    let finished = 0
 
     await Promise.all(
       missingPriceVariants.map(async (priceVariant) => {
@@ -68,20 +69,21 @@ export async function setPriceVariants({
           }),
         })
 
+        finished++
+
         onUpdate({
-          done: false,
+          progress: finished / missingPriceVariants.length,
           message: `${priceVariant.name}: ${
             result?.errors ? 'error' : 'added'
           }`,
         })
       })
     )
-  } else {
-    onUpdate({
-      done: true,
-      message: `All price variants already added`,
-    })
   }
+
+  onUpdate({
+    progress: 1,
+  })
 
   const priceVariants = [...existingPriceVariants, ...missingPriceVariants]
 

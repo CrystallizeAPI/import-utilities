@@ -5,10 +5,12 @@ import {
 } from '../../graphql'
 
 import { JsonSpec } from '../json-spec'
-import { callPIM, getTenantId, StepStatus, validShapeIdentifier } from './utils'
+import { callPIM, getTenantId, AreaUpdate, validShapeIdentifier } from './utils'
 import { EnumType } from 'json-to-graphql-query'
 
-export async function getExistingShapesForSpec(): Promise<Shape[]> {
+export async function getExistingShapesForSpec(
+  onUpdate: (t: AreaUpdate) => any
+): Promise<Shape[]> {
   const existingShapes = await getExistingShapes()
 
   function handleComponent(cmp: any) {
@@ -43,8 +45,8 @@ export async function getExistingShapesForSpec(): Promise<Shape[]> {
   return existingShapes.map((eShape) => {
     const shape: Shape = {
       name: eShape.name,
-      id: validShapeIdentifier(eShape.id),
-      identifier: validShapeIdentifier(eShape.identifier),
+      id: validShapeIdentifier(eShape.id, onUpdate),
+      identifier: validShapeIdentifier(eShape.identifier, onUpdate),
       type: eShape.type,
       components: eShape?.components.map(handleComponent),
     }
@@ -196,7 +198,7 @@ function buildComponentConfigInput(component: Component) {
 async function createOrUpdateShape(
   shape: Shape,
   existingShapes: Shape[],
-  onUpdate: (t: StepStatus) => {}
+  onUpdate: (t: AreaUpdate) => {}
 ): Promise<string> {
   try {
     const tenantId = getTenantId()
@@ -263,7 +265,7 @@ async function createOrUpdateShape(
 
 export interface Props {
   spec: JsonSpec | null
-  onUpdate(t: StepStatus): any
+  onUpdate(t: AreaUpdate): any
 }
 
 export async function setShapes({ spec, onUpdate }: Props): Promise<Shape[]> {
@@ -274,14 +276,20 @@ export async function setShapes({ spec, onUpdate }: Props): Promise<Shape[]> {
     return existingShapes
   }
 
+  let finished = 0
   for (let i = 0; i < spec.shapes.length; i++) {
     const shape = spec.shapes[i]
     const result = await createOrUpdateShape(shape, existingShapes, onUpdate)
+    finished++
     onUpdate({
-      done: false,
+      progress: finished / spec.shapes.length,
       message: `${shape.name} (${shape.identifier}): ${result}`,
     })
   }
+
+  onUpdate({
+    progress: 1,
+  })
 
   return await getExistingShapes()
 }

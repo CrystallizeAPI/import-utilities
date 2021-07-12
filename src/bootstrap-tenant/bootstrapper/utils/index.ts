@@ -11,6 +11,7 @@ export * from './api'
 
 export const EVENT_NAMES = {
   DONE: 'BOOTSTRAPPER_DONE',
+  STATUS_UPDATE: 'BOOTSTRAPPER_STATUS_UPDATE',
   SHAPES_UPDATE: 'BOOTSTRAPPER_SHAPES_UPDATE',
   SHAPES_DONE: 'BOOTSTRAPPER_SHAPES_DONE',
   PRICE_VARIANTS_UPDATE: 'BOOTSTRAPPER_PRICE_VARIANTS_UPDATE',
@@ -27,9 +28,15 @@ export const EVENT_NAMES = {
   ITEMS_DONE: 'BOOTSTRAPPER_ITEMS_DONE',
 }
 
-export interface StepStatus {
-  done: boolean
+export interface AreaWarning {
+  message: string
+  code: 'FFMPEG_UNAVAILABLE' | 'UPLOAD_FAILED' | 'SHAPE_ID_TRUNCATED' | 'OTHER'
+}
+
+export interface AreaUpdate {
+  progress?: number
   message?: string
+  warning?: AreaWarning
 }
 
 export interface TenantContext {
@@ -67,7 +74,7 @@ type uploadFileRecord = {
 
 type fileUploadQueueItem = {
   url: string
-  status: string
+  status: 'working' | 'done' | 'not-started'
   failCount?: number
   resolve: (result: RemoteFileUploadResult | null) => void
   reject: (r: any) => void
@@ -144,7 +151,7 @@ class FileUploadManager {
   }
 }
 
-const fileUploader = new FileUploadManager()
+export const fileUploader = new FileUploadManager()
 
 export function uploadFileFromUrl(
   url: string
@@ -152,11 +159,19 @@ export function uploadFileFromUrl(
   return fileUploader.uploadFromUrl(url)
 }
 
-export function validShapeIdentifier(str: string) {
+export function validShapeIdentifier(
+  str: string,
+  onUpdate: (t: AreaUpdate) => any
+) {
   if (str.length <= 24) return str
 
   const validIdentifier = str.substr(0, 11) + '-' + str.substr(str.length - 12)
-  console.log(`Truncating shape identifier "${str}" to "${validIdentifier}"`)
+  onUpdate({
+    warning: {
+      code: 'SHAPE_ID_TRUNCATED',
+      message: `Truncating shape identifier "${str}" to "${validIdentifier}"`,
+    },
+  })
 
   return validIdentifier
 }

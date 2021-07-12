@@ -2,7 +2,7 @@ import { VatType } from '../../types'
 import { buildCreateVatTypeMutation } from '../../graphql'
 
 import { JsonSpec } from '../json-spec'
-import { callPIM, getTenantId, StepStatus } from './utils'
+import { callPIM, getTenantId, AreaUpdate } from './utils'
 
 export async function getExistingVatTypes(): Promise<VatType[]> {
   const tenantId = getTenantId()
@@ -31,7 +31,7 @@ export async function getExistingVatTypes(): Promise<VatType[]> {
 
 export interface Props {
   spec: JsonSpec | null
-  onUpdate(t: StepStatus): any
+  onUpdate(t: AreaUpdate): any
 }
 
 export async function setVatTypes({
@@ -42,6 +42,9 @@ export async function setVatTypes({
   const existingVatTypes = await getExistingVatTypes()
 
   if (!spec?.vatTypes) {
+    onUpdate({
+      progress: 1,
+    })
     return existingVatTypes
   }
 
@@ -52,11 +55,12 @@ export async function setVatTypes({
 
   if (missingVatTypes.length > 0) {
     onUpdate({
-      done: false,
       message: `Adding ${missingVatTypes.length} vatType(s)...`,
     })
 
     const tenantId = getTenantId()
+
+    let finished = 0
 
     await Promise.all(
       missingVatTypes.map(async (vatType) => {
@@ -69,19 +73,19 @@ export async function setVatTypes({
             },
           }),
         })
+        finished++
 
         onUpdate({
-          done: false,
+          progress: finished / missingVatTypes.length,
           message: `${vatType.name}: ${result?.errors ? 'error' : 'added'}`,
         })
       })
     )
-  } else {
-    onUpdate({
-      done: true,
-      message: `All vat types already added`,
-    })
   }
+
+  onUpdate({
+    progress: 1,
+  })
 
   return await getExistingVatTypes()
 }

@@ -7,14 +7,14 @@ import {
   getItemIdFromCataloguePath,
   getTenantId,
   getTranslation,
-  StepStatus,
+  AreaUpdate,
   TenantContext,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 
 interface ISetGrids {
   spec: JsonSpec | null
-  onUpdate(t: StepStatus): any
+  onUpdate(t: AreaUpdate): any
   context: TenantContext
   allowUpdate?: boolean
 }
@@ -120,6 +120,8 @@ export async function setGrids(props: ISetGrids) {
     }
   })
 
+  let finishedGrids = 0
+
   // Add missing grids
   await Promise.all(
     missingGrids.map(async (grid) => {
@@ -128,8 +130,9 @@ export async function setGrids(props: ISetGrids) {
         grid.id = id
 
         await publishGrid(id, language)
+        finishedGrids++
         onUpdate({
-          done: false,
+          progress: finishedGrids / missingGrids.length,
           message: `Created ${getTranslation(grid.name, language)}`,
         })
       }
@@ -153,4 +156,8 @@ export async function setGrids(props: ISetGrids) {
       })
     )
   }
+
+  onUpdate({
+    progress: 1,
+  })
 }

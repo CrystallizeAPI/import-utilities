@@ -19,11 +19,17 @@ async function createSpec() {
   }
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
+
   const spec = await createJSONSpec({
     tenantIdentifier,
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+    onUpdate(update) {
+      if (update.warning) {
+        console.log(`⚠️ (${update.warning.code}) ${update.warning.message}`)
+      }
+    },
   })
 
   writeFileSync(

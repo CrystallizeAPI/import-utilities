@@ -1,5 +1,5 @@
 import { JsonSpec } from './json-spec'
-import { Bootstrapper } from './bootstrapper'
+import { AreaUpdate, Bootstrapper } from './bootstrapper'
 
 export { Bootstrapper } from './bootstrapper'
 export { EVENT_NAMES } from './bootstrapper/utils'
@@ -14,7 +14,13 @@ interface BootstrapperProps extends BaseProps {
   jsonSpec: JsonSpec
 }
 
-export async function createJSONSpec(props: BaseProps): Promise<JsonSpec> {
+interface CreateSpecProps extends BaseProps {
+  onUpdate: (t: AreaUpdate) => any
+}
+
+export async function createJSONSpec(
+  props: CreateSpecProps
+): Promise<JsonSpec> {
   const bootstrapper = new Bootstrapper()
 
   bootstrapper.setAccessToken(
@@ -24,7 +30,16 @@ export async function createJSONSpec(props: BaseProps): Promise<JsonSpec> {
 
   bootstrapper.setTenantIdentifier(props.tenantIdentifier)
 
-  return bootstrapper.createSpec()
+  return bootstrapper.createSpec({
+    shapes: true,
+    grids: true,
+    items: true,
+    languages: true,
+    priceVariants: true,
+    vatTypes: true,
+    topicMaps: true,
+    onUpdate: props.onUpdate,
+  })
 }
 
 export function bootstrapTenant(props: BootstrapperProps): Bootstrapper {

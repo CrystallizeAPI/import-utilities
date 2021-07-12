@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import immer from 'immer'
 // @ts-ignore
 import Duration from 'duration'
 
@@ -11,8 +12,9 @@ import {
   setAccessTokens,
   setTenantId,
   setTenantIdentifier,
-  StepStatus,
+  AreaUpdate,
   TenantContext,
+  AreaWarning,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -32,6 +34,7 @@ export interface ICreateSpec {
   priceVariants: boolean
   vatTypes: boolean
   topicMaps: boolean
+  onUpdate: (t: AreaUpdate) => any
 }
 
 export const createSpecDefaults = {
@@ -42,6 +45,30 @@ export const createSpecDefaults = {
   priceVariants: true,
   vatTypes: true,
   topicMaps: true,
+  onUpdate: () => null,
+}
+
+interface AreaStatus {
+  progress: number
+  warnings: AreaWarning[]
+}
+
+export interface Status {
+  media: AreaStatus
+  shapes: AreaStatus
+  grids: AreaStatus
+  items: AreaStatus
+  languages: AreaStatus
+  priceVariants: AreaStatus
+  vatTypes: AreaStatus
+  topicMaps: AreaStatus
+}
+
+function defaultAreaStatus(): AreaStatus {
+  return {
+    progress: 0,
+    warnings: [],
+  }
 }
 
 export class Bootstrapper extends EventEmitter {
@@ -56,14 +83,30 @@ export class Bootstrapper extends EventEmitter {
     languages: [],
   }
 
+  status: Status = {
+    media: defaultAreaStatus(),
+    shapes: defaultAreaStatus(),
+    grids: defaultAreaStatus(),
+    items: defaultAreaStatus(),
+    languages: defaultAreaStatus(),
+    priceVariants: defaultAreaStatus(),
+    vatTypes: defaultAreaStatus(),
+    topicMaps: defaultAreaStatus(),
+  }
+
+  getStatus = () => this.status
+
   setAccessToken = setAccessTokens
+
   setSpec(spec: JsonSpec) {
     this.SPEC = spec
   }
+
   setTenantIdentifier(tenantIdentifier: string) {
     this.tenantIdentifier = tenantIdentifier
     setTenantIdentifier(this.tenantIdentifier)
   }
+
   async getTenantId() {
     const r = await callPIM({
       query: `
@@ -90,6 +133,7 @@ export class Bootstrapper extends EventEmitter {
     }
     setTenantId(this.tenantId)
   }
+
   async createSpec(props: ICreateSpec = createSpecDefaults): Promise<JsonSpec> {
     await this.getTenantId()
 
@@ -138,7 +182,7 @@ export class Bootstrapper extends EventEmitter {
 
     // Shapes
     if (props.shapes) {
-      spec.shapes = await getExistingShapesForSpec()
+      spec.shapes = await getExistingShapesForSpec(props.onUpdate)
     }
 
     // Grids
@@ -153,15 +197,16 @@ export class Bootstrapper extends EventEmitter {
 
     return spec
   }
+
   async start() {
     try {
       const start = new Date()
 
       await this.getTenantId()
       await this.setLanguages()
-      await this.setShapes()
       await this.setPriceVariants()
       await this.setVatTypes()
+      await this.setShapes()
       await this.setTopics()
       await this.setGrids()
       await this.setItems()
@@ -169,36 +214,50 @@ export class Bootstrapper extends EventEmitter {
       // Set (update) grids again to update include the items
       await this.setGrids(true)
 
+      const end = new Date()
       this.emit(EVENT_NAMES.DONE, {
-        duration: new Duration(start, new Date()).toString(1),
+        start,
+        end,
+        duration: new Duration(start, end).toString(1),
       })
     } catch (e) {
       console.log(e)
     }
   }
-  async setShapes() {
-    this.context.shapes = await setShapes({
-      spec: this.SPEC,
-      onUpdate: (status: StepStatus) => {
-        this.emit(EVENT_NAMES.SHAPES_UPDATE, status)
-      },
-    })
-    this.emit(EVENT_NAMES.SHAPES_DONE)
+  private areaUpdate(
+    statusArea:
+      | 'languages'
+      | 'shapes'
+      | 'priceVariants'
+      | 'vatTypes'
+      | 'topicMaps'
+      | 'grids'
+      | 'items'
+      | 'media',
+    areaUpdate: AreaUpdate
+  ) {
+    if ('progress' in areaUpdate) {
+      this.status = immer(this.status, (status) => {
+        if (areaUpdate.progress) {
+          status[statusArea].progress = areaUpdate.progress
+        }
+        if (areaUpdate.warning) {
+          status[statusArea].warnings.push(areaUpdate.warning)
+        }
+      })
+      this.emit(
+        EVENT_NAMES.STATUS_UPDATE,
+        immer(this.status, () => {})
+      )
+    }
   }
-  async setPriceVariants() {
-    this.context.priceVariants = await setPriceVariants({
-      spec: this.SPEC,
-      onUpdate: (status: StepStatus) => {
-        this.emit(EVENT_NAMES.PRICE_VARIANTS_UPDATE, status)
-      },
-    })
-    this.emit(EVENT_NAMES.PRICE_VARIANTS_DONE)
-  }
+
   async setLanguages() {
     const languages = await setLanguages({
       spec: this.SPEC,
-      onUpdate: (status: StepStatus) => {
-        this.emit(EVENT_NAMES.LANGUAGES_UPDATE, status)
+      onUpdate: (stepStatus: AreaUpdate) => {
+        this.emit(EVENT_NAMES.LANGUAGES_UPDATE, stepStatus)
+        this.areaUpdate('languages', stepStatus)
       },
     })
     if (!languages) {
@@ -214,11 +273,33 @@ export class Bootstrapper extends EventEmitter {
     this.context.defaultLanguage = defaultLanguage
     this.emit(EVENT_NAMES.LANGUAGES_DONE)
   }
+  async setShapes() {
+    this.context.shapes = await setShapes({
+      spec: this.SPEC,
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.SHAPES_UPDATE, areaUpdate)
+        this.areaUpdate('shapes', areaUpdate)
+      },
+    })
+    this.emit(EVENT_NAMES.SHAPES_DONE)
+  }
+  async setPriceVariants() {
+    this.context.priceVariants = await setPriceVariants({
+      spec: this.SPEC,
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.PRICE_VARIANTS_UPDATE, areaUpdate)
+        this.areaUpdate('priceVariants', areaUpdate)
+      },
+    })
+    this.emit(EVENT_NAMES.PRICE_VARIANTS_DONE)
+  }
+
   async setVatTypes() {
     this.context.vatTypes = await setVatTypes({
       spec: this.SPEC,
-      onUpdate: (status: StepStatus) => {
-        this.emit(EVENT_NAMES.VAT_TYPES_UPDATE, status)
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.VAT_TYPES_UPDATE, areaUpdate)
+        this.areaUpdate('vatTypes', areaUpdate)
       },
     })
     this.emit(EVENT_NAMES.VAT_TYPES_DONE)
@@ -226,8 +307,9 @@ export class Bootstrapper extends EventEmitter {
   async setTopics() {
     await setTopics({
       spec: this.SPEC,
-      onUpdate: (status: StepStatus) => {
-        this.emit(EVENT_NAMES.TOPICS_UPDATE, status)
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.TOPICS_UPDATE, areaUpdate)
+        this.areaUpdate('topicMaps', areaUpdate)
       },
       context: this.context,
     })
@@ -236,8 +318,9 @@ export class Bootstrapper extends EventEmitter {
   async setGrids(allowUpdate?: boolean) {
     await setGrids({
       spec: this.SPEC,
-      onUpdate: (status: StepStatus) => {
-        this.emit(EVENT_NAMES.GRIDS_UPDATE, status)
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.GRIDS_UPDATE, areaUpdate)
+        this.areaUpdate('grids', areaUpdate)
       },
       context: this.context,
       allowUpdate,
@@ -247,8 +330,13 @@ export class Bootstrapper extends EventEmitter {
   async setItems() {
     await setItems({
       spec: this.SPEC,
-      onUpdate: (status: StepStatus) => {
-        this.emit(EVENT_NAMES.ITEMS_UPDATE, status)
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        if (areaUpdate.message === 'media-upload-progress') {
+          this.areaUpdate('media', areaUpdate)
+        } else {
+          this.emit(EVENT_NAMES.ITEMS_UPDATE, areaUpdate)
+          this.areaUpdate('items', areaUpdate)
+        }
       },
       context: this.context,
     })

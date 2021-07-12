@@ -1,7 +1,7 @@
 import { buildCreateLanguageMutation } from '../../graphql'
 
 import { JsonSpec, JSONLanguage } from '../json-spec'
-import { callPIM, getTenantId, StepStatus } from './utils'
+import { callPIM, getTenantId, AreaUpdate } from './utils'
 
 interface TenantSettings {
   availableLanguages: JSONLanguage[]
@@ -47,7 +47,7 @@ export async function getTenantSettings(): Promise<TenantSettings> {
 
 export interface Props {
   spec: JsonSpec | null
-  onUpdate(t: StepStatus): any
+  onUpdate(t: AreaUpdate): any
 }
 
 export async function setLanguages({
@@ -69,8 +69,8 @@ export async function setLanguages({
 
   if (missingLanguages.length > 0) {
     onUpdate({
-      done: false,
       message: `Adding ${missingLanguages.length} language(s)...`,
+      progress: 0,
     })
 
     const tenantId = getTenantId()
@@ -88,16 +88,10 @@ export async function setLanguages({
         })
 
         onUpdate({
-          done: false,
           message: `${language.name}: ${result?.errors ? 'error' : 'added'}`,
         })
       })
     )
-  } else {
-    onUpdate({
-      done: false,
-      message: `No new languages found`,
-    })
   }
 
   // Compose a list of all languages to be used later
@@ -132,12 +126,15 @@ export async function setLanguages({
     })
 
     onUpdate({
-      done: false,
       message: `Setting default language to "${defaultLanguage}": ${
         result?.errors ? 'error' : 'success'
       }`,
     })
   }
+
+  onUpdate({
+    progress: 1,
+  })
 
   return languages
 }

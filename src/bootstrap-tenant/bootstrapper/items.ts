@@ -55,16 +55,18 @@ import {
   getItemIdFromCataloguePath,
   getTenantId,
   getTranslation,
-  StepStatus,
+  AreaUpdate,
   TenantContext,
   uploadFileFromUrl,
   validShapeIdentifier,
+  fileUploader,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
+import { ffmpegAvailable } from './utils/remote-file-upload'
 
 export interface Props {
   spec: JsonSpec | null
-  onUpdate(t: StepStatus): any
+  onUpdate(t: AreaUpdate): any
   context: TenantContext
 }
 
@@ -90,7 +92,6 @@ async function getTenantRootItemId(): Promise<string> {
 
 function publishItem(language: string, id: string) {
   if (!id) {
-    console.log('cannot publish without id')
     return Promise.resolve()
   }
 
@@ -214,10 +215,16 @@ async function getTopicIds(
   return ids
 }
 
-async function createImagesInput(
-  images: JSONImages,
+interface ICreateImagesInput {
+  images: JSONImages
   language: string
+  onUpdate(t: AreaUpdate): any
+}
+
+async function createImagesInput(
+  props: ICreateImagesInput
 ): Promise<ImageComponentContentInput[]> {
+  const { images, language, onUpdate } = props
   const imgs: ImageComponentContentInput[] = []
 
   for (let i = 0; i < images.length; i++) {
@@ -236,7 +243,12 @@ async function createImagesInput(
           image.mimeType = uploadResult.mimeType
         }
       } catch (e) {
-        console.log('Error: Could not upload image', image.src)
+        onUpdate({
+          warning: {
+            code: 'UPLOAD_FAILED',
+            message: `Could not upload "${image.src}"`,
+          },
+        })
       }
     }
 
@@ -255,10 +267,17 @@ async function createImagesInput(
   return imgs
 }
 
-async function createVideosInput(
-  videos: JSONVideos,
+interface ICreateVideosInput {
+  videos: JSONVideos
   language: string
+  onUpdate(t: AreaUpdate): any
+}
+
+async function createVideosInput(
+  props: ICreateVideosInput
 ): Promise<VideoContentInput[]> {
+  const { videos, language, onUpdate } = props
+
   const vids: VideoContentInput[] = []
 
   for (let i = 0; i < videos.length; i++) {
@@ -275,7 +294,12 @@ async function createVideosInput(
           video.key = uploadResult.key
         }
       } catch (e) {
-        console.log('Error: Could not upload video', video.src)
+        onUpdate({
+          warning: {
+            code: 'UPLOAD_FAILED',
+            message: `Could not upload "${key}"`,
+          },
+        })
       }
     }
 
@@ -284,7 +308,11 @@ async function createVideosInput(
         key,
         title: getTranslation(video.title, language),
         ...(video.thumbnails && {
-          thumbnails: await createImagesInput(video.thumbnails, language),
+          thumbnails: await createImagesInput({
+            images: video.thumbnails,
+            language,
+            onUpdate,
+          }),
         }),
       })
     }
@@ -293,12 +321,16 @@ async function createVideosInput(
   return vids
 }
 
-async function createComponentsInput(
-  item: JSONItem,
-  shape: Shape,
-  language: string,
+interface ICreateComponentsInput {
+  item: JSONItem
+  shape: Shape
+  language: string
   grids: JSONGrid[]
-) {
+  onUpdate(t: AreaUpdate): any
+}
+
+async function createComponentsInput(props: ICreateComponentsInput) {
+  const { item, shape, language, grids, onUpdate } = props
   if (!item.components) {
     return null
   }
@@ -379,19 +411,19 @@ async function createComponentsInput(
         return inp
       }
       case 'images': {
-        const i = component as JSONImage[]
+        const images = component as JSONImage[]
 
         const inp: ImagesComponentContentInput = {
-          images: await createImagesInput(i, language),
+          images: await createImagesInput({ images, language, onUpdate }),
         }
 
         return inp
       }
       case 'videos': {
-        const i = component as JSONVideo[]
+        const videos = component as JSONVideo[]
 
         const inp: VideosComponentContentInput = {
-          videos: await createVideosInput(i, language),
+          videos: await createVideosInput({ videos, language, onUpdate }),
         }
         return inp
       }
@@ -439,10 +471,10 @@ async function createComponentsInput(
             },
             ...(body && { body: createRichTextInput(body, language) }),
             ...(images && {
-              images: await createImagesInput(images, language),
+              images: await createImagesInput({ images, language, onUpdate }),
             }),
             ...(videos && {
-              videos: await createVideosInput(videos, language),
+              videos: await createVideosInput({ videos, language, onUpdate }),
             }),
           })
         }
@@ -647,6 +679,17 @@ export async function setItems({
     return
   }
 
+  const ffmpeg = await ffmpegAvailable
+  if (!ffmpeg) {
+    onUpdate({
+      warning: {
+        code: 'FFMPEG_UNAVAILABLE',
+        message:
+          'ffmpeg is not available. Videos will not be included. Installment instructions for ffmpeg: https://ffmpeg.org/download.html',
+      },
+    })
+  }
+
   const rootItemId = await getTenantRootItemId()
   const allGrids = await getAllGrids(context.defaultLanguage.code)
 
@@ -657,10 +700,40 @@ export async function setItems({
   const allMediaUrls = getAllMediaUrls(spec.items)
   allMediaUrls.forEach(uploadFileFromUrl)
 
+  // Pull the status every second
+  const getFileuploaderStatusInterval = setInterval(() => {
+    const doneUploads = fileUploader.workerQueue.filter(
+      (u) => u.status !== 'not-started'
+    )
+    const progress = doneUploads.length / allMediaUrls.length
+    onUpdate({
+      message: 'media-upload-progress',
+      progress,
+    })
+
+    if (progress === 1) {
+      clearInterval(getFileuploaderStatusInterval)
+    }
+  }, 1000)
+
   onUpdate({
-    done: false,
     message: `Initiating upload of ${allMediaUrls.length} media item(s)`,
   })
+
+  // Get a total item count
+  let totalItems = 0
+  function getCount(item: JSONFolder) {
+    totalItems++
+    if ('children' in item) {
+      item.children?.forEach(getCount)
+    }
+  }
+  spec.items.forEach(getCount)
+
+  // Double the item count since we're doing add/update _and_ item relations later
+  totalItems *= 2
+
+  let finishedItems = 0
 
   async function createOrUpdateItem(
     item: JSONItem,
@@ -670,13 +743,20 @@ export async function setItems({
     item._componentsData = {}
 
     // Ensure shape identifier is not too long (max 24 characters)
-    item.shape = validShapeIdentifier(item.shape)
+    item.shape = validShapeIdentifier(item.shape, onUpdate)
 
     // Get the shape type
     const shape = context.shapes?.find((s) => s.identifier === item.shape)
     if (!shape) {
-      console.log(JSON.stringify(context.shapes, null, 1))
-      console.log('No shape found for item', item)
+      onUpdate({
+        warning: {
+          code: 'OTHER',
+          message: `Skipping  "${getTranslation(
+            item.name,
+            context.defaultLanguage.code
+          )}". Could not locate its shape (${item.shape}}))`,
+        },
+      })
       return null
     }
 
@@ -686,12 +766,13 @@ export async function setItems({
       }
 
       // @ts-ignore
-      item._componentsData[language] = await createComponentsInput(
+      item._componentsData[language] = await createComponentsInput({
         item,
         shape,
         language,
-        allGrids
-      )
+        grids: allGrids,
+        onUpdate,
+      })
       item._topicsData = {}
       if (item.topics) {
         item._topicsData = {
@@ -726,22 +807,26 @@ export async function setItems({
 
     async function updateForLanguage(language: string, itemId: string) {
       if (!shape || !itemId) {
-        console.log(
-          'Cannot update',
-          getTranslation(item.name, language),
-          'for',
-          language
-        )
+        onUpdate({
+          warning: {
+            code: 'OTHER',
+            message: `Cannot update "${getTranslation(
+              item.name,
+              language
+            )}" for language "${language}"`,
+          },
+        })
         return
       }
 
       // @ts-ignore
-      item._componentsData[language] = await createComponentsInput(
+      item._componentsData[language] = await createComponentsInput({
         item,
         shape,
         language,
-        allGrids
-      )
+        grids: allGrids,
+        onUpdate,
+      })
 
       return callPIM({
         query: buildUpdateItemMutation(
@@ -765,9 +850,13 @@ export async function setItems({
 
       const vatType = context.vatTypes?.find((v) => v.name === product.vatType)
       if (!vatType) {
-        throw new Error(
-          `Cannot create product "${product.name}". Vat type "${product.vatType}" does not exist`
-        )
+        onUpdate({
+          warning: {
+            code: 'OTHER',
+            message: `Cannot create product "${product.name}". Vat type "${product.vatType}" does not exist`,
+          },
+        })
+        return
       }
 
       const variants: CreateProductVariantInput[] = []
@@ -810,7 +899,11 @@ export async function setItems({
                 price: price ?? 0,
               }),
           ...(jsonVariant.images && {
-            images: await createImagesInput(jsonVariant.images, language),
+            images: await createImagesInput({
+              images: jsonVariant.images,
+              language,
+              onUpdate,
+            }),
           }),
           ...(attributes && { attributes }),
         })
@@ -829,7 +922,16 @@ export async function setItems({
     }
 
     if (!itemId) {
-      throw new Error('Could not create or update item')
+      onUpdate({
+        warning: {
+          code: 'OTHER',
+          message: `Could not create or update item "${getTranslation(
+            item.name,
+            context.defaultLanguage.code
+          )}"`,
+        },
+      })
+      return null
     }
 
     await publishItem(context.defaultLanguage.code, itemId)
@@ -859,28 +961,16 @@ export async function setItems({
       )
     }
 
-    if (!item.id) {
-      item.id = (await createOrUpdateItem(
-        item,
-        parentId || rootItemId
-      )) as string
-      onUpdate({
-        done: false,
-        message: `Created ${getTranslation(
-          item.name,
-          context.defaultLanguage.code
-        )}`,
-      })
-    } else {
-      await createOrUpdateItem(item, parentId || rootItemId)
-      onUpdate({
-        done: false,
-        message: `Updated ${getTranslation(
-          item.name,
-          context.defaultLanguage.code
-        )}`,
-      })
-    }
+    item.id = (await createOrUpdateItem(item, parentId || rootItemId)) as string
+
+    finishedItems++
+    onUpdate({
+      progress: finishedItems / totalItems,
+      message: `Handled ${getTranslation(
+        item.name,
+        context.defaultLanguage.code
+      )}`,
+    })
 
     if (item.id && 'children' in item) {
       const itm = item as JSONFolder
@@ -899,7 +989,6 @@ export async function setItems({
     }
 
     onUpdate({
-      done: false,
       message: `Item relations: ${getTranslation(
         item.name,
         context.defaultLanguage.code
@@ -1080,6 +1169,11 @@ export async function setItems({
       await publishItem(context.defaultLanguage.code, item.id as string)
     }
 
+    finishedItems++
+    onUpdate({
+      progress: finishedItems / totalItems,
+    })
+
     if ('children' in item) {
       const itm = item as JSONFolder
 
@@ -1100,10 +1194,13 @@ export async function setItems({
    * items are created
    */
   onUpdate({
-    done: false,
     message: 'Updating item relations...',
   })
   for (let i = 0; i < spec.items.length; i++) {
     await handleItemRelations(spec.items[i])
   }
+
+  onUpdate({
+    progress: 1,
+  })
 }

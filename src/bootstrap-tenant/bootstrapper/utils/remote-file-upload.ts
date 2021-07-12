@@ -12,12 +12,11 @@ import m3u8ToMp4 from 'm3u8-to-mp4'
 import { callPIM } from './api'
 import execa from 'execa'
 
-const ffmpegAvailable = new Promise(async (resolve, reject) => {
+export const ffmpegAvailable = new Promise(async (resolve) => {
   try {
     await execa('ffmpeg', ['--help'])
     resolve(true)
   } catch (e) {
-    console.log('ffmpeg is not availble. Videos will not be included.')
     resolve(false)
   }
 })
