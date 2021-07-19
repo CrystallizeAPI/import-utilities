@@ -178,22 +178,27 @@ export function validShapeIdentifier(
 
 export async function getItemIdFromExternalReference(
   externalReference: string,
-  language: string
+  language: string,
+  tenantId: string
 ): Promise<string> {
   const response = await callPIM({
     query: `
-      query GET_ID_FROM_EXTERNAL_REFERENCE ($externalReferences: String, $language: String) {
+      query GET_ID_FROM_EXTERNAL_REFERENCE(
+        $externalReferences: [String!]
+        $language: String!
+        $tenantId: ID!
+      ) {
         item {
-          getMany (
-            externalReferences: $externalReferences
-            language: $language
-          )
+          getMany(externalReferences: $externalReferences, language: $language, tenantId: $tenantId) {
+            id
+          }
         }
       }
     `,
     variables: {
       externalReferences: [externalReference],
       language,
+      tenantId,
     },
   })
 

@@ -958,7 +958,8 @@ export async function setItems({
     if (item.externalReference) {
       item.id = await getItemIdFromExternalReference(
         item.externalReference,
-        context.defaultLanguage.code
+        context.defaultLanguage.code,
+        getTenantId()
       )
     } else if (item.cataloguePath) {
       item.id = await getItemIdFromCataloguePath(

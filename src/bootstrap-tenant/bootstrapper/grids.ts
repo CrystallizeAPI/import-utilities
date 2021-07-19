@@ -30,7 +30,8 @@ async function setItemIds(grid: JSONGrid, language: string) {
           if (column.item?.externalReference) {
             itemId = await getItemIdFromExternalReference(
               column.item?.externalReference,
-              language
+              language,
+              getTenantId()
             )
           } else if (column.item?.cataloguePath) {
             itemId = await getItemIdFromCataloguePath(
