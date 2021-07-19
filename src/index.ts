@@ -4,5 +4,6 @@ export {
   bootstrapTenant,
   createJSONSpec,
   EVENT_NAMES,
-  Bootstrapper
+  JsonSpec,
+  Bootstrapper,
 } from './bootstrap-tenant'
