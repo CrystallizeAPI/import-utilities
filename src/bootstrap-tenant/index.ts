@@ -1,6 +1,7 @@
 import { JsonSpec } from './json-spec'
 import { AreaUpdate, Bootstrapper } from './bootstrapper'
 
+export { JsonSpec } from './json-spec'
 export { Bootstrapper } from './bootstrapper'
 export { EVENT_NAMES } from './bootstrapper/utils'
 
