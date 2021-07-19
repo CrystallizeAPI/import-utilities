@@ -4,7 +4,14 @@ This repository contains a collection of types and functions that can be used to
 build queries and mutations to make it easier to import custom datastructures
 into Crystallize.
 
-## Usage Examples
+There are two flavor of utilities
+
+1. Functions to create single mutations with the
+   [PIM API](https://crystallize.com/learn/developer-guides/api-overview/api-endpoints).
+   Useful for product mutations and other small operations
+2. Tenant blueprint/bootstrap functions. Read more about those opreations here
+
+## Usage examples for single mutations
 
 ### Creating a Tenant
 
@@ -224,3 +231,50 @@ const mutations = items.map((item: RecipeContent): string =>
 ```
 
 [0]: https://crystallize.com/learn/developer-guides/api-overview/api-endpoints
+
+## Tenant blueprint/bootstrap
+
+The blueprint/bootstrap of tenant is broken down into two separate operations
+
+1. Create a backup of a tenant, storing it as a `.json` specification
+2. Bootstrapping a tenant, using a `.json` specification
+
+### Tenant blueprint specification
+
+The tenant blueprint specification describes how the tenant is configured, and
+can contain information on:
+
+- [Languages](https://crystallize.com/learn/concepts/pim/multilingual)
+- [VAT types](https://crystallize.com/learn/concepts/ecommerce/tax)
+- [Price variants](https://crystallize.com/learn/concepts/ecommerce/price-variant)
+- [Shapes](https://crystallize.com/learn/concepts/pim/shape)
+- [Topics](https://crystallize.com/learn/concepts/pim/topic-map)
+- [Grids](https://crystallize.com/learn/concepts/pim/grid-organizer)
+- [Products](https://crystallize.com/learn/concepts/pim/product),
+  [Documents](https://crystallize.com/learn/concepts/pim/document) and
+  [Folders](https://crystallize.com/learn/concepts/pim/folder)
+
+It is described in a `.json` file, like such:
+
+```json
+{
+  "languages": [],
+  "vatTypes": [],
+  "priceVariants": [],
+  "shapes": [],
+  "topicMaps": [],
+  "grids": [],
+  "items": []
+}
+```
+
+You can create a json spec manually, with the help of the `JSONSpec` type
+exported from the package:
+
+```ts
+import { JSONSpec } from '@crystallize/import-utilites'
+
+const mySpec: JSONSpec = {
+  languages: [{}],
+}
+```
