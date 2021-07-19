@@ -9,7 +9,8 @@ There are two flavor of utilities
 1. Functions to create single mutations with the
    [PIM API](https://crystallize.com/learn/developer-guides/api-overview/api-endpoints).
    Useful for product mutations and other small operations
-2. Tenant blueprint/bootstrap functions. Read more about those opreations here
+2. Tenant specification/bootstrap functions. Read more about those opreations
+   here
 
 ## Usage examples for single mutations
 
@@ -232,17 +233,18 @@ const mutations = items.map((item: RecipeContent): string =>
 
 [0]: https://crystallize.com/learn/developer-guides/api-overview/api-endpoints
 
-## Tenant blueprint/bootstrap
+## Tenant specification and bootstrap
 
-The blueprint/bootstrap of tenant is broken down into two separate operations
+The specification/bootstrap of tenant is broken down into two separate
+operations
 
 1. Create a backup of a tenant, storing it as a `.json` specification
 2. Bootstrapping a tenant, using a `.json` specification
 
-### Tenant blueprint specification
+### Create a tenant specification
 
-The tenant blueprint specification describes how the tenant is configured, and
-can contain information on:
+The tenant specification describes how the tenant is configured, and can contain
+information on:
 
 - [Languages](https://crystallize.com/learn/concepts/pim/multilingual)
 - [VAT types](https://crystallize.com/learn/concepts/ecommerce/tax)
@@ -268,8 +270,10 @@ It is described in a `.json` file, like such:
 }
 ```
 
-You can create a json spec manually, with the help of the `JSONSpec` type
-exported from the package:
+### Create the specification manually
+
+You can create the tenant specification manually, with the help of the
+`JSONSpec` type exported from the package:
 
 ```ts
 import { JSONSpec } from '@crystallize/import-utilites'
@@ -278,3 +282,24 @@ const mySpec: JSONSpec = {
   languages: [{}],
 }
 ```
+
+See an example of that under the
+[examples/create-spec-manually](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-manually)
+folder
+
+### Create the specification automaticaly
+
+You can create the tenant specification automatically, with the help of the
+`Bootstrapper` class exported from the package:
+
+```ts
+import { Bootstrapper, JSONSpec } from '@crystallize/import-utilites'
+
+const mySpec: JSONSpec = await bootstrapper.createSpec({
+  ...
+});
+```
+
+See an example of that under the
+[examples/create-spec-automatically](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-automatically)
+folder
