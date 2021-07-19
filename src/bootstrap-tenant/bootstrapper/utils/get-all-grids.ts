@@ -14,6 +14,7 @@ query GET_GRIDS($tenantId: ID!, $language: String!) {
       rows {
         columns {
           item {
+            externalReference
             tree {
               path(language: $language)
             }
@@ -45,6 +46,7 @@ export async function getAllGrids(language: string): Promise<JSONGrid[]> {
         item: !c.item
           ? null
           : {
+              externalReference: c.item.tree.externalReference,
               cataloguePath: c.item.tree.path,
             },
       })),

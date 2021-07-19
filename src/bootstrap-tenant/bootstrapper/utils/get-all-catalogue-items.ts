@@ -61,6 +61,7 @@ export async function getAllCatalogueItems(
     const jsonItem = {
       name: item.name,
       cataloguePath: item.cataloguePath,
+      externalReference: item.externalReference,
       shape: item.shape.identifier,
       components: handleComponents(item.components),
       topics: item.topics?.map(getTopicHierarchy),
@@ -248,6 +249,7 @@ fragment item on Item {
   name
   type
   cataloguePath: path
+  externalReference
   shape {
     identifier
   }
@@ -397,6 +399,7 @@ fragment richTextContent on RichTextContent {
 fragment itemRelationsContent on ItemRelationsContent {
   items {
     cataloguePath: path
+    externalReference
   }
 }
 

@@ -84,9 +84,10 @@ export interface JSONPropertiesTableSection {
 }
 export type JSONPropertiesTable = JSONPropertiesTableSection[]
 export interface JSONItemReference {
-  cataloguePath: string
+  cataloguePath?: string
+  externalReference?: string
 }
-export type JSONItemRelation = string | JSONItemReference
+export type JSONItemRelation = JSONItemReference
 export type JSONItemRelations = JSONItemRelation[]
 export type JSONSelection = string[] | string
 export type ComponentId = string
@@ -118,6 +119,7 @@ export type JSONStructuredTopic = {
 export type JSONItemTopic = JSONStructuredTopic | string
 export interface JSONItemBase {
   cataloguePath?: string
+  externalReference?: string
   id?: string
   name: JSONTranslation
   shape: string

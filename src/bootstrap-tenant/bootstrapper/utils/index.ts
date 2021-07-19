@@ -4,7 +4,7 @@ import {
   Shape,
   JSONVatType,
 } from '../../json-spec'
-import { callCatalogue } from './api'
+import { callCatalogue, callPIM } from './api'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
 
 export * from './api'
@@ -174,6 +174,30 @@ export function validShapeIdentifier(
   })
 
   return validIdentifier
+}
+
+export async function getItemIdFromExternalReference(
+  externalReference: string,
+  language: string
+): Promise<string> {
+  const response = await callPIM({
+    query: `
+      query GET_ID_FROM_EXTERNAL_REFERENCE ($externalReferences: String, $language: String) {
+        item {
+          getMany (
+            externalReferences: $externalReferences
+            language: $language
+          )
+        }
+      }
+    `,
+    variables: {
+      externalReferences: [externalReference],
+      language,
+    },
+  })
+
+  return response.data?.item?.getMany?.[0] || ''
 }
 
 export async function getItemIdFromCataloguePath(

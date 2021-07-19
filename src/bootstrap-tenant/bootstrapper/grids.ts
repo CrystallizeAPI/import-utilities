@@ -9,6 +9,7 @@ import {
   getTranslation,
   AreaUpdate,
   TenantContext,
+  getItemIdFromExternalReference,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 
@@ -25,12 +26,20 @@ async function setItemIds(grid: JSONGrid, language: string) {
     grid.rows.map(async (row) => {
       await Promise.all(
         row.columns.map(async (column) => {
-          const path = column.item?.cataloguePath
-          if (path) {
-            const itemId = await getItemIdFromCataloguePath(path, language)
-            if (itemId) {
-              column.itemId = itemId
-            }
+          let itemId
+          if (column.item?.externalReference) {
+            itemId = await getItemIdFromExternalReference(
+              column.item?.externalReference,
+              language
+            )
+          } else if (column.item?.cataloguePath) {
+            itemId = await getItemIdFromCataloguePath(
+              column.item?.cataloguePath,
+              language
+            )
+          }
+          if (itemId) {
+            column.itemId = itemId
           }
           delete column.item
         })

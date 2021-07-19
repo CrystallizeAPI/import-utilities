@@ -53,6 +53,7 @@ import {
   callCatalogue,
   callPIM,
   getItemIdFromCataloguePath,
+  getItemIdFromExternalReference,
   getTenantId,
   getTranslation,
   AreaUpdate,
@@ -954,7 +955,12 @@ export async function setItems({
       return
     }
 
-    if (item.cataloguePath) {
+    if (item.externalReference) {
+      item.id = await getItemIdFromExternalReference(
+        item.externalReference,
+        context.defaultLanguage.code
+      )
+    } else if (item.cataloguePath) {
       item.id = await getItemIdFromCataloguePath(
         item.cataloguePath,
         context.defaultLanguage.code
