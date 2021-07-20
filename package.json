@@ -51,5 +51,9 @@
     "prettier": "^2.2.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:CrystallizeAPI/import-utilities.git"
   }
 }
