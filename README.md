@@ -275,7 +275,7 @@ const mySpec: JSONSpec = {
 }
 ```
 
-See an example of that in the
+See a simple example of this in the
 [examples/create-spec-manually](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-manually)
 folder
 
@@ -292,9 +292,27 @@ const mySpec: JSONSpec = await bootstrapper.createSpec({
 });
 ```
 
-See an example of that in the
+See a simple example of this in the
 [examples/create-spec-automatically](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-automatically)
 folder.
 
-In ordrer to bootstrap a tenant, you need to provice access tokens (and
-potentially also a static token if you've used that for API access protection).
+See more examples in our extensive
+[examples repository](https://github.com/CrystallizeAPI/examples)
+
+### Bootstrap a tenant
+
+You can bootstrap a tenant using a specification with the help of the
+`Bootstrapper` class exported from the package:
+
+```typescript
+import { Bootstrapper, JSONSpec } from '@crystallize/import-utilites'
+
+bootstrapper.start()
+```
+
+See a simple example of this in the
+[examples/bootstrap-tenant](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/bootstrap-tenant)
+folder.
+
+See more examples in our extensive
+[examples repository](https://github.com/CrystallizeAPI/examples)
