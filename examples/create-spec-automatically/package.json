@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@crystallize/import-utilities": "^0.25.1",
+    "@crystallize/import-utilities": "latest",
     "ts-node": "^10.1.0"
   }
 }
