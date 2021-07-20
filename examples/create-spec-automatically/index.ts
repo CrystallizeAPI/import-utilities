@@ -9,6 +9,7 @@ async function createSpecification() {
    */
   const ACCESS_TOKEN_ID = process.env.CRYSTALLIZE_ACCESS_TOKEN_ID
   const ACCESS_TOKEN_SECRET = process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
+
   bootstrapper.setAccessToken(ACCESS_TOKEN_ID, ACCESS_TOKEN_SECRET)
 
   // The tenant to create a specification from
@@ -27,7 +28,7 @@ async function createSpecification() {
     },
   })
 
-  console.log(JSON.stringify(tenantSpec.priceVariants, null, 1))
+  console.log(JSON.stringify(tenantSpec, null, 1))
 }
 
 createSpecification()

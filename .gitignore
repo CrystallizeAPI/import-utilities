@@ -3,3 +3,5 @@ node_modules
 dist
 .env
 json-spec
+examples/*/yarn.lock
+examples/*/package-lock.json
