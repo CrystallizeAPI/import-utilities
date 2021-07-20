@@ -11,7 +11,7 @@ import { EVENT_NAMES, Status } from './bootstrapper'
 function bootstrap() {
   const tenantIdentifier = 'hkn-demo-clone'
   const spec = readFileSync(
-    resolve(__dirname, '../../json-spec/hkn-demo.json'),
+    resolve(__dirname, '../../json-spec/hkn.json'),
     'utf-8'
   )
 

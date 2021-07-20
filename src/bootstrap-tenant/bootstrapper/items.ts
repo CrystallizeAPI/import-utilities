@@ -342,7 +342,7 @@ async function createComponentsInput(props: ICreateComponentsInput) {
     componentDefinition: Component,
     component: JSONComponentContent
   ) {
-    switch (componentDefinition.type) {
+    switch (componentDefinition?.type) {
       case 'boolean': {
         const inp: BooleanComponentContentInput = {
           boolean: {
@@ -840,7 +840,7 @@ export async function setItems({
               ...(await createProductItemMutation(language)),
             }),
           },
-          shape?.type as ItemType,
+          shape.type as ItemType,
           language
         ),
       })
@@ -1086,11 +1086,11 @@ export async function setItems({
 
                   if (componentData) {
                     if (def.type === 'componentChoice') {
-                      const selecteDef = def.config.choices.find(
+                      const selectedDef = def.config.choices.find(
                         (c: any) =>
                           c.id === componentData.componentChoice.componentId
                       )
-                      if (selecteDef.type === 'itemRelations') {
+                      if (selectedDef?.type === 'itemRelations') {
                         mutationInput = {
                           componentId,
                           componentChoice: {
