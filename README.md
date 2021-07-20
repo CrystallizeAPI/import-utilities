@@ -279,7 +279,7 @@ See an example of that in the
 [examples/create-spec-manually](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-manually)
 folder
 
-### Create the specification automaticaly
+### Create the specification automatically
 
 You can create the tenant specification automatically, with the help of the
 `Bootstrapper` class exported from the package:
