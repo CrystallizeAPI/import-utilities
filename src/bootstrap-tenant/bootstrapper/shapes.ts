@@ -43,10 +43,16 @@ export async function getExistingShapesForSpec(
   }
 
   return existingShapes.map((eShape) => {
+    let id
+    if (eShape.identifier) {
+      id = validShapeIdentifier(eShape.identifier, onUpdate)
+    } else {
+      id = validShapeIdentifier(eShape.id, onUpdate)
+    }
     const shape: Shape = {
       name: eShape.name,
-      id: validShapeIdentifier(eShape.id, onUpdate),
-      identifier: validShapeIdentifier(eShape.identifier, onUpdate),
+      id,
+      identifier: id,
       type: eShape.type,
       components: eShape?.components.map(handleComponent),
     }
@@ -228,10 +234,11 @@ async function createOrUpdateShape(
         }
       })
 
+      const id = existingShape.identifier || existingShape.id
       const r = await callPIM({
         query: buildUpdateShapeMutation({
-          id: existingShape.id,
-          identifier: existingShape.identifier,
+          id,
+          identifier: id,
           tenantId,
           input: {
             components,
