@@ -11,7 +11,7 @@ into Crystallize.
 You can easily build the GraphQL mutation for creating a tenant with a custom
 data structure.
 
-```ts
+```typescript
 import {
   buildCreateTenantMutation,
   TenantInput,
@@ -60,7 +60,7 @@ create your tenant within Crystallize.
 If you have an existing tenant you can also just create individual shapes by
 generating mutations from shape definitions.
 
-```ts
+```typescript
 import {
   buildCreateShapeMutation,
   ShapeInput,
@@ -104,7 +104,7 @@ provide a schema for different items types. This is kind of a two-step process.
 
 #### 1. Define the structure for the shape (as per the examples above)
 
-```ts
+```typescript
 import {
   buildCreateShapeMutation,
   ShapeInput,
@@ -140,7 +140,7 @@ You can also create this shape manually via the PIM UI, if you prefer.
 
 #### 2. Define the structure for the content
 
-```ts
+```typescript
 interface RecipeContent extends CreateDocumentInput {
   components: {
     ingredients: PropertiesTableComponentContentInput
@@ -155,7 +155,7 @@ Let's say we have some example JSON data that we want to import. This data could
 be in any format, you just need to map it to the `RecipeContent` type we've
 defined above.
 
-```ts
+```typescript
 // Example data. You could have this in any format, you just need to map the
 // data as shown below.
 const data = [
@@ -224,3 +224,77 @@ const mutations = items.map((item: RecipeContent): string =>
 ```
 
 [0]: https://crystallize.com/learn/developer-guides/api-overview/api-endpoints
+
+## Tenant specification and bootstrap
+
+The specification/bootstrap of tenant is broken down into two separate
+operations
+
+1. Create a backup of a tenant, storing it as a `.json` specification
+2. Bootstrapping a tenant, using a `.json` specification
+
+### Create a tenant specification
+
+The tenant specification describes how the tenant is configured, and can contain
+information on:
+
+- [Languages](https://crystallize.com/learn/concepts/pim/multilingual)
+- [VAT types](https://crystallize.com/learn/concepts/ecommerce/tax)
+- [Price variants](https://crystallize.com/learn/concepts/ecommerce/price-variant)
+- [Shapes](https://crystallize.com/learn/concepts/pim/shape)
+- [Topics](https://crystallize.com/learn/concepts/pim/topic-map)
+- [Grids](https://crystallize.com/learn/concepts/pim/grid-organizer)
+- [Products](https://crystallize.com/learn/concepts/pim/product),
+  [Documents](https://crystallize.com/learn/concepts/pim/document) and
+  [Folders](https://crystallize.com/learn/concepts/pim/folder)
+
+It is described in a `.json` file, like such:
+
+```json
+{
+  "languages": [],
+  "vatTypes": [],
+  "priceVariants": [],
+  "shapes": [],
+  "topicMaps": [],
+  "grids": [],
+  "items": []
+}
+```
+
+### Create the specification manually
+
+You can create the tenant specification manually, with the help of the
+`JSONSpec` type exported from the package:
+
+```typescript
+import { JSONSpec } from '@crystallize/import-utilites'
+
+const mySpec: JSONSpec = {
+  languages: [{}],
+}
+```
+
+See an example of that in the
+[examples/create-spec-manually](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-manually)
+folder
+
+### Create the specification automaticaly
+
+You can create the tenant specification automatically, with the help of the
+`Bootstrapper` class exported from the package:
+
+```typescript
+import { Bootstrapper, JSONSpec } from '@crystallize/import-utilites'
+
+const mySpec: JSONSpec = await bootstrapper.createSpec({
+  ...
+});
+```
+
+See an example of that in the
+[examples/create-spec-automatically](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-automatically)
+folder.
+
+In ordrer to bootstrap a tenant, you need to provice access tokens (and
+potentially also a static token if you've used that for API access protection).
