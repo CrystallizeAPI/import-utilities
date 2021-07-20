@@ -12,6 +12,7 @@ import {
   setAccessTokens,
   setTenantId,
   setTenantIdentifier,
+  setStaticToken,
   AreaUpdate,
   TenantContext,
   AreaWarning,
@@ -75,7 +76,7 @@ export class Bootstrapper extends EventEmitter {
   CRYSTALLIZE_ACCESS_TOKEN_ID: string = ''
   CRYSTALLIZE_ACCESS_TOKEN_SECRET: string = ''
   SPEC: JsonSpec | null = null
-  tenantId: string = ''
+  // tenantId: string = ''
   tenantIdentifier: string = ''
 
   context: TenantContext = {
@@ -107,7 +108,7 @@ export class Bootstrapper extends EventEmitter {
     setTenantIdentifier(this.tenantIdentifier)
   }
 
-  async getTenantId() {
+  async getTenantBasics() {
     const r = await callPIM({
       query: `
         {
@@ -116,6 +117,7 @@ export class Bootstrapper extends EventEmitter {
               tenant {
                 id
                 identifier
+                staticAuthToken
               }
             }
           }
@@ -123,19 +125,21 @@ export class Bootstrapper extends EventEmitter {
       `,
     })
 
-    this.tenantId = r?.data?.me?.tenants?.find(
+    const tenant = r?.data?.me?.tenants?.find(
       (t: { tenant: { identifier: string } }) =>
         t.tenant.identifier === this.tenantIdentifier
-    )?.tenant.id
+    )?.tenant
 
-    if (!this.tenantId) {
+    if (!tenant) {
       throw new Error(`No access to tenant "${this.tenantIdentifier}"`)
     }
-    setTenantId(this.tenantId)
+
+    setTenantId(tenant.id)
+    setStaticToken(tenant.staticAuthToken)
   }
 
   async createSpec(props: ICreateSpec = createSpecDefaults): Promise<JsonSpec> {
-    await this.getTenantId()
+    await this.getTenantBasics()
 
     const spec: JsonSpec = {}
 
@@ -202,7 +206,8 @@ export class Bootstrapper extends EventEmitter {
     try {
       const start = new Date()
 
-      await this.getTenantId()
+      await this.getTenantBasics()
+
       await this.setLanguages()
       await this.setPriceVariants()
       await this.setVatTypes()

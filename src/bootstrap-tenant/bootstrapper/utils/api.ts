@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid'
 
 let CRYSTALLIZE_ACCESS_TOKEN_ID = ''
 let CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
+let CRYSTALLIZE_STATIC_AUTH_TOKEN = ''
 let CRYSTALLIZE_TENANT_IDENTIFIER = ''
 
 export function setTenantIdentifier(identifier: string) {
@@ -18,6 +19,10 @@ export function setAccessTokens(id?: string, secret?: string) {
   }
   CRYSTALLIZE_ACCESS_TOKEN_ID = id
   CRYSTALLIZE_ACCESS_TOKEN_SECRET = secret
+}
+
+export function setStaticToken(token: string) {
+  CRYSTALLIZE_STATIC_AUTH_TOKEN = token
 }
 
 export interface IcallAPI {
@@ -90,6 +95,7 @@ class ApiManager {
           'content-type': 'application/json',
           'X-Crystallize-Access-Token-Id': CRYSTALLIZE_ACCESS_TOKEN_ID,
           'X-Crystallize-Access-Token-Secret': CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+          'X-Crystallize-Static-Auth-Token': CRYSTALLIZE_STATIC_AUTH_TOKEN,
         },
         body: JSON.stringify(item.props),
       })
