@@ -34,10 +34,54 @@ export interface JSONTopic {
   parentHierarchyPath?: string
 }
 
+export interface RichTextNode {
+  kind?: 'inline' | 'block'
+  type?:
+    | 'abbrevition'
+    | 'address'
+    | 'article'
+    | 'aside'
+    | 'code'
+    | 'container'
+    | 'deleted'
+    | 'details'
+    | 'emphasized'
+    | 'figcaption'
+    | 'figure'
+    | 'heading1'
+    | 'heading2'
+    | 'heading3'
+    | 'heading4'
+    | 'heading5'
+    | 'heading6'
+    | 'highlight'
+    | 'horizontal-line'
+    | 'image'
+    | 'line-break'
+    | 'link'
+    | 'unordered-list'
+    | 'ordered-list'
+    | 'list-item'
+    | 'paragraph'
+    | 'picture'
+    | 'preformatted'
+    | 'quote'
+    | 'section'
+    | 'strong'
+    | 'subscripted'
+    | 'superscripted'
+    | 'time'
+    | 'title-of-a-work'
+    | 'underlined'
+  children?: RichTextNode[]
+  textContent?: string
+  metadata?: Record<string, unknown>
+}
+
 export interface JSONRichTextStructured {
   plainText?: string
   html?: string
-  json?: JSON
+  json?: RichTextNode | RichTextNode[]
 }
 export type JSONRichText = JSONRichTextStructured | string | null
 
