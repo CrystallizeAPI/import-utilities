@@ -1,0 +1,16 @@
+{
+  "name": "create-manual-spec",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@crystallize/import-utilities": "latest",
+    "ts-node": "^10.1.0"
+  }
+}

@@ -29,6 +29,7 @@ async function createSpecification() {
   })
 
   console.log(JSON.stringify(tenantSpec, null, 1))
+  process.exit(0)
 }
 
 createSpecification()
