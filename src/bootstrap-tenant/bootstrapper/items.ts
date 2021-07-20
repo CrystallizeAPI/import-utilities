@@ -840,7 +840,7 @@ export async function setItems({
               ...(await createProductItemMutation(language)),
             }),
           },
-          shape.type as ItemType,
+          shape?.type as ItemType,
           language
         ),
       })
