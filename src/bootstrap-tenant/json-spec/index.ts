@@ -131,8 +131,14 @@ export interface JSONItemReference {
   cataloguePath?: string
   externalReference?: string
 }
+export interface JSONGridReference {
+  name?: string
+}
 export type JSONItemRelation = JSONItemReference
 export type JSONItemRelations = JSONItemRelation[]
+export type JSONGridRelation = JSONGridReference
+export type JSONGridRelations = JSONGridReference[]
+
 export type JSONSelection = string[] | string
 export type ComponentId = string
 
@@ -147,6 +153,7 @@ export type JSONComponentContent =
   | JSONLocation
   | JSONPropertiesTable
   | JSONItemRelations
+  | JSONGridRelations
   | JSONSelection
   | JSONContentChunk
   | JSONNumeric
