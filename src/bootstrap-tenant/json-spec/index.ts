@@ -148,6 +148,7 @@ export type JSONComponentContent =
   | JSONPropertiesTable
   | JSONItemRelations
   | JSONSelection
+  | JSONContentChunk
   | null
 export type JSONComponents = Record<
   ComponentId,
