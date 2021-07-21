@@ -1028,7 +1028,6 @@ export async function setItems({
                 context.defaultLanguage.code,
                 getTenantId()
               )
-              console.log(itemRelation, id)
             } else if (itemRelation.cataloguePath) {
               id = await getItemIdFromCataloguePath(
                 itemRelation.cataloguePath,
