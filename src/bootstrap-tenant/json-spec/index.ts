@@ -149,6 +149,7 @@ export type JSONComponentContent =
   | JSONItemRelations
   | JSONSelection
   | JSONContentChunk
+  | JSONNumeric
   | null
 export type JSONComponents = Record<ComponentId, JSONComponentContent>
 export type JSONContentChunk = JSONComponents[]
