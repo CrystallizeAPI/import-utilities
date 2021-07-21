@@ -790,6 +790,9 @@ export async function setItems({
             name: getTranslation(item.name, language) || '',
             shapeIdentifier: item.shape,
             tenantId: getTenantId(),
+            ...(item.externalReference && {
+              externalReference: item.externalReference,
+            }),
             tree: {
               parentId,
             },
@@ -1018,24 +1021,22 @@ export async function setItems({
       await Promise.all(
         itemRelations.map(async (itemRelation) => {
           if (typeof itemRelation === 'object') {
-            if ('cataloguePath' in itemRelation) {
-              const response = await callCatalogue({
-                query: `
-                query GET_ID_FOR_PATH ($path: String!, $language: String!) {
-                  catalogue(path: $path, language: $language) {
-                    id
-                  }
-                }
-              `,
-                variables: {
-                  path: itemRelation.cataloguePath,
-                  language: context.defaultLanguage.code,
-                },
-              })
-              const id = response?.data?.catalogue?.id || ''
-              if (id) {
-                ids.push(id)
-              }
+            let id
+            if (itemRelation.externalReference) {
+              id = await getItemIdFromExternalReference(
+                itemRelation.externalReference,
+                context.defaultLanguage.code,
+                getTenantId()
+              )
+              console.log(itemRelation, id)
+            } else if (itemRelation.cataloguePath) {
+              id = await getItemIdFromCataloguePath(
+                itemRelation.cataloguePath,
+                context.defaultLanguage.code
+              )
+            }
+            if (id) {
+              ids.push(id)
             }
           }
         })

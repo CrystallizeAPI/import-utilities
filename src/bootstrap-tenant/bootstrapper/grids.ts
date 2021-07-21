@@ -5,11 +5,11 @@ import { JSONGrid, JsonSpec } from '../json-spec'
 import {
   callPIM,
   getItemIdFromCataloguePath,
+  getItemIdFromExternalReference,
   getTenantId,
   getTranslation,
   AreaUpdate,
   TenantContext,
-  getItemIdFromExternalReference,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 

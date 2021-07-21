@@ -202,7 +202,7 @@ export async function getItemIdFromExternalReference(
     },
   })
 
-  return response.data?.item?.getMany?.[0] || ''
+  return response.data?.item?.getMany?.[0]?.id || ''
 }
 
 export async function getItemIdFromCataloguePath(
