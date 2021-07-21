@@ -150,10 +150,7 @@ export type JSONComponentContent =
   | JSONSelection
   | JSONContentChunk
   | null
-export type JSONComponents = Record<
-  ComponentId,
-  JSONComponentContent | JSONComponentChoice
->
+export type JSONComponents = Record<ComponentId, JSONComponentContent>
 export type JSONContentChunk = JSONComponents[]
 export type JSONComponentChoice = Record<string, JSONComponentContent>
 
@@ -168,7 +165,7 @@ export interface JSONItemBase {
   id?: string
   name: JSONTranslation
   shape: string
-  components?: Record<string, JSONComponentContent>
+  components?: Record<string, JSONComponentContent | JSONComponentChoice>
   topics?: JSONItemTopic[]
   _componentsData?: Record<string, any>
   _topicsData?: Record<string, string[]>
