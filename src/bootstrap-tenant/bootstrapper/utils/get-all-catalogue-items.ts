@@ -74,7 +74,7 @@ export async function getAllCatalogueItems(
       jsonProduct.variants = item.variants.map((v: any) => {
         const attributes: Record<string, string> = {}
         v.attributes?.forEach(
-          ({ key, value }: any) => (attributes[key] = value)
+          ({ attribute, value }: any) => (attributes[attribute] = value)
         )
 
         const variant: JSONProductVariant = {
@@ -316,6 +316,10 @@ fragment product on Product {
     sku
     price
     isDefault
+    attributes {
+      attribute
+      value
+    }
     priceVariants {
       identifier
       name
