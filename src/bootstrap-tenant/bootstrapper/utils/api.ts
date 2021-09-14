@@ -88,6 +88,18 @@ class ApiManager {
 
     let errorString: string = ''
 
+    const resolveWith = (response: IcallAPIResult) => {
+      if (item) {
+        item.resolve(response)
+
+        // Remove item from queue
+        this.queue.splice(
+          this.queue.findIndex((q) => q.id === item.id),
+          1
+        )
+      }
+    }
+
     try {
       const response = await fetch(this.url, {
         method: 'post',
@@ -129,15 +141,17 @@ class ApiManager {
           this.maxWorkers = 1
         }
       }
+
+      // Stop if there are too many errors
+      if (item.failCount > 10) {
+        resolveWith({
+          data: null,
+          errors: [{ error: errorString }],
+        })
+      }
       item.working = false
     } else {
-      item.resolve(json)
-
-      // Remove item from queue
-      this.queue.splice(
-        this.queue.findIndex((q) => q.id === item.id),
-        1
-      )
+      resolveWith(json)
     }
   }
 }

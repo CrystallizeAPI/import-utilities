@@ -892,25 +892,28 @@ export async function setItems({
           }))
         }
 
-        inp.variants.push({
+        const variant: CreateProductVariantInput = {
           name: getTranslation(jsonVariant.name, language),
           sku: jsonVariant.sku,
           isDefault: jsonVariant.isDefault || false,
-          stock: jsonVariant.stock,
+          stock: jsonVariant.stock ?? 0,
           ...(priceVariants
             ? { priceVariants }
             : {
                 price: price ?? 0,
               }),
-          ...(jsonVariant.images && {
-            images: await createImagesInput({
-              images: jsonVariant.images,
-              language,
-              onUpdate,
-            }),
-          }),
           ...(attributes && { attributes }),
-        })
+        }
+
+        if (jsonVariant.images) {
+          variant.images = await createImagesInput({
+            images: jsonVariant.images,
+            language,
+            onUpdate,
+          })
+        }
+
+        inp.variants.push(variant)
       }
 
       return inp

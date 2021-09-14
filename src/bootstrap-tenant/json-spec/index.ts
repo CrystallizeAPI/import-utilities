@@ -184,11 +184,13 @@ export interface JSONFolder extends JSONItemBase {
 }
 export interface JSONDocument extends JSONItemBase {}
 
+export type JSONProductVariantPriceVariants = Record<string, number>
+
 export interface JSONProductVariant {
   isDefault?: boolean
   name: JSONTranslation
   sku: string
-  price: Record<string, number> | number
+  price: JSONProductVariantPriceVariants | number
   images?: JSONImage[]
   stock?: number
   attributes?: Record<string, string>

@@ -1,8 +1,7 @@
 import { config } from 'dotenv'
 config()
 
-import { readFileSync } from 'fs'
-import { resolve } from 'path'
+// import { readFileSync } from 'fs'
 import Progress from 'cli-progress'
 
 import { bootstrapTenant } from './index'
@@ -10,10 +9,10 @@ import { EVENT_NAMES, Status } from './bootstrapper'
 
 function bootstrap() {
   const tenantIdentifier = 'hkn-examples'
-  const spec = readFileSync(
-    resolve(__dirname, '../../json-spec/simple-item-relation.json'),
-    'utf-8'
-  )
+  // const spec = JSON.parse(readFileSync(
+  //   resolve(__dirname, '../../json-spec/simple-item-relation.json'),
+  //   'utf-8'
+  // ))
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -27,7 +26,31 @@ function bootstrap() {
   console.log(`✨ Bootstrapping ${tenantIdentifier} ✨`)
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
-    jsonSpec: JSON.parse(spec),
+    jsonSpec: {
+      languages: [
+        {
+          code: 'en',
+          isDefault: true,
+          name: 'English',
+        },
+      ],
+      items: [
+        {
+          name: 'sadadad',
+          vatType: 'No Tax',
+          shape: 'default-product',
+          variants: [
+            {
+              sku: 'sadadad-1625761575646',
+              name: 'alksdj',
+              price: 99,
+              stock: 1,
+              isDefault: true,
+            },
+          ],
+        },
+      ],
+    },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
