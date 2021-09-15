@@ -64,6 +64,7 @@ import {
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
+import { buildUpdateItemComponentMutation } from '../../graphql/build-update-item-component-mutation'
 
 export interface Props {
   spec: JsonSpec | null
@@ -330,10 +331,26 @@ interface ICreateComponentsInput {
   onUpdate(t: AreaUpdate): any
 }
 
-async function createComponentsInput(props: ICreateComponentsInput) {
+async function createComponentsInput(
+  props: ICreateComponentsInput
+): Promise<Record<string, ComponentContentInput> | null | undefined> {
   const { item, shape, language, grids, onUpdate } = props
-  if (!item.components) {
+
+  /**
+   * If you pass null, then we assume you want to
+   * clear all the components data
+   */
+
+  if (item.components === null) {
     return null
+  }
+
+  /**
+   * Returing undefined here leaves the
+   * existing components untouched
+   */
+  if (!item.components) {
+    return undefined
   }
 
   const input: Record<string, ComponentContentInput> = {}
@@ -371,7 +388,7 @@ async function createComponentsInput(props: ICreateComponentsInput) {
         const inp: NumericComponentContentInput = {
           numeric: {
             number: n.number,
-            unit: n.unit,
+            unit: n.unit ?? '',
           },
         }
         return inp
@@ -612,6 +629,16 @@ async function createComponentsInput(props: ICreateComponentsInput) {
   }
 
   const componentIds = Object.keys(item.components)
+
+  /**
+   * If you don't supply any components, let's not continue.
+   * The intention of the user is probably to only update
+   * any provided components
+   */
+  if (componentIds.length === 0) {
+    return undefined
+  }
+
   for (let i = 0; i < componentIds.length; i++) {
     const componentId = componentIds[i]
     const componentDefinition = shape.components.find(
@@ -832,21 +859,62 @@ export async function setItems({
         onUpdate,
       })
 
-      return callPIM({
-        query: buildUpdateItemMutation(
-          itemId,
-          {
-            name: getTranslation(item.name, language) || '',
-            ...item._topicsData,
-            components: item._componentsData?.[language],
-            ...(shape?.type === 'product' && {
-              ...(await createProductItemMutation(language)),
-            }),
-          },
-          shape.type as ItemType,
-          language
-        ),
-      })
+      const clearComponentsData = item._componentsData?.[language] === null
+
+      const updates = []
+
+      /**
+       * Start with the basic item information
+       */
+      updates.push(
+        callPIM({
+          query: buildUpdateItemMutation(
+            itemId,
+            {
+              name: getTranslation(item.name, language) || '',
+              ...item._topicsData,
+              ...(shape?.type === 'product' && {
+                // Todo: handle each product variant seperately
+                ...(await createProductItemMutation(language)),
+              }),
+              ...(clearComponentsData && {
+                components: {},
+              }),
+            },
+            shape.type as ItemType,
+            language
+          ),
+        })
+      )
+
+      /**
+       * Create a single update component mutation on
+       * each component. This will ensure that no
+       * component data will be lost during the update
+       */
+      if (item._componentsData?.[language]) {
+        Object.keys(item._componentsData[language]).forEach(
+          (componentId: string) => {
+            const componentContent: ComponentContentInput =
+              item._componentsData?.[language][componentId]
+
+            updates.push(
+              callPIM({
+                query: buildUpdateItemComponentMutation({
+                  itemId,
+                  language,
+                  input: {
+                    componentId,
+                    ...componentContent,
+                  },
+                }),
+              })
+            )
+          }
+        )
+      }
+
+      return Promise.all(updates)
     }
 
     async function createProductItemMutation(language: string) {

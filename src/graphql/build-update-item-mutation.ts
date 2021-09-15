@@ -11,7 +11,13 @@ export const buildUpdateItemMutation = (
     mutation: {},
   }
 
-  const components = input.components || {}
+  let components: undefined | any[] = undefined
+  if (input.components) {
+    components = Object.keys(input.components).map((componentId: string) => ({
+      ...input.components?.[componentId],
+      componentId,
+    }))
+  }
 
   mutation.mutation[type] = {
     update: {
@@ -19,10 +25,7 @@ export const buildUpdateItemMutation = (
         id,
         input: {
           ...input,
-          components: Object.keys(components).map((componentId: string) => ({
-            ...components[componentId],
-            componentId,
-          })),
+          ...(components && { components }),
         },
         language,
       },

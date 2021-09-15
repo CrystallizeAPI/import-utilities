@@ -38,16 +38,20 @@ function bootstrap() {
         {
           name: 'sadadad',
           vatType: 'No Tax',
+          externalReference: 'my-only-product',
           shape: 'default-product',
           variants: [
             {
               sku: 'sadadad-1625761575646',
               name: 'alksdj',
-              price: 99,
+              price: {
+                default: 50,
+              },
               stock: 1,
               isDefault: true,
             },
           ],
+          components: {},
         },
       ],
     },
