@@ -2,7 +2,11 @@
   "name": "@crystallize/import-utilities",
   "version": "0.30.5",
   "main": "dist/index.js",
-  "author": "Brendan Goodenough <brendan@goodenough.nz>",
+  "author": "Crystallize <hello@crystallize.com>",
+  "contributors": [
+    "Brendan Goodenough <brendan@crystallize.com>",
+    "Håkon Krogh <hakon@crystallize.com>"
+  ],
   "files": [
     "dist/**/*"
   ],
