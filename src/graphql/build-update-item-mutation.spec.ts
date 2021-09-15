@@ -44,8 +44,7 @@ test('update mutation for product', (t) => {
                 sku: "cool-product",
                 name: "Cool Product"
               }
-            ],
-            components: []
+            ]
           },
           language: "en"
         ) {
@@ -78,8 +77,7 @@ test('update mutation for document', (t) => {
         update (
           id: "1234",
           input: {
-            name: "Cool Document",
-            components: []
+            name: "Cool Document"
           },
           language: "en"
         ) {
@@ -112,8 +110,7 @@ test('update mutation for folder', (t) => {
         update (
           id: "1234",
           input: {
-            name: "Cool Folder",
-            components: []
+            name: "Cool Folder"
           },
           language: "en"
         ) {
