@@ -25,7 +25,8 @@
     "dev:spec": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__create-spec.ts\"",
     "dev:spec:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__create-spec.ts\"",
     "dev:bootstrapper": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
-    "dev:bootstrapper:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\""
+    "dev:bootstrapper:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
+    "generate-graphql-types": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
     "dotenv": "^10.0.0",
@@ -34,6 +35,7 @@
     "execa": "^5.1.1",
     "file-type": "^16.5.0",
     "form-data": "^4.0.0",
+    "graphql": "^15.5.3",
     "immer": "^9.0.5",
     "json-to-graphql-query": "^2.0.0",
     "m3u8-to-mp4": "^1.0.0",
@@ -44,6 +46,10 @@
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
+    "@graphql-codegen/cli": "2.2.0",
+    "@graphql-codegen/introspection": "^2.1.0",
+    "@graphql-codegen/typescript": "2.2.2",
+    "@graphql-codegen/typescript-resolvers": "^2.2.1",
     "@types/cli-progress": "^3.9.2",
     "@types/download": "^8.0.0",
     "@types/node": "^15.6.1",
