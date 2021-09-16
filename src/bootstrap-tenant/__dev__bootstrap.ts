@@ -24,6 +24,7 @@ function bootstrap() {
   }
 
   console.log(`✨ Bootstrapping ${tenantIdentifier} ✨`)
+
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
     jsonSpec: {
@@ -45,13 +46,15 @@ function bootstrap() {
               sku: 'sadadad-1625761575646',
               name: 'alksdj',
               price: {
-                default: 50,
+                default: 99,
               },
               stock: 1,
               isDefault: true,
             },
           ],
-          components: {},
+          components: {
+            single: new Date().toLocaleString(),
+          },
         },
       ],
     },

@@ -173,7 +173,7 @@ export interface JSONItemBase {
   id?: string
   name: JSONTranslation
   shape: string
-  components?: Record<string, JSONComponentContent | JSONComponentChoice>
+  components?: Record<string, JSONComponentContent | JSONComponentChoice> | null
   topics?: JSONItemTopic[]
   _componentsData?: Record<string, any>
   _topicsData?: Record<string, string[]>

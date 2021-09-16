@@ -225,3 +225,81 @@ export async function getItemIdFromCataloguePath(
 
   return response.data?.catalogue?.id || ''
 }
+
+interface IgetItemVersionInfo {
+  language: string
+  itemId: string
+}
+
+export enum ItemVersionDescription {
+  Unpublished,
+  StaleVersionPublished,
+  Published,
+}
+
+async function getItemVersionInfo({
+  language,
+  itemId,
+}: IgetItemVersionInfo): Promise<ItemVersionDescription> {
+  const result = await callPIM({
+    query: `
+      query GET_ITEM_VERSION_INFO ($itemId: ID!, $language: String!) {
+        item {
+          published: get (
+            id: $itemId
+            language: $language
+            versionLabel: published
+          ) {
+            version {
+              createdAt
+            }
+          }
+          draft: get (
+            id: $itemId
+            language: $language
+            versionLabel: draft
+          ) {
+            version {
+              createdAt
+            }
+          }
+        }
+      }
+    `,
+    variables: {
+      itemId,
+      language,
+    },
+  })
+
+  const draftInfo: string = result.data?.item?.draft?.version.createdAt
+  const publishInfo: string | undefined =
+    result.data?.item?.published?.version.createdAt
+
+  if (publishInfo) {
+    const publishDate = new Date(publishInfo)
+    const draftDate = new Date(draftInfo)
+
+    if (publishDate >= draftDate) {
+      return ItemVersionDescription.Published
+    }
+    return ItemVersionDescription.StaleVersionPublished
+  }
+
+  return ItemVersionDescription.Unpublished
+}
+
+interface IgetItemVersionsForLanguages {
+  languages: string[],
+  itemId: string
+}
+
+export async function getItemVersionsForLanguages({ languages, itemId }: IgetItemVersionsForLanguages): Promise<Record<string, ItemVersionDescription>> {
+  const itemVersionsForLanguages: Record<string, ItemVersionDescription> = {};
+
+  await Promise.all(languages.map(async language => {
+    itemVersionsForLanguages[language] = await getItemVersionInfo({ language, itemId })
+  }))
+  
+  return itemVersionsForLanguages;
+}

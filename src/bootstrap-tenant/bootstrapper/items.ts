@@ -61,6 +61,8 @@ import {
   uploadFileFromUrl,
   validShapeIdentifier,
   fileUploader,
+  ItemVersionDescription,
+  getItemVersionsForLanguages,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
@@ -989,7 +991,14 @@ export async function setItems({
 
     let itemId = item.id
 
+    let versionsInfo
+
     if (itemId) {
+      versionsInfo = await getItemVersionsForLanguages({
+        itemId,
+        languages: context.languages.map((l) => l.code),
+      })
+
       await updateForLanguage(context.defaultLanguage.code, itemId)
     } else {
       const response = await createForLanguage(context.defaultLanguage.code)
@@ -1009,7 +1018,13 @@ export async function setItems({
       return null
     }
 
-    await publishItem(context.defaultLanguage.code, itemId)
+    if (
+      !versionsInfo ||
+      versionsInfo[context.defaultLanguage.code] ===
+        ItemVersionDescription.Published
+    ) {
+      await publishItem(context.defaultLanguage.code, itemId)
+    }
 
     // Create for remaining languages
     const remainingLanguages = context.languages
@@ -1018,7 +1033,13 @@ export async function setItems({
 
     for (let i = 0; i < remainingLanguages.length; i++) {
       await updateForLanguage(remainingLanguages[i], itemId)
-      await publishItem(remainingLanguages[i], itemId)
+
+      if (
+        !versionsInfo ||
+        versionsInfo[remainingLanguages[i]] === ItemVersionDescription.Published
+      ) {
+        await publishItem(remainingLanguages[i], itemId)
+      }
     }
 
     return itemId
@@ -1115,7 +1136,12 @@ export async function setItems({
       return ids
     }
 
-    if (item.components) {
+    if (item.components && item.id) {
+      const versionsInfo = await getItemVersionsForLanguages({
+        languages: context.languages.map((l) => l.code),
+        itemId: item.id,
+      })
+
       await Promise.all(
         Object.keys(item.components).map(async (componentId) => {
           const jsonItem = item.components?.[
@@ -1244,7 +1270,13 @@ export async function setItems({
         })
       )
 
-      await publishItem(context.defaultLanguage.code, item.id as string)
+      // Ensure publishing of items
+      for (let i = 0; i < context.languages.length; i++) {
+        const language = context.languages[i].code
+        if (versionsInfo[language] === ItemVersionDescription.Published) {
+          await publishItem(language, item.id as string)
+        }
+      }
     }
 
     finishedItems++
