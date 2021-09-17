@@ -50,7 +50,6 @@ import {
   JSONGrid,
 } from '../json-spec'
 import {
-  callCatalogue,
   callPIM,
   getItemIdFromCataloguePath,
   getItemIdFromExternalReference,
@@ -179,12 +178,12 @@ async function getTopicIds(
 
   await Promise.all(
     topics.map(async (topic) => {
-      let searchTerm = ''
+      let searchTerm: string | undefined = ''
 
       if (typeof topic === 'string') {
         searchTerm = topic
       } else {
-        searchTerm = topic.hierarchy
+        searchTerm = topic.path || topic.hierarchy
       }
 
       const result = await callPIM({
@@ -195,6 +194,7 @@ async function getTopicIds(
                 edges {
                   node {
                     id
+                    path
                   }
                 }
               }
@@ -209,7 +209,14 @@ async function getTopicIds(
       })
 
       const edges = result?.data?.search?.topics?.edges || []
-      const edge = edges[edges.length - 1]
+
+      let edge
+      if (typeof topic !== 'string' && topic.path) {
+        edge = edges.find((e: any) => e.node.path === topic.path)
+      } else {
+        edge = edges[edges.length - 1]
+      }
+
       if (edge) {
         ids.push(edge.node.id as string)
       }
@@ -700,6 +707,31 @@ function getAllMediaUrls(items: JSONItem[]): string[] {
   return medias
 }
 
+async function getExistingTopicIdsForItem(
+  itemId: string,
+  language: string
+): Promise<string[]> {
+  const result = await callPIM({
+    query: `
+      query GET_ITEM_TOPICS ($itemId: ID!, $language: String!) {
+        item {
+          get (id: $itemId, language: $language) {
+            topics {
+              id
+            }
+          }
+        }
+      }
+    `,
+    variables: {
+      itemId,
+      language,
+    },
+  })
+
+  return result.data?.item?.get?.topics?.map((t: any) => t.id) || []
+}
+
 export async function setItems({
   spec,
   onUpdate,
@@ -993,11 +1025,29 @@ export async function setItems({
 
     let versionsInfo
 
+    // Get new topics
+    item._topicsData = {
+      topicIds: await getTopicIds(
+        item.topics || [],
+        context.defaultLanguage.code
+      ),
+    }
+
     if (itemId) {
       versionsInfo = await getItemVersionsForLanguages({
         itemId,
         languages: context.languages.map((l) => l.code),
       })
+
+      // Merge in existing topic
+      const existingTopicIds = await getExistingTopicIdsForItem(
+        itemId,
+        context.defaultLanguage.code
+      )
+
+      item._topicsData.topicIds = Array.from(
+        new Set([...existingTopicIds, ...item._topicsData.topicIds])
+      )
 
       await updateForLanguage(context.defaultLanguage.code, itemId)
     } else {

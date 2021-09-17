@@ -164,7 +164,8 @@ export type JSONComponentChoice = Record<string, JSONComponentContent>
 
 export type JSONItem = JSONProduct | JSONDocument | JSONFolder
 export type JSONStructuredTopic = {
-  hierarchy: string
+  hierarchy?: string
+  path?: string
 }
 export type JSONItemTopic = JSONStructuredTopic | string
 export interface JSONItemBase {
