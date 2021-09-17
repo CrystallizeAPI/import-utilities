@@ -16,6 +16,7 @@ import {
   AreaUpdate,
   TenantContext,
   AreaWarning,
+  Config,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -82,7 +83,12 @@ export class Bootstrapper extends EventEmitter {
   context: TenantContext = {
     defaultLanguage: { code: 'en', name: 'English' },
     languages: [],
+    config: {
+      topics: 'amend',
+    },
   }
+
+  config: Config = {}
 
   status: Status = {
     media: defaultAreaStatus(),
@@ -204,6 +210,9 @@ export class Bootstrapper extends EventEmitter {
 
   async start() {
     try {
+      // Store the config in the context for easy access
+      this.context.config = this.config
+
       const start = new Date()
 
       await this.getTenantBasics()

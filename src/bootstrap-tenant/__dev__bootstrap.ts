@@ -45,9 +45,6 @@ function bootstrap() {
             {
               path: '/geo/eu',
             },
-            {
-              path: '/geo',
-            },
           ],
           variants: [
             {
@@ -111,6 +108,8 @@ function bootstrap() {
   // bootstrapper.on(EVENT_NAMES.TOPICS_DONE, ProgressTopics.stop)
   // bootstrapper.on(EVENT_NAMES.ITEMS_DONE, ProgressItems.stop)
   // bootstrapper.on(EVENT_NAMES.GRIDS_DONE, ProgressGrids.stop)
+
+  bootstrapper.config.topics = 'amend'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()

@@ -39,12 +39,17 @@ export interface AreaUpdate {
   warning?: AreaWarning
 }
 
+export interface Config {
+  topics?: 'amend' | 'replace'
+}
+
 export interface TenantContext {
   defaultLanguage: JSONLanguage
   languages: JSONLanguage[]
   shapes?: Shape[]
   priceVariants?: JSONPriceVariant[]
   vatTypes?: JSONVatType[]
+  config: Config
 }
 
 let tenantId = ''
@@ -290,16 +295,26 @@ async function getItemVersionInfo({
 }
 
 interface IgetItemVersionsForLanguages {
-  languages: string[],
+  languages: string[]
   itemId: string
 }
 
-export async function getItemVersionsForLanguages({ languages, itemId }: IgetItemVersionsForLanguages): Promise<Record<string, ItemVersionDescription>> {
-  const itemVersionsForLanguages: Record<string, ItemVersionDescription> = {};
+export async function getItemVersionsForLanguages({
+  languages,
+  itemId,
+}: IgetItemVersionsForLanguages): Promise<
+  Record<string, ItemVersionDescription>
+> {
+  const itemVersionsForLanguages: Record<string, ItemVersionDescription> = {}
 
-  await Promise.all(languages.map(async language => {
-    itemVersionsForLanguages[language] = await getItemVersionInfo({ language, itemId })
-  }))
-  
-  return itemVersionsForLanguages;
+  await Promise.all(
+    languages.map(async (language) => {
+      itemVersionsForLanguages[language] = await getItemVersionInfo({
+        language,
+        itemId,
+      })
+    })
+  )
+
+  return itemVersionsForLanguages
 }

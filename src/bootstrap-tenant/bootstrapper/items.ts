@@ -1040,14 +1040,16 @@ export async function setItems({
       })
 
       // Merge in existing topic
-      const existingTopicIds = await getExistingTopicIdsForItem(
-        itemId,
-        context.defaultLanguage.code
-      )
+      if (context.config.topics === 'amend') {
+        const existingTopicIds = await getExistingTopicIdsForItem(
+          itemId,
+          context.defaultLanguage.code
+        )
 
-      item._topicsData.topicIds = Array.from(
-        new Set([...existingTopicIds, ...item._topicsData.topicIds])
-      )
+        item._topicsData.topicIds = Array.from(
+          new Set([...existingTopicIds, ...item._topicsData.topicIds])
+        )
+      }
 
       await updateForLanguage(context.defaultLanguage.code, itemId)
     } else {
