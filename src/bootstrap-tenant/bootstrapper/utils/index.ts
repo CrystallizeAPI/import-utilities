@@ -40,7 +40,7 @@ export interface AreaUpdate {
 }
 
 export interface Config {
-  topics?: 'amend' | 'replace'
+  itemTopics?: 'amend' | 'replace'
 }
 
 export interface TenantContext {

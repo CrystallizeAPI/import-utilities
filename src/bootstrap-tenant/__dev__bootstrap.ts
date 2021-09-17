@@ -109,7 +109,7 @@ function bootstrap() {
   // bootstrapper.on(EVENT_NAMES.ITEMS_DONE, ProgressItems.stop)
   // bootstrapper.on(EVENT_NAMES.GRIDS_DONE, ProgressGrids.stop)
 
-  bootstrapper.config.topics = 'amend'
+  bootstrapper.config.itemTopics = 'amend'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()

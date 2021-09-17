@@ -1040,7 +1040,7 @@ export async function setItems({
       })
 
       // Merge in existing topic
-      if (context.config.topics === 'amend') {
+      if (context.config.itemTopics === 'amend') {
         const existingTopicIds = await getExistingTopicIdsForItem(
           itemId,
           context.defaultLanguage.code

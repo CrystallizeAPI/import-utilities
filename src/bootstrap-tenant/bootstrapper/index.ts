@@ -84,7 +84,7 @@ export class Bootstrapper extends EventEmitter {
     defaultLanguage: { code: 'en', name: 'English' },
     languages: [],
     config: {
-      topics: 'amend',
+      itemTopics: 'amend',
     },
   }
 
