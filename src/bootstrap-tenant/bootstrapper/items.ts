@@ -48,6 +48,7 @@ import {
   JSONVideos,
   JSONVideo,
   JSONGrid,
+  JSONProductVariant,
 } from '../json-spec'
 import {
   callPIM,
@@ -66,6 +67,8 @@ import {
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
 import { buildUpdateItemComponentMutation } from '../../graphql/build-update-item-component-mutation'
+import { ProductVariant } from '../../generated/graphql'
+import { getProductVariants } from './utils/get-product-variants'
 
 export interface Props {
   spec: JsonSpec | null
@@ -898,6 +901,17 @@ export async function setItems({
       const updates = []
 
       /**
+       * If it is a product, we need to pull all the product
+       * variants first, and then update each field.
+       * We need to do this because there is (currently) not
+       * any product.addVariant mutation
+       */
+      let existingProductVariants: undefined | ProductVariant[]
+      if (shape?.type === 'product') {
+        existingProductVariants = await getProductVariants(language, itemId)
+      }
+
+      /**
        * Start with the basic item information
        */
       updates.push(
@@ -908,8 +922,10 @@ export async function setItems({
               name: getTranslation(item.name, language) || '',
               ...item._topicsData,
               ...(shape?.type === 'product' && {
-                // Todo: handle each product variant seperately
-                ...(await createProductItemMutation(language)),
+                ...(await createProductItemMutation(
+                  language,
+                  existingProductVariants
+                )),
               }),
               ...(clearComponentsData && {
                 components: {},
@@ -951,7 +967,7 @@ export async function setItems({
       return Promise.all(updates)
     }
 
-    async function createProductItemMutation(language: string) {
+    function createProductBaseInfo() {
       const product = item as JSONProduct
 
       const vatType = context.vatTypes?.find((v) => v.name === product.vatType)
@@ -965,55 +981,84 @@ export async function setItems({
         return
       }
 
+      return {
+        vatTypeId: vatType.id || '',
+      }
+    }
+
+    async function createProductVariant(
+      jsonVariant: JSONProductVariant,
+      language: string,
+      existingProductVariant?: ProductVariant
+    ): Promise<CreateProductVariantInput> {
+      let priceVariants
+      let price
+      if (jsonVariant.price && typeof jsonVariant.price === 'object') {
+        const p = jsonVariant.price as Record<string, number>
+        priceVariants = Object.keys(jsonVariant.price).map((identifier) => ({
+          identifier,
+          price: p[identifier],
+        }))
+      } else {
+        price = jsonVariant.price
+      }
+
+      let attributes
+      if (jsonVariant.attributes) {
+        attributes = Object.keys(jsonVariant.attributes).map((attribute) => ({
+          attribute,
+          value: jsonVariant.attributes?.[attribute],
+        }))
+      }
+
+      const variant: CreateProductVariantInput = {
+        ...(existingProductVariant as CreateProductVariantInput),
+        name: getTranslation(jsonVariant.name, language),
+        sku: jsonVariant.sku,
+        isDefault: jsonVariant.isDefault || false,
+        stock: jsonVariant.stock ?? 0,
+        ...(priceVariants
+          ? { priceVariants }
+          : {
+              price: price ?? 0,
+            }),
+        ...(attributes && { attributes }),
+      }
+
+      if (jsonVariant.images) {
+        variant.images = await createImagesInput({
+          images: jsonVariant.images,
+          language,
+          onUpdate,
+        })
+      }
+
+      return variant
+    }
+
+    async function createProductItemMutation(
+      language: string,
+      existingProductVariants?: ProductVariant[]
+    ) {
+      const product = item as JSONProduct
+
       const variants: CreateProductVariantInput[] = []
       const inp = {
-        vatTypeId: vatType.id || '',
+        ...createProductBaseInfo(),
         variants,
       }
 
       for (let i = 0; i < product.variants.length; i++) {
-        const jsonVariant = product.variants[i]
-
-        let priceVariants
-        let price
-        if (jsonVariant.price && typeof jsonVariant.price === 'object') {
-          const p = jsonVariant.price as Record<string, number>
-          priceVariants = Object.keys(jsonVariant.price).map((identifier) => ({
-            identifier,
-            price: p[identifier],
-          }))
-        } else {
-          price = jsonVariant.price
-        }
-
-        let attributes
-        if (jsonVariant.attributes) {
-          attributes = Object.keys(jsonVariant.attributes).map((attribute) => ({
-            attribute,
-            value: jsonVariant.attributes?.[attribute],
-          }))
-        }
-
-        const variant: CreateProductVariantInput = {
-          name: getTranslation(jsonVariant.name, language),
-          sku: jsonVariant.sku,
-          isDefault: jsonVariant.isDefault || false,
-          stock: jsonVariant.stock ?? 0,
-          ...(priceVariants
-            ? { priceVariants }
-            : {
-                price: price ?? 0,
-              }),
-          ...(attributes && { attributes }),
-        }
-
-        if (jsonVariant.images) {
-          variant.images = await createImagesInput({
-            images: jsonVariant.images,
-            language,
-            onUpdate,
-          })
-        }
+        const vr = product.variants[i]
+        const existingProductVariant = existingProductVariants?.find(
+          (v) =>
+            v.sku === vr.sku || v.externalReference === vr.externalReference
+        )
+        const variant = await createProductVariant(
+          vr,
+          language,
+          existingProductVariant
+        )
 
         inp.variants.push(variant)
       }

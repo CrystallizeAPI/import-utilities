@@ -37,29 +37,30 @@ function bootstrap() {
       ],
       items: [
         {
-          name: 'sadadad',
-          vatType: 'No Tax',
+          name: 'My only product',
           externalReference: 'my-only-product',
           shape: 'default-product',
-          topics: [
-            {
-              path: '/geo/eu',
-            },
-          ],
+          vatType: 'No Tax',
           variants: [
             {
-              sku: 'sadadad-1625761575646',
-              name: 'alksdj',
+              sku: 'hey-sku-3',
+              name: 'HEY3!',
               price: {
-                default: 99,
+                default: 3,
               },
-              stock: 1,
+              stock: 3,
+              isDefault: false,
+            },
+            {
+              sku: 'hey-sku',
+              name: 'HEY!',
+              price: {
+                default: 7,
+              },
+              stock: 77,
               isDefault: true,
             },
           ],
-          components: {
-            single: new Date().toLocaleString(),
-          },
         },
       ],
     },
@@ -108,6 +109,10 @@ function bootstrap() {
   // bootstrapper.on(EVENT_NAMES.TOPICS_DONE, ProgressTopics.stop)
   // bootstrapper.on(EVENT_NAMES.ITEMS_DONE, ProgressItems.stop)
   // bootstrapper.on(EVENT_NAMES.GRIDS_DONE, ProgressGrids.stop)
+
+  // bootstrapper.on(EVENT_NAMES.ITEMS_UPDATE, (a) => {
+  //   console.log(JSON.stringify(a, null, 1))
+  // })
 
   bootstrapper.config.itemTopics = 'amend'
 
