@@ -28,13 +28,6 @@ function bootstrap() {
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
     jsonSpec: {
-      languages: [
-        {
-          code: 'en',
-          isDefault: true,
-          name: 'English',
-        },
-      ],
       items: [
         {
           name: 'My only product',

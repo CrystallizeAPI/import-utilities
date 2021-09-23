@@ -1033,6 +1033,14 @@ export async function setItems({
         })
       }
 
+      /**
+       * Temp: API does not like images being set to
+       * null at the moment. #3983
+       */
+      if (variant.images === null) {
+        delete variant.images
+      }
+
       return variant
     }
 
