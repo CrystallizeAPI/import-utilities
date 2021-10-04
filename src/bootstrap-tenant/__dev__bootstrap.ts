@@ -15,8 +15,8 @@ function bootstrap() {
   // ))
 
   if (
-    !process.env.P_CRYSTALLIZE_ACCESS_TOKEN_ID ||
-    !process.env.P_CRYSTALLIZE_ACCESS_TOKEN_SECRET
+    !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
+    !process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
   ) {
     throw new Error(
       'CRYSTALLIZE_ACCESS_TOKEN_ID and CRYSTALLIZE_ACCESS_TOKEN_SECRET must be set'
@@ -60,9 +60,9 @@ function bootstrap() {
         },
       ],
     },
-    CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.P_CRYSTALLIZE_ACCESS_TOKEN_ID,
+    CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
-      process.env.P_CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
   })
 
   // const ProgressBar = new Progress.MultiBar({
