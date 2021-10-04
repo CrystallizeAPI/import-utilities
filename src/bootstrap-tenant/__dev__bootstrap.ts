@@ -15,8 +15,8 @@ function bootstrap() {
   // ))
 
   if (
-    !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
-    !process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
+    !process.env.P_CRYSTALLIZE_ACCESS_TOKEN_ID ||
+    !process.env.P_CRYSTALLIZE_ACCESS_TOKEN_SECRET
   ) {
     throw new Error(
       'CRYSTALLIZE_ACCESS_TOKEN_ID and CRYSTALLIZE_ACCESS_TOKEN_SECRET must be set'
@@ -39,27 +39,30 @@ function bootstrap() {
               sku: 'hey-sku-3',
               name: 'HEY3!',
               price: {
-                default: 3,
+                default: 110,
               },
-              stock: 3,
+              stock: 110,
               isDefault: false,
             },
             {
               sku: 'hey-sku',
               name: 'HEY!',
               price: {
-                default: 7,
+                default: 10,
               },
-              stock: 77,
+              stock: 110,
               isDefault: true,
             },
           ],
+          _options: {
+            publish: true,
+          },
         },
       ],
     },
-    CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
+    CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.P_CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
-      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+      process.env.P_CRYSTALLIZE_ACCESS_TOKEN_SECRET,
   })
 
   // const ProgressBar = new Progress.MultiBar({
