@@ -156,7 +156,18 @@ class ApiManager {
   }
 }
 
-const MyPIMApiManager = new ApiManager('https://pim.crystallize.com/graphql')
+const urls = {
+  catalogue:
+    process.env.CRYSTALLIZE_ENV === 'dev'
+      ? 'api-dev.crystallize.digital'
+      : 'api.crystallize.com',
+  pim:
+    process.env.CRYSTALLIZE_ENV === 'dev'
+      ? 'pim-dev.crystallize.digital'
+      : 'pim.crystallize.com',
+}
+
+const MyPIMApiManager = new ApiManager(`https://${urls.pim}/graphql`)
 
 export function callPIM(props: IcallAPI) {
   return MyPIMApiManager.push(props)
@@ -171,7 +182,7 @@ export function callCatalogue(props: IcallAPI) {
   ) {
     MyCatalogueApiManagerTenantIdentifier = CRYSTALLIZE_TENANT_IDENTIFIER
     MyCatalogueApiManager = new ApiManager(
-      `https://api.crystallize.com/${CRYSTALLIZE_TENANT_IDENTIFIER}/catalogue`
+      `https://${urls.catalogue}/${CRYSTALLIZE_TENANT_IDENTIFIER}/catalogue`
     )
   }
   return MyCatalogueApiManager.push(props)
