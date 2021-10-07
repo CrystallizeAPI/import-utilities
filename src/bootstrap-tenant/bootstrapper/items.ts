@@ -1178,6 +1178,14 @@ export async function setItems({
       )
     }
 
+    if (item.parentExternalReference) {
+      parentId = await getItemIdFromExternalReference(
+        item.parentExternalReference,
+        context.defaultLanguage.code,
+        getTenantId()
+      )
+    }
+
     item.id = (await createOrUpdateItem(item, parentId || rootItemId)) as string
 
     finishedItems++

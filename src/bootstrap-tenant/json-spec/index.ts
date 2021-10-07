@@ -176,6 +176,7 @@ export interface JSONItemBase {
   shape: string
   components?: Record<string, JSONComponentContent | JSONComponentChoice> | null
   topics?: JSONItemTopic[]
+  parentExternalReference?: string
   _options?: {
     publish?: boolean
   }
