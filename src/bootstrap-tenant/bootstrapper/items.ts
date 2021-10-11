@@ -1106,6 +1106,20 @@ export async function setItems({
 
       await updateForLanguage(context.defaultLanguage.code, itemId)
     } else {
+      // Ensure a name is set for the default language (required by the API)
+      if (!getTranslation(item.name, context.defaultLanguage.code)) {
+        onUpdate({
+          warning: {
+            code: 'OTHER',
+            message: `Item name cannot be empty for the default language`,
+          },
+        })
+        console.log(JSON.stringify(item, null, 1))
+        throw new Error(
+          `Item name cannot be empty for the default language`
+        )
+      }
+
       const response = await createForLanguage(context.defaultLanguage.code)
       itemId = response?.data?.[shape?.type]?.create?.id
     }
