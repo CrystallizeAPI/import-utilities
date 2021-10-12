@@ -21,6 +21,9 @@ export async function getExistingStockLocations(): Promise<StockLocation[]> {
         }
       }
     `,
+    variables: {
+      tenantId,
+    },
   })
 
   return r.data?.stockLocation?.getMany || []
