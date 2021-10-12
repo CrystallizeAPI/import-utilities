@@ -8,7 +8,7 @@ import { bootstrapTenant } from './index'
 import { EVENT_NAMES, Status } from './bootstrapper'
 
 function bootstrap() {
-  const tenantIdentifier = 'hkn-examples'
+  const tenantIdentifier = 'salvado-inc.'
   // const spec = JSON.parse(readFileSync(
   //   resolve(__dirname, '../../json-spec/simple-item-relation.json'),
   //   'utf-8'
@@ -41,7 +41,9 @@ function bootstrap() {
               price: {
                 default: 110,
               },
-              stock: 110,
+              stock: {
+                default: 110,
+              },
               isDefault: false,
             },
             {
@@ -50,7 +52,9 @@ function bootstrap() {
               price: {
                 default: 10,
               },
-              stock: 110,
+              stock: {
+                default: 110,
+              },
               isDefault: true,
             },
           ],
