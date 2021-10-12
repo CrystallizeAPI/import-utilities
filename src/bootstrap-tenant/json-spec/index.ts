@@ -202,13 +202,15 @@ export interface JSONDocument extends JSONItemBase {}
 
 export type JSONProductVariantPriceVariants = Record<string, number>
 
+export type JSONProductVariantStockLocations = Record<string, number>
+
 export interface JSONProductVariant {
   isDefault?: boolean
   name: JSONTranslation
   sku: string
   price: JSONProductVariantPriceVariants | number
   images?: JSONImage[]
-  stock?: number
+  stock?: JSONProductVariantStockLocations | number
   attributes?: Record<string, string>
   externalReference?: string
 }
