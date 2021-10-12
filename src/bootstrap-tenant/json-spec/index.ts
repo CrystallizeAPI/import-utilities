@@ -13,6 +13,15 @@ export interface JSONPriceVariant {
   currency: string
 }
 
+export interface JSONStockLocation {
+  identifier: string
+  name: string
+  settings: {
+    minimum: number
+    unlimited: boolean
+  }
+}
+
 export interface JSONLanguage {
   code: string
   name: string
@@ -231,6 +240,7 @@ export interface JSONGrid {
 export interface JsonSpec {
   shapes?: Shape[]
   priceVariants?: JSONPriceVariant[]
+  stockLocations?: JSONStockLocation[]
   languages?: JSONLanguage[]
   vatTypes?: JSONVatType[]
   topicMaps?: JSONTopic[]

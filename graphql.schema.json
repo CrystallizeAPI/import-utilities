@@ -13228,8 +13228,8 @@
                 "ofType": null
               }
             },
-            "isDeprecated": false,
-            "deprecationReason": null
+            "isDeprecated": true,
+            "deprecationReason": "productSubscription has been deprecated in favor of subscriptionContract"
           },
           {
             "name": "shape",
@@ -21215,8 +21215,8 @@
                 "ofType": null
               }
             },
-            "isDeprecated": false,
-            "deprecationReason": null
+            "isDeprecated": true,
+            "deprecationReason": "productSubscription has been deprecated in favor of subscriptionContract"
           },
           {
             "name": "report",

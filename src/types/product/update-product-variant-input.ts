@@ -7,4 +7,8 @@ export interface UpdateProductVariantInput {
     identifier: string
     price?: number
   }[]
+  stockLocations?: {
+    identifier: string
+    stock: number
+  }[]
 }

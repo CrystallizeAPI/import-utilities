@@ -29,6 +29,7 @@ import { getAllGrids } from './utils/get-all-grids'
 import { setGrids } from './grids'
 import { clearCache as clearTopicCache } from './utils/get-topic-id'
 import { clearCache as clearItemCache } from './utils/get-item-id'
+import { setStockLocations, getExistingStockLocations } from './stock-locations'
 
 export interface ItemsCreateSpecOptions {
   basePath?: String
@@ -43,6 +44,7 @@ export interface ICreateSpec {
   vatTypes: boolean
   topicMaps: boolean
   onUpdate: (t: AreaUpdate) => any
+  stockLocations: boolean
 }
 
 export const createSpecDefaults = {
@@ -54,6 +56,7 @@ export const createSpecDefaults = {
   vatTypes: true,
   topicMaps: true,
   onUpdate: () => null,
+  stockLocations: true,
 }
 
 interface AreaStatus {
@@ -70,6 +73,7 @@ export interface Status {
   priceVariants: AreaStatus
   vatTypes: AreaStatus
   topicMaps: AreaStatus
+  stockLocations: AreaStatus
 }
 
 function defaultAreaStatus(): AreaStatus {
@@ -111,6 +115,7 @@ export class Bootstrapper extends EventEmitter {
     priceVariants: defaultAreaStatus(),
     vatTypes: defaultAreaStatus(),
     topicMaps: defaultAreaStatus(),
+    stockLocations: defaultAreaStatus(),
   }
 
   getStatus = () => this.status
@@ -231,6 +236,10 @@ export class Bootstrapper extends EventEmitter {
       spec.items = await getAllCatalogueItems(defaultLanguage, options)
     }
 
+    // Stock locations
+    if (props.stockLocations) {
+      spec.stockLocations = await getExistingStockLocations()
+    }
     return spec
   }
 
@@ -250,6 +259,7 @@ export class Bootstrapper extends EventEmitter {
       await this.setTopics()
       await this.setGrids()
       await this.setItems()
+      await this.setStockLocations()
 
       // Set (update) grids again to update include the items
       await this.setGrids(true)
@@ -273,7 +283,8 @@ export class Bootstrapper extends EventEmitter {
       | 'topicMaps'
       | 'grids'
       | 'items'
-      | 'media',
+      | 'media'
+      | 'stockLocations',
     areaUpdate: AreaUpdate
   ) {
     if ('progress' in areaUpdate) {
@@ -313,6 +324,7 @@ export class Bootstrapper extends EventEmitter {
     this.context.defaultLanguage = defaultLanguage
     this.emit(EVENT_NAMES.LANGUAGES_DONE)
   }
+
   async setShapes() {
     this.context.shapes = await setShapes({
       spec: this.SPEC,
@@ -323,6 +335,7 @@ export class Bootstrapper extends EventEmitter {
     })
     this.emit(EVENT_NAMES.SHAPES_DONE)
   }
+
   async setPriceVariants() {
     this.context.priceVariants = await setPriceVariants({
       spec: this.SPEC,
@@ -344,6 +357,7 @@ export class Bootstrapper extends EventEmitter {
     })
     this.emit(EVENT_NAMES.VAT_TYPES_DONE)
   }
+
   async setTopics() {
     await setTopics({
       spec: this.SPEC,
@@ -355,6 +369,7 @@ export class Bootstrapper extends EventEmitter {
     })
     this.emit(EVENT_NAMES.TOPICS_DONE)
   }
+
   async setGrids(allowUpdate?: boolean) {
     await setGrids({
       spec: this.SPEC,
@@ -367,6 +382,7 @@ export class Bootstrapper extends EventEmitter {
     })
     this.emit(EVENT_NAMES.GRIDS_DONE)
   }
+
   async setItems() {
     await setItems({
       spec: this.SPEC,
@@ -381,5 +397,16 @@ export class Bootstrapper extends EventEmitter {
       context: this.context,
     })
     this.emit(EVENT_NAMES.ITEMS_DONE)
+  }
+
+  async setStockLocations() {
+    this.context.stockLocations = await setStockLocations({
+      spec: this.SPEC,
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.STOCK_LOCATIONS_UPDATE, areaUpdate)
+        this.areaUpdate('stockLocations', areaUpdate)
+      },
+    })
+    this.emit(EVENT_NAMES.STOCK_LOCATIONS_DONE)
   }
 }

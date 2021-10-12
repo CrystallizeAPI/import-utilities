@@ -1530,6 +1530,7 @@ export type Mutation = {
   pipeline?: Maybe<PipelineMutations>
   priceVariant: PriceVariantMutations
   product?: Maybe<ProductMutations>
+  /** @deprecated productSubscription has been deprecated in favor of subscriptionContract */
   productSubscription: ProductSubscriptionMutations
   shape?: Maybe<ShapeMutations>
   subscriptionContract: SubscriptionContractMutations
@@ -2458,6 +2459,7 @@ export type Query = {
   pipeline: PipelineQueries
   priceVariant: PriceVariantQueries
   product: ProductQueries
+  /** @deprecated productSubscription has been deprecated in favor of subscriptionContract */
   productSubscription: ProductSubscriptionQueries
   report?: Maybe<TenantReports>
   search?: Maybe<SearchQueries>

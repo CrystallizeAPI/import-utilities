@@ -248,3 +248,96 @@ const createItemMutation = buildCreateItemMutation(itemData)
 ```
 
 [0]: https://crystallize.com/learn/developer-guides/api-overview/api-endpoints
+
+## Tenant specification and bootstrap
+
+The specification/bootstrap of tenant is broken down into two separate
+operations
+
+1. Create a backup of a tenant, storing it as a `.json` specification
+2. Bootstrapping a tenant, using a `.json` specification
+
+### Create a tenant specification
+
+The tenant specification describes how the tenant is configured, and can contain
+information on:
+
+- [Languages](https://crystallize.com/learn/concepts/pim/multilingual)
+- [VAT types](https://crystallize.com/learn/concepts/ecommerce/tax)
+- [Price variants](https://crystallize.com/learn/concepts/ecommerce/price-variant)
+- [Stock locations](https://crystallize.com/learn/concepts/ecommerce/stock-location)
+- [Shapes](https://crystallize.com/learn/concepts/pim/shape)
+- [Topics](https://crystallize.com/learn/concepts/pim/topic-map)
+- [Grids](https://crystallize.com/learn/concepts/pim/grid-organizer)
+- [Products](https://crystallize.com/learn/concepts/pim/product),
+  [Documents](https://crystallize.com/learn/concepts/pim/document) and
+  [Folders](https://crystallize.com/learn/concepts/pim/folder)
+
+It is described in a `.json` file, like such:
+
+```json
+{
+  "languages": [],
+  "vatTypes": [],
+  "priceVariants": [],
+  "shapes": [],
+  "topicMaps": [],
+  "grids": [],
+  "items": []
+}
+```
+
+### Create the specification manually
+
+You can create the tenant specification manually, with the help of the
+`JSONSpec` type exported from the package:
+
+```typescript
+import { JSONSpec } from '@crystallize/import-utilites'
+
+const mySpec: JSONSpec = {
+  languages: [{}],
+}
+```
+
+See a simple example of this in the
+[examples/create-spec-manually](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-manually)
+folder
+
+### Create the specification automatically
+
+You can create the tenant specification automatically, with the help of the
+`Bootstrapper` class exported from the package:
+
+```typescript
+import { Bootstrapper, JSONSpec } from '@crystallize/import-utilites'
+
+const mySpec: JSONSpec = await bootstrapper.createSpec({
+  ...
+});
+```
+
+See a simple example of this in the
+[examples/create-spec-automatically](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/create-spec-automatically)
+folder.
+
+See more examples in our extensive
+[examples repository](https://github.com/CrystallizeAPI/examples)
+
+### Bootstrap a tenant
+
+You can bootstrap a tenant using a specification with the help of the
+`Bootstrapper` class exported from the package:
+
+```typescript
+import { Bootstrapper, JSONSpec } from '@crystallize/import-utilites'
+
+bootstrapper.start()
+```
+
+See a simple example of this in the
+[examples/bootstrap-tenant](https://github.com/CrystallizeAPI/import-utilities/tree/main/examples/bootstrap-tenant)
+folder.
+
+See more examples in our extensive
+[examples repository](https://github.com/CrystallizeAPI/examples)
