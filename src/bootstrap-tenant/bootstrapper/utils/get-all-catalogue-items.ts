@@ -357,10 +357,6 @@ fragment product on Product {
     stockLocations {
       identifier
       name
-      settings {
-        minimum
-        unlimited
-      }
       stock
     }
     images {
