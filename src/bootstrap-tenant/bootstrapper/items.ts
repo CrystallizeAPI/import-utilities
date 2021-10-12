@@ -992,7 +992,6 @@ export async function setItems({
         name: getTranslation(jsonVariant.name, language),
         sku: jsonVariant.sku,
         isDefault: jsonVariant.isDefault || false,
-        stock: jsonVariant.stock ?? 0,
         ...(priceVariants
           ? { priceVariants }
           : {
