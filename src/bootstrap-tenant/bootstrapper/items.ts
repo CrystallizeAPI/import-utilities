@@ -1,3 +1,6 @@
+// @ts-ignore
+import fromHTML from '@crystallize/content-transformer/fromHTML'
+
 import {
   BooleanComponentContentInput,
   Component,
@@ -154,18 +157,25 @@ function createRichTextInput(content: JSONRichText, language: string) {
     let c = content as any
 
     const keys = Object.keys(content || {})
-    const isNotTranslated = keys.length > 0 && typeof c[keys[0]] !== 'string'
-    const translatedContent = isNotTranslated ? c : getTranslation(c, language)
 
-    if (typeof translatedContent === 'string') {
-      inp.json = stringToJson(translatedContent)
+    if (keys[0] === 'html') {
+      inp.json = fromHTML(content?.html)
     } else {
-      if (translatedContent.json) {
-        inp.json = translatedContent.json
-      } else if (translatedContent.html) {
-        inp.html = [translatedContent.html]
-      } else if (translatedContent.plainText) {
-        inp.json = stringToJson(translatedContent.plainText)
+      const isNotTranslated = keys.length > 0 && typeof c[keys[0]] !== 'string'
+      const translatedContent = isNotTranslated
+        ? c
+        : getTranslation(c, language)
+
+      if (typeof translatedContent === 'string') {
+        inp.json = stringToJson(translatedContent)
+      } else {
+        if (translatedContent.json) {
+          inp.json = translatedContent.json
+        } else if (translatedContent.html) {
+          inp.json = fromHTML(translatedContent.html)
+        } else if (translatedContent.plainText) {
+          inp.json = stringToJson(translatedContent.plainText)
+        }
       }
     }
   }
@@ -1115,9 +1125,7 @@ export async function setItems({
           },
         })
         console.log(JSON.stringify(item, null, 1))
-        throw new Error(
-          `Item name cannot be empty for the default language`
-        )
+        throw new Error(`Item name cannot be empty for the default language`)
       }
 
       const response = await createForLanguage(context.defaultLanguage.code)

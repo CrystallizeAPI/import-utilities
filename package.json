@@ -29,6 +29,7 @@
     "generate-graphql-types": "graphql-codegen --config codegen.yml"
   },
   "dependencies": {
+    "@crystallize/content-transformer": "^9.0.1",
     "dotenv": "^10.0.0",
     "download": "^8.0.0",
     "duration": "^0.2.2",
