@@ -254,12 +254,12 @@ export class Bootstrapper extends EventEmitter {
 
       await this.setLanguages()
       await this.setPriceVariants()
+      await this.setStockLocations()
       await this.setVatTypes()
       await this.setShapes()
       await this.setTopics()
       await this.setGrids()
       await this.setItems()
-      await this.setStockLocations()
 
       // Set (update) grids again to update include the items
       await this.setGrids(true)

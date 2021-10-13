@@ -16,10 +16,7 @@ export interface JSONPriceVariant {
 export interface JSONStockLocation {
   identifier: string
   name: string
-  settings: {
-    minimum: number
-    unlimited: boolean
-  }
+  minimum?: number
 }
 
 export interface JSONLanguage {

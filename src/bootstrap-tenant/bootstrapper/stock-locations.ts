@@ -68,7 +68,9 @@ export async function setStockLocations({
             tenantId,
             identifier: stockLocation.identifier,
             name: stockLocation.name,
-            settings: stockLocation.settings,
+            ...(stockLocation.minimum
+              ? { settings: { minimum: stockLocation.minimum } }
+              : {}),
           }),
         })
 

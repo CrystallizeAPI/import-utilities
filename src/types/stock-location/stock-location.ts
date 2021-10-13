@@ -12,7 +12,7 @@ export interface StockLocationInput {
   tenantId: string
   identifier: string
   name: string
-  settings: {
+  settings?: {
     minimum: number
   }
 }
