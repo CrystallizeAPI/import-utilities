@@ -1,10 +1,15 @@
 # @crystallize/import-utilities
 
-This repository contains a collection of types and functions that can be used to
+This repository contains a collection of types and functions that can be used
+to:
 
 - [Import data to a tenant](https://github.com/CrystallizeAPI/examples/tree/main/products-import)
 - [Backup a tenant](https://github.com/CrystallizeAPI/examples/tree/main/backup-tenant)
 - [Transfer data from one tenant to another tenant](https://github.com/CrystallizeAPI/examples/tree/main/duplicate-tenant)
+
+[Examples](https://github.com/CrystallizeAPI/examples/tree/main/backup-tenant)
+
+---
 
 ## Creating a tenant specification
 
