@@ -1,4 +1,4 @@
-import { KeyValuePairInput, Shape } from '../../types'
+import { Shape } from '../../types'
 
 export { Shape } from '../../types'
 

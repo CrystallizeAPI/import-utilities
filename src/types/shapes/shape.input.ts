@@ -19,6 +19,7 @@ export interface ShapeInput {
 
 export interface ShapeUpdateInput {
   id: string
+  name?: string
   identifier: string
   tenantId: string
   input: ShapeUpdateInputInput

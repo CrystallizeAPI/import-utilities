@@ -254,6 +254,7 @@ async function createOrUpdateShape(
           tenantId,
           input: {
             components,
+            ...(shape.name && { name: shape.name }),
           },
         }),
       })
