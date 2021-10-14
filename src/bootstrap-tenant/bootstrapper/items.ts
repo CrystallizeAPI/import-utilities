@@ -26,7 +26,12 @@ import {
   VideoContentInput,
   VideosComponentContentInput,
 } from '../../types'
-import { buildCreateItemMutation, buildUpdateItemMutation } from '../../graphql'
+import {
+  buildCreateItemMutation,
+  buildUpdateItemMutation,
+  buildMoveItemMutation,
+  buildUpdateItemComponentMutation,
+} from '../../graphql'
 
 import {
   JSONItem,
@@ -69,7 +74,6 @@ import {
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
-import { buildUpdateItemComponentMutation } from '../../graphql/build-update-item-component-mutation'
 import { ProductVariant } from '../../generated/graphql'
 import { getProductVariants } from './utils/get-product-variants'
 
@@ -812,7 +816,8 @@ export async function setItems({
 
   async function createOrUpdateItem(
     item: JSONItem,
-    parentId: string
+    parentId: string,
+    isInParentChildrenArray?: boolean
   ): Promise<string | null> {
     // Create the object to store the component data in
     item._componentsData = {}
@@ -1102,6 +1107,18 @@ export async function setItems({
         languages: context.languages.map((l) => l.code),
       })
 
+      /**
+       * Move the item if it is a part of a children array,
+       * or if item.parentExternalReference is passed
+       */
+      if (isInParentChildrenArray || item.parentExternalReference) {
+        const r = await callPIM({
+          query: buildMoveItemMutation(itemId, {
+            parentId,
+          }),
+        })
+      }
+
       // Merge in existing topic
       if (context.config.itemTopics === 'amend') {
         const existingTopicIds = await getExistingTopicIdsForItem(
@@ -1182,7 +1199,11 @@ export async function setItems({
     return itemId
   }
 
-  async function handleItem(item: JSONItem, parentId?: string) {
+  async function handleItem(
+    item: JSONItem,
+    parentId?: string,
+    isInParentChildrenArray?: boolean
+  ) {
     if (!item) {
       return
     }
@@ -1208,7 +1229,11 @@ export async function setItems({
       )
     }
 
-    item.id = (await createOrUpdateItem(item, parentId || rootItemId)) as string
+    item.id = (await createOrUpdateItem(
+      item,
+      parentId || rootItemId,
+      isInParentChildrenArray
+    )) as string
 
     finishedItems++
     onUpdate({
@@ -1224,7 +1249,7 @@ export async function setItems({
 
       if (itm.children) {
         await Promise.all(
-          itm.children.map((child) => handleItem(child, itm.id))
+          itm.children.map((child) => handleItem(child, itm.id, true))
         )
       }
     }
@@ -1441,7 +1466,7 @@ export async function setItems({
   }
 
   for (let i = 0; i < spec.items.length; i++) {
-    await handleItem(spec.items[i], rootItemId)
+    await handleItem(spec.items[i], rootItemId, false)
   }
 
   /**
