@@ -1107,12 +1107,18 @@ export async function setItems({
         languages: context.languages.map((l) => l.code),
       })
 
+      if (item._options?.moveToRoot) {
+        await callPIM({
+          query: buildMoveItemMutation(itemId, {
+            parentId: rootItemId,
+          }),
+        })
+      } else if (isInParentChildrenArray || item.parentExternalReference) {
       /**
        * Move the item if it is a part of a children array,
        * or if item.parentExternalReference is passed
        */
-      if (isInParentChildrenArray || item.parentExternalReference) {
-        const r = await callPIM({
+        await callPIM({
           query: buildMoveItemMutation(itemId, {
             parentId,
           }),

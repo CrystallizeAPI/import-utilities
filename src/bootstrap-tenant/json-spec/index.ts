@@ -179,6 +179,7 @@ export interface JSONItemBase {
   parentExternalReference?: string
   _options?: {
     publish?: boolean
+    moveToRoot?: boolean
   }
   _componentsData?: Record<string, any>
   _topicsData?: Record<string, string[]>
