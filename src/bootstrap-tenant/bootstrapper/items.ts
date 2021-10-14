@@ -1212,7 +1212,8 @@ export async function setItems({
       item.id = await getItemIdFromExternalReference(
         item.externalReference,
         context.defaultLanguage.code,
-        getTenantId()
+        getTenantId(),
+        item.shape
       )
     } else if (item.cataloguePath) {
       item.id = await getItemIdFromCataloguePath(
@@ -1225,7 +1226,8 @@ export async function setItems({
       parentId = await getItemIdFromExternalReference(
         item.parentExternalReference,
         context.defaultLanguage.code,
-        getTenantId()
+        getTenantId(),
+        item.shape
       )
     }
 

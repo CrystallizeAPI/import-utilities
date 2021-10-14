@@ -184,7 +184,8 @@ export function validShapeIdentifier(
 export async function getItemIdFromExternalReference(
   externalReference: string,
   language: string,
-  tenantId: string
+  tenantId: string,
+  shapeIdentifier?: string
 ): Promise<string> {
   const response = await callPIM({
     query: `
@@ -196,6 +197,9 @@ export async function getItemIdFromExternalReference(
         item {
           getMany(externalReferences: $externalReferences, language: $language, tenantId: $tenantId) {
             id
+            shape {
+              identifier
+            }
           }
         }
       }
@@ -207,7 +211,13 @@ export async function getItemIdFromExternalReference(
     },
   })
 
-  return response.data?.item?.getMany?.[0]?.id || ''
+  let items = response.data?.item?.getMany || []
+
+  if (shapeIdentifier) {
+    items = items.filter((s: any) => s.shape.identifier === shapeIdentifier)
+  }
+
+  return items[0]?.id || ''
 }
 
 export async function getItemIdFromCataloguePath(
