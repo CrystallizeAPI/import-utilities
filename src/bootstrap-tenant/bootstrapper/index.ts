@@ -83,12 +83,12 @@ export class Bootstrapper extends EventEmitter {
   context: TenantContext = {
     defaultLanguage: { code: 'en', name: 'English' },
     languages: [],
-    config: {
-      itemTopics: 'amend',
-    },
+    config: {},
   }
 
-  config: Config = {}
+  config: Config = {
+    itemTopics: 'amend',
+  }
 
   status: Status = {
     media: defaultAreaStatus(),
