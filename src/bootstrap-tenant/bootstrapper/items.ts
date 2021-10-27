@@ -1026,8 +1026,11 @@ export async function setItems({
         }))
       }
 
+      const { priceVariants: _p, ...restOfExistingProductVariant } =
+        existingProductVariant || {}
+
       const variant: CreateProductVariantInput = {
-        ...(existingProductVariant as CreateProductVariantInput),
+        ...(restOfExistingProductVariant as CreateProductVariantInput),
         name: getTranslation(jsonVariant.name, language),
         sku: jsonVariant.sku,
         isDefault: jsonVariant.isDefault || false,
@@ -1114,10 +1117,10 @@ export async function setItems({
           }),
         })
       } else if (isInParentChildrenArray || item.parentExternalReference) {
-      /**
-       * Move the item if it is a part of a children array,
-       * or if item.parentExternalReference is passed
-       */
+        /**
+         * Move the item if it is a part of a children array,
+         * or if item.parentExternalReference is passed
+         */
         await callPIM({
           query: buildMoveItemMutation(itemId, {
             parentId,
