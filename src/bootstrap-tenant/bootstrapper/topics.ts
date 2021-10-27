@@ -25,49 +25,73 @@ export async function getAllTopicsForSpec(
 ): Promise<JSONTopic[]> {
   const tenantId = getTenantId()
 
-  const r = await callPIM({
+  async function getTopicBasics(
+    id: string
+  ): Promise<{
+    id: string
+    name: string
+    path: string
+    children: {
+      id: string
+    }[]
+  } | null> {
+    const response = await callPIM({
+      query: `
+        query GET_TOPIC($id: ID!, $language: String!) {
+          topic {
+            get(id: $id, language: $language) {
+              id
+              name
+              path
+              children {
+                id
+              }
+            }
+          }
+        }    
+      `,
+      variables: {
+        id,
+        language,
+      },
+    })
+
+    return response.data?.topic?.get
+  }
+
+  async function handleTopic(id: string): Promise<JSONTopic | null> {
+    const topicBasics = await getTopicBasics(id)
+
+    if (!topicBasics) {
+      return topicBasics
+    }
+
+    const topic: JSONTopic = {
+      id: topicBasics.id,
+      name: topicBasics.name,
+      path: topicBasics.path,
+    }
+
+    if (topicBasics?.children?.length > 0) {
+      topic.children = []
+
+      for (let i = 0; i < topicBasics.children.length; i++) {
+        const childTopic = await handleTopic(topicBasics.children[i].id)
+        if (childTopic) {
+          topic.children.push(childTopic)
+        }
+      }
+    }
+
+    return topic
+  }
+
+  const responseForRootTopics = await callPIM({
     query: `
       query GET_TENANT_ROOT_TOPICS($tenantId: ID!, $language: String!) {
         topic {
           getRootTopics(tenantId: $tenantId, language: $language) {
             id
-            name
-            children {
-              id
-              name
-              children {
-                id
-                name
-                children {
-                  id
-                  name
-                  children {
-                    id
-                    name
-                    children {
-                      id
-                      name
-                      children {
-                        id
-                        name
-                        children {
-                          id
-                          name
-                          children {
-                            id
-                            name
-                            children {
-                              id
-                              name
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
           }
         }
       }    
@@ -77,7 +101,21 @@ export async function getAllTopicsForSpec(
       language,
     },
   })
-  return r.data?.topic?.getRootTopics || []
+
+  const topicMaps: JSONTopic[] = []
+
+  const rootTopicIds: string[] =
+    responseForRootTopics.data?.topic?.getRootTopics?.map((r: any) => r.id) ||
+    []
+
+  for (let i = 0; i < rootTopicIds.length; i++) {
+    const topic = await handleTopic(rootTopicIds[i])
+    if (topic) {
+      topicMaps.push(topic)
+    }
+  }
+
+  return topicMaps
 }
 
 async function getExistingRootTopics(language: string): Promise<JSONTopic[]> {
