@@ -50,14 +50,25 @@ export async function getAllCatalogueItems(
   language: string,
   allTopics: JSONTopic[] = []
 ): Promise<JSONItem[]> {
-  const response = await callCatalogue({
-    query: QUERY,
-    variables: {
-      language,
-    },
-  })
+  async function getItem(path: string): Promise<JSONItem | null> {
+    const itemResponse = await callCatalogue({
+      query: GET_ITEM_QUERY,
+      variables: {
+        language,
+        path,
+      },
+    })
 
-  function handleItem(item: any): JSONItem {
+    const rawData = itemResponse.data?.catalogue
+
+    if (!rawData) {
+      return null
+    }
+
+    return handleItem(rawData)
+  }
+
+  async function handleItem(item: any): Promise<JSONItem> {
     const jsonItem = {
       name: item.name,
       cataloguePath: item.cataloguePath,
@@ -90,11 +101,50 @@ export async function getAllCatalogueItems(
 
         return variant
       })
+    } else {
+      const itemWithChildren = jsonItem as JSONFolder
+      const children = await getChildren()
+      if (children.length > 0) {
+        itemWithChildren.children = children
+      }
     }
 
-    if (item.children) {
-      const jsonFolder = jsonItem as JSONFolder
-      jsonFolder.children = item.children.map(handleItem)
+    async function getChildren(): Promise<JSONItem[]> {
+      const children: JSONItem[] = []
+
+      let after: string | undefined = undefined
+
+      async function crawlChildren() {
+        const pageResponse = await callCatalogue({
+          query: GET_ITEM_CHILDREN_PAGE,
+          variables: {
+            path: item.cataloguePath,
+            language,
+            after,
+          },
+        })
+
+        const page = pageResponse.data?.catalogue?.subtree
+
+        if (page.edges?.length) {
+          const paths: string[] = page.edges.map((e: any) => e.node.path)
+          for (let i = 0; i < paths.length; i++) {
+            const item = await getItem(paths[i])
+            if (item) {
+              children.push(item)
+            }
+          }
+
+          if (page.pageInfo?.hasNextPage) {
+            after = page.pageInfo.endCursor
+            await crawlChildren()
+          }
+        }
+      }
+
+      await crawlChildren()
+
+      return children
     }
 
     return jsonItem
@@ -195,52 +245,42 @@ export async function getAllCatalogueItems(
     return components
   }
 
-  return response.data?.catalogue?.children?.map(handleItem) || []
+  const allCatalogueItems: JSONItem[] = []
+
+  const rootItemsResponse = await callCatalogue({
+    query: GET_ROOT_ITEMS_QUERY,
+    variables: {
+      language,
+    },
+  })
+
+  const rootItems: { path: string }[] =
+    rootItemsResponse.data?.catalogue?.children || []
+  for (let i = 0; i < rootItems.length; i++) {
+    const item = await getItem(rootItems[i].path)
+    if (item) {
+      allCatalogueItems.push(item)
+    }
+  }
+
+  return allCatalogueItems
 }
 
-const QUERY = `
-query GET_ALL_CATALOGUE_ITEMS ($language: String!) {
+const GET_ROOT_ITEMS_QUERY = `
+query GET_ROOT_CATALOGUE_ITEMS ($language: String!) {
   catalogue(language: $language, path: "/") {
     children {
-      ...item
-      ...product
-      children {
-        ...item
-        ...product
-        children {
-          ...item
-          ...product
-          children {
-            ...item
-            ...product
-            children {
-              ...item
-              ...product
-              children {
-                ...item
-                ...product
-                children {
-                  ...item
-                  ...product
-                  children {
-                    ...item
-                    ...product
-                    children {
-                      ...item
-                      ...product
-                      children {
-                        ...item
-                        ...product
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+      path
     }
+  }
+}
+`
+
+const GET_ITEM_QUERY = `
+query GET_ITEM ($language: String!, $path: String!) {
+  catalogue(language: $language, path: $path) {
+    ...item
+    ...product
   }
 }
 
@@ -428,6 +468,27 @@ fragment paragraphCollectionContent on ParagraphCollectionContent {
     }
     images {
       ...image
+    }
+  }
+}
+`
+
+const GET_ITEM_CHILDREN_PAGE = `
+query GET_ITEM_CHILDREN_PAGE ($path: String!, $language: String!, $after: String) {
+  catalogue(path: $path, language: $language) {
+    subtree (
+      first: 100
+      after: $after
+    ) {
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      edges {
+        node {
+          path
+        }
+      }
     }
   }
 }
