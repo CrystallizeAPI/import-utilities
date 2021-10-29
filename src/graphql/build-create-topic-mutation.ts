@@ -6,7 +6,7 @@ export const buildCreateTopicMutation = (
   language: string,
   queryFields: Record<string, any> = {
     id: true,
-    name: true
+    name: true,
   }
 ): string => {
   const mutation = {
@@ -14,12 +14,10 @@ export const buildCreateTopicMutation = (
       topic: {
         create: {
           __args: {
-            input: {
-              ...input,
-            },
+            input,
             language,
           },
-          ...queryFields
+          ...queryFields,
         },
       },
     },

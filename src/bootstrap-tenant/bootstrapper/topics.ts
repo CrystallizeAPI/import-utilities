@@ -163,44 +163,32 @@ function translateTopicForInput(
   }
 }
 
-function getNLevelTopics(numberOfLevels: number): Record<string, any> {
-  const levels: Record<string, any> = {}
-
-  let count = 0
-  function addNextLevel(current: Record<string, any>) {
-    current.name = true
-    current.id = true
-    current.parentId = true
-    count++
-    if (count < numberOfLevels) {
-      current.children = {}
-      addNextLevel(current.children)
-    }
-  }
-  addNextLevel(levels)
-
-  return levels
-}
-
 async function createTopic(
   topic: JSONTopic,
   context: TenantContext,
   parentId?: string
-) {
+): Promise<string> {
   const language = context.defaultLanguage.code
 
-  const translatedTopic = translateTopicForInput(topic, language)
+  /**
+   * Do not include children here, as we have no control over
+   * how many children and levels that are passed. The API might
+   * throw a 413 "request entity too large" if we send to much
+   */
+  const { children, ...topicWithoutChildren } = topic
+
+  const translatedTopic = translateTopicForInput(topicWithoutChildren, language)
   if (parentId) {
     translatedTopic.parentId = parentId
   }
 
-  // Create the topic (including children)
+  // Create the topic
   const response = await callPIM({
-    query: buildCreateTopicMutation(
-      translatedTopic,
-      language,
-      getNLevelTopics(20)
-    ),
+    query: buildCreateTopicMutation(translatedTopic, language, {
+      name: true,
+      id: true,
+      parentId: true,
+    }),
   })
 
   const createdTopic = response.data?.topic?.create
@@ -210,46 +198,67 @@ async function createTopic(
     .filter((l) => !l.isDefault)
     .map((l) => l.code)
 
+  // Keep track of the topics being updated
   const topicsToUpdate: Promise<any>[] = []
-  remainingLanguages.forEach((language) => {
-    function handleLevel(level: JSONTopic, levelFromSpec?: JSONTopic) {
-      if (!levelFromSpec) {
-        return
-      }
 
-      if (level.id) {
-        topicsToUpdate.push(
-          callPIM({
-            query: buildUpdateTopicMutation({
-              id: level.id,
-              language,
-              input: {
-                name: getTranslation(levelFromSpec.name, language) || '',
-                parentId: level.parentId,
-              },
-            }),
-          })
-        )
-      }
+  function updateTopic(
+    language: string,
+    level: JSONTopic,
+    levelFromSpec?: JSONTopic
+  ) {
+    if (!levelFromSpec) {
+      return
+    }
 
-      if (level.children && levelFromSpec.children) {
-        for (let i = 0; i < level.children.length; i++) {
-          handleLevel(
-            level.children[i],
-            levelFromSpec.children.find(
-              (l) => level.name === getTranslation(l.name, language)
-            )
-          )
+    if (level.id) {
+      topicsToUpdate.push(
+        callPIM({
+          query: buildUpdateTopicMutation({
+            id: level.id,
+            language,
+            input: {
+              name: getTranslation(levelFromSpec.name, language) || '',
+              parentId: level.parentId,
+            },
+          }),
+        })
+      )
+    }
+  }
+
+  remainingLanguages.forEach((language) =>
+    updateTopic(language, createdTopic, topicWithoutChildren)
+  )
+
+  await Promise.all(topicsToUpdate)
+
+  return createdTopic.id
+}
+
+function createTopicAndChildren(
+  topic: JSONTopic,
+  context: TenantContext,
+  parentId?: string
+) {
+  async function handleLevel(levelTopic: JSONTopic, parentId?: string) {
+    const id = await createTopic(levelTopic, context, parentId)
+
+    if (levelTopic.children) {
+      const childNames = new Set()
+      for (let i = 0; i < levelTopic.children.length; i++) {
+        const child = levelTopic.children[i]
+        console.log('child', child)
+        if (!childNames.has(child.name)) {
+          await handleLevel(child, id)
+          childNames.add(child.name)
         }
       }
     }
 
-    handleLevel(createdTopic, topic)
-  })
+    return id
+  }
 
-  await Promise.all(topicsToUpdate)
-
-  return createdTopic
+  return handleLevel(topic, parentId)
 }
 
 function updateTopic(
@@ -257,13 +266,16 @@ function updateTopic(
   context: TenantContext,
   allTopics: JSONTopic[]
 ) {
-  function findExistingTopic(
-    hierarchyPath: string | undefined
-  ): JSONTopic | null {
+  function findExistingTopic(props: {
+    path?: string
+    hierarchyPath?: string
+  }): JSONTopic | null {
+    const { hierarchyPath, path } = props
+
     let existing = null
 
     function handleTopic(topic: JSONTopic) {
-      if (topic.hierarchyPath === hierarchyPath) {
+      if (topic.path === path || topic.hierarchyPath === hierarchyPath) {
         existing = topic
       } else {
         topic.children?.forEach(handleTopic)
@@ -279,13 +291,43 @@ function updateTopic(
 
   async function handleLevel(level: JSONTopic, parentId?: string) {
     try {
-      const existingTopic = findExistingTopic(level.hierarchyPath)
+      const existingTopic = findExistingTopic({
+        path: level.path,
+        hierarchyPath: level.hierarchyPath,
+      })
+
+      level.id = existingTopic?.id
 
       // Can't find this topic, let's create it
       if (!existingTopic) {
-        await createTopic(level, context, parentId)
-      } else if (level.children) {
-        level.id = existingTopic.id
+        level.id = await createTopic(level, context, parentId)
+      } else {
+        // Update topic name
+        await callPIM({
+          query: `
+          mutation UPDATE_TOPIC_NAME($id: ID!, $name: String!, $language: String!) {
+            topic {
+              update (
+                id: $id
+                language: $language
+                input: {
+                  name: $name
+                }
+              ) {
+                id
+              }
+            }
+          }
+          `,
+          variables: {
+            id: existingTopic.id,
+            language: context.defaultLanguage.code,
+            name: level.name,
+          },
+        })
+      }
+
+      if (level.children) {
         for (let i = 0; i < level.children.length; i++) {
           await handleLevel(level.children[i], level.id)
         }
@@ -298,7 +340,7 @@ function updateTopic(
   return handleLevel(topic)
 }
 
-function enrichWithHierarhyPath(topicMaps: JSONTopic[], language: string) {
+function enrichWithHierarchyPath(topicMaps: JSONTopic[], language: string) {
   topicMaps.forEach((topicMap) => {
     function handleTopic(topic: JSONTopic, currentHierarchy: string[]) {
       const hierarchy = [
@@ -306,7 +348,6 @@ function enrichWithHierarhyPath(topicMaps: JSONTopic[], language: string) {
         getTranslation(topic.name, language) || '',
       ]
       topic.hierarchyPath = hierarchy.join('/')
-      topic.parentHierarchyPath = currentHierarchy.join('/')
       topic.children?.forEach((c) => handleTopic(c, hierarchy))
     }
     handleTopic(topicMap, [])
@@ -327,14 +368,12 @@ export async function setTopics({
   if (!spec?.topicMaps) {
     return
   }
-
   // Enrich the spec with hierachy paths
-  enrichWithHierarhyPath(spec.topicMaps, context.defaultLanguage.code)
+  enrichWithHierarchyPath(spec.topicMaps, context.defaultLanguage.code)
 
   const existingRootTopics = await getExistingRootTopics(
     context.defaultLanguage.code
   )
-
   const existingTopicMaps: JSONTopic[] = []
   const missingTopicMaps: JSONTopic[] = []
 
@@ -361,7 +400,7 @@ export async function setTopics({
     })
 
     for (let i = 0; i < missingTopicMaps.length; i++) {
-      await createTopic(missingTopicMaps[i], context)
+      await createTopicAndChildren(missingTopicMaps[i], context)
       finished++
       onUpdate({
         progress: finished / spec.topicMaps.length,
@@ -379,7 +418,7 @@ export async function setTopics({
 
   // Get all topics
   const allTopics = await getAllTopicsForSpec(context.defaultLanguage.code)
-  enrichWithHierarhyPath(allTopics, context.defaultLanguage.code)
+  enrichWithHierarchyPath(allTopics, context.defaultLanguage.code)
 
   // Add new topics for the existing topic maps
   for (let i = 0; i < existingTopicMaps.length; i++) {

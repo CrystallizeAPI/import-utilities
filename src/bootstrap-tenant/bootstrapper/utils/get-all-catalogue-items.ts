@@ -75,7 +75,7 @@ export async function getAllCatalogueItems(
       externalReference: item.externalReference,
       shape: item.shape.identifier,
       components: handleComponents(item.components),
-      topics: item.topics?.map(getTopicHierarchy),
+      topics: item.topics,
     }
 
     // Product specifics
@@ -148,22 +148,6 @@ export async function getAllCatalogueItems(
     }
 
     return jsonItem
-  }
-
-  function getTopicHierarchy(topic: any): string {
-    let foundHierarchy: string[] = []
-    function handleLevel(topicLevel: JSONTopic, hierachy: string[]) {
-      const topicHierarchy = [...hierachy, topicLevel.name as string]
-      if (topicLevel.id === topic.id) {
-        foundHierarchy = topicHierarchy
-      } else if (topicLevel.children) {
-        topicLevel.children?.forEach((c) => handleLevel(c, topicHierarchy))
-      }
-    }
-
-    allTopics.forEach((t) => handleLevel(t, []))
-
-    return foundHierarchy.join('/')
   }
 
   function handleComponents(cmps?: any): Record<string, JSONComponentContent> {
@@ -294,7 +278,7 @@ fragment item on Item {
     identifier
   }
   topics {
-    id
+    path
   }
   components {
     id
