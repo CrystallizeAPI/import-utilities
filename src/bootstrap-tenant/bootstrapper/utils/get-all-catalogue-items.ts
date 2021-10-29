@@ -464,7 +464,7 @@ const GET_ITEM_CHILDREN_PAGE = `
 query GET_ITEM_CHILDREN_PAGE ($path: String!, $language: String!, $after: String) {
   catalogue(path: $path, language: $language) {
     subtree (
-      first: 100
+      first: 1000
       after: $after
     ) {
       pageInfo {
