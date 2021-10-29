@@ -48,7 +48,9 @@ function handlePropertiesTableSection(section: any) {
 
 export async function getAllCatalogueItems(
   language: string,
-  allTopics: JSONTopic[] = []
+  options?: {
+    basePath?: String
+  }
 ): Promise<JSONItem[]> {
   async function getItem(path: string): Promise<JSONItem | null> {
     const itemResponse = await callCatalogue({
@@ -235,6 +237,7 @@ export async function getAllCatalogueItems(
     query: GET_ROOT_ITEMS_QUERY,
     variables: {
       language,
+      path: options?.basePath || '/',
     },
   })
 
@@ -251,8 +254,8 @@ export async function getAllCatalogueItems(
 }
 
 const GET_ROOT_ITEMS_QUERY = `
-query GET_ROOT_CATALOGUE_ITEMS ($language: String!) {
-  catalogue(language: $language, path: "/") {
+query GET_ROOT_CATALOGUE_ITEMS ($language: String!, $path: String!) {
+  catalogue(language: $language, path: $path) {
     children {
       path
     }

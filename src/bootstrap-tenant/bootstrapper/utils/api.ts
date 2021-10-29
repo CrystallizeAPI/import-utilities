@@ -50,11 +50,11 @@ interface QueuedRequest {
 class ApiManager {
   queue: QueuedRequest[] = []
   url: string = ''
-  maxWorkers: number = 3
+  maxWorkers: number = 5
 
   constructor(url: string) {
     this.url = url
-    setInterval(() => this.work(), 25)
+    setInterval(() => this.work(), 5)
   }
 
   push(props: IcallAPI): Promise<IcallAPIResult> {
@@ -84,7 +84,7 @@ class ApiManager {
     let json: IcallAPIResult | undefined
 
     // Always sleep for some time between requests
-    await sleep(50)
+    await sleep(10)
 
     let errorString: string = ''
 

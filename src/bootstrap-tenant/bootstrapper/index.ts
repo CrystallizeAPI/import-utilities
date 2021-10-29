@@ -28,10 +28,14 @@ import { getAllCatalogueItems } from './utils/get-all-catalogue-items'
 import { getAllGrids } from './utils/get-all-grids'
 import { setGrids } from './grids'
 
+export interface ItemsCreateSpecOptions {
+  basePath?: String
+}
+
 export interface ICreateSpec {
   shapes: boolean
   grids: boolean
-  items: boolean
+  items: boolean | ItemsCreateSpecOptions
   languages: boolean
   priceVariants: boolean
   vatTypes: boolean
@@ -202,7 +206,15 @@ export class Bootstrapper extends EventEmitter {
 
     // Items
     if (props.items) {
-      spec.items = await getAllCatalogueItems(defaultLanguage, allTopicsWithIds)
+      const options: ItemsCreateSpecOptions = { basePath: '/' }
+
+      if (typeof props.items !== 'boolean') {
+        if (props.items.basePath) {
+          options.basePath = props.items.basePath
+        }
+      }
+
+      spec.items = await getAllCatalogueItems(defaultLanguage, options)
     }
 
     return spec

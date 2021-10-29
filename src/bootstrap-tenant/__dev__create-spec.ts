@@ -4,10 +4,10 @@ config()
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 
-import { createJSONSpec } from './index'
+import { Bootstrapper } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'hkn-examples'
+  const tenantIdentifier = 'furniture'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -20,16 +20,26 @@ async function createSpec() {
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
-  const spec = await createJSONSpec({
-    tenantIdentifier,
-    CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
-    CRYSTALLIZE_ACCESS_TOKEN_SECRET:
-      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
-    onUpdate(update) {
-      if (update.warning) {
-        console.log(`⚠️ (${update.warning.code}) ${update.warning.message}`)
-      }
+  const bootstrapper = new Bootstrapper()
+
+  bootstrapper.setAccessToken(
+    process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
+    process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
+  )
+
+  bootstrapper.setTenantIdentifier(tenantIdentifier)
+
+  const spec = await bootstrapper.createSpec({
+    shapes: false,
+    grids: false,
+    items: {
+      basePath: '/courses',
     },
+    languages: false,
+    priceVariants: false,
+    vatTypes: false,
+    topicMaps: false,
+    onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 
   writeFileSync(
