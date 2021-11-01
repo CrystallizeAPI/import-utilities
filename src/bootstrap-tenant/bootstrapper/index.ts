@@ -14,7 +14,7 @@ import {
   setTenantIdentifier,
   setStaticToken,
   AreaUpdate,
-  TenantContext,
+  BootstrapperContext,
   AreaWarning,
   Config,
 } from './utils'
@@ -84,10 +84,16 @@ export class Bootstrapper extends EventEmitter {
   // tenantId: string = ''
   tenantIdentifier: string = ''
 
-  context: TenantContext = {
+  context: BootstrapperContext = {
     defaultLanguage: { code: 'en', name: 'English' },
     languages: [],
     config: {},
+    /**
+     * If it should allow for using cache when resolving
+     * externalReference to item id, or topic paths to
+     * topic id
+     */
+    useReferenceCache: false,
   }
 
   config: Config = {

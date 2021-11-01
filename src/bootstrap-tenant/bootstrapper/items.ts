@@ -65,7 +65,7 @@ import {
   getTenantId,
   getTranslation,
   AreaUpdate,
-  TenantContext,
+  BootstrapperContext,
   uploadFileFromUrl,
   validShapeIdentifier,
   fileUploader,
@@ -76,11 +76,12 @@ import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
 import { ProductVariant } from '../../generated/graphql'
 import { getProductVariants } from './utils/get-product-variants'
+import { getTopicIds } from './utils/get-topic-id'
 
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
-  context: TenantContext
+  context: BootstrapperContext
 }
 
 async function getTenantRootItemId(): Promise<string> {
@@ -185,62 +186,6 @@ function createRichTextInput(content: JSONRichText, language: string) {
   }
 
   return inp
-}
-
-async function getTopicIds(
-  topics: JSONItemTopic[],
-  language: string
-): Promise<string[]> {
-  const ids: string[] = []
-
-  await Promise.all(
-    topics.map(async (topic) => {
-      let searchTerm: string | undefined = ''
-
-      if (typeof topic === 'string') {
-        searchTerm = topic
-      } else {
-        searchTerm = topic.path || topic.hierarchy
-      }
-
-      const result = await callPIM({
-        query: `
-          query GET_TOPIC($tenantId: ID!, $language: String!, $searchTerm: String!) {
-            search {
-              topics(tenantId: $tenantId, language: $language, searchTerm: $searchTerm) {
-                edges {
-                  node {
-                    id
-                    path
-                  }
-                }
-              }
-            }
-          }
-      `,
-        variables: {
-          tenantId: getTenantId(),
-          language,
-          searchTerm,
-        },
-      })
-
-      const edges = result?.data?.search?.topics?.edges || []
-
-      let edge
-      if (typeof topic !== 'string' && topic.path) {
-        edge = edges.find((e: any) => e.node.path === topic.path)
-      } else {
-        edge = edges[edges.length - 1]
-      }
-
-      if (edge) {
-        ids.push(edge.node.id as string)
-      }
-    })
-  )
-
-  return ids
 }
 
 interface ICreateImagesInput {
@@ -1222,12 +1167,14 @@ export async function setItems({
         item.externalReference,
         context.defaultLanguage.code,
         getTenantId(),
+        context.useReferenceCache,
         item.shape
       )
     } else if (item.cataloguePath) {
       item.id = await getItemIdFromCataloguePath(
         item.cataloguePath,
-        context.defaultLanguage.code
+        context.defaultLanguage.code,
+        context.useReferenceCache
       )
     }
 
@@ -1236,6 +1183,7 @@ export async function setItems({
         item.parentExternalReference,
         context.defaultLanguage.code,
         getTenantId(),
+        context.useReferenceCache,
         item.shape
       )
     }
@@ -1299,12 +1247,14 @@ export async function setItems({
               id = await getItemIdFromExternalReference(
                 itemRelation.externalReference,
                 context.defaultLanguage.code,
-                getTenantId()
+                getTenantId(),
+                context.useReferenceCache
               )
             } else if (itemRelation.cataloguePath) {
               id = await getItemIdFromCataloguePath(
                 itemRelation.cataloguePath,
-                context.defaultLanguage.code
+                context.defaultLanguage.code,
+                context.useReferenceCache
               )
             }
             if (id) {
@@ -1487,6 +1437,13 @@ export async function setItems({
   onUpdate({
     message: 'Updating item relations...',
   })
+
+  /**
+   * At this point we want to start using cached values
+   * so that we don't hit the API as much and speed things up
+   */
+  context.useReferenceCache = true
+
   for (let i = 0; i < spec.items.length; i++) {
     await handleItemRelations(spec.items[i])
   }

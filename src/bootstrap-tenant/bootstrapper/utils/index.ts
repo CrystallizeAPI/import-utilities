@@ -4,10 +4,11 @@ import {
   Shape,
   JSONVatType,
 } from '../../json-spec'
-import { callCatalogue, callPIM } from './api'
+import { callPIM } from './api'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
 
 export * from './api'
+export * from './get-item-id'
 
 export const EVENT_NAMES = {
   DONE: 'BOOTSTRAPPER_DONE',
@@ -43,13 +44,14 @@ export interface Config {
   itemTopics?: 'amend' | 'replace'
 }
 
-export interface TenantContext {
+export interface BootstrapperContext {
   defaultLanguage: JSONLanguage
   languages: JSONLanguage[]
   shapes?: Shape[]
   priceVariants?: JSONPriceVariant[]
   vatTypes?: JSONVatType[]
   config: Config
+  useReferenceCache: boolean
 }
 
 let tenantId = ''
@@ -179,66 +181,6 @@ export function validShapeIdentifier(
   })
 
   return validIdentifier
-}
-
-export async function getItemIdFromExternalReference(
-  externalReference: string,
-  language: string,
-  tenantId: string,
-  shapeIdentifier?: string
-): Promise<string> {
-  const response = await callPIM({
-    query: `
-      query GET_ID_FROM_EXTERNAL_REFERENCE(
-        $externalReferences: [String!]
-        $language: String!
-        $tenantId: ID!
-      ) {
-        item {
-          getMany(externalReferences: $externalReferences, language: $language, tenantId: $tenantId) {
-            id
-            shape {
-              identifier
-            }
-          }
-        }
-      }
-    `,
-    variables: {
-      externalReferences: [externalReference],
-      language,
-      tenantId,
-    },
-  })
-
-  let items = response.data?.item?.getMany || []
-
-  if (shapeIdentifier) {
-    items = items.filter((s: any) => s.shape.identifier === shapeIdentifier)
-  }
-
-  return items[0]?.id || ''
-}
-
-export async function getItemIdFromCataloguePath(
-  path: string,
-  language: string
-): Promise<string> {
-  const response = await callCatalogue({
-    query: `
-      query GET_ID_FROM_PATH ($path: String, $language: String) {
-        catalogue(path: $path, language: $language) {
-          id
-        }
-      }
-    `,
-    variables: {
-      path,
-      language,
-    },
-  })
-
-  return response.data?.catalogue?.id || ''
 }
 
 interface IgetItemVersionInfo {

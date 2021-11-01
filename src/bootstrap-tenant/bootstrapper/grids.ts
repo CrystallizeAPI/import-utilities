@@ -9,19 +9,23 @@ import {
   getTenantId,
   getTranslation,
   AreaUpdate,
-  TenantContext,
+  BootstrapperContext,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 
 interface ISetGrids {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
-  context: TenantContext
+  context: BootstrapperContext
   allowUpdate?: boolean
 }
 
 // Get item ids from reference
-async function setItemIds(grid: JSONGrid, language: string) {
+async function setItemIds(
+  grid: JSONGrid,
+  language: string,
+  context: BootstrapperContext
+) {
   return Promise.all(
     grid.rows.map(async (row) => {
       await Promise.all(
@@ -31,12 +35,14 @@ async function setItemIds(grid: JSONGrid, language: string) {
             itemId = await getItemIdFromExternalReference(
               column.item?.externalReference,
               language,
-              getTenantId()
+              getTenantId(),
+              context.useReferenceCache
             )
           } else if (column.item?.cataloguePath) {
             itemId = await getItemIdFromCataloguePath(
               column.item?.cataloguePath,
-              language
+              language,
+              context.useReferenceCache
             )
           }
           if (itemId) {
@@ -51,9 +57,10 @@ async function setItemIds(grid: JSONGrid, language: string) {
 
 async function createGrid(
   grid: JSONGrid,
-  language: string
+  language: string,
+  context: BootstrapperContext
 ): Promise<string | null> {
-  await setItemIds(grid, language)
+  await setItemIds(grid, language, context)
 
   const r = await callPIM({
     query: buildCreateGridMutation({
@@ -71,13 +78,14 @@ async function createGrid(
 
 async function updateGrid(
   grid: JSONGrid,
-  language: string
+  language: string,
+  context: BootstrapperContext
 ): Promise<string | null> {
   if (!grid.id) {
     return null
   }
 
-  await setItemIds(grid, language)
+  await setItemIds(grid, language, context)
   const r = await callPIM({
     query: buildUpdateGridMutation({
       id: grid.id,
@@ -135,7 +143,7 @@ export async function setGrids(props: ISetGrids) {
   // Add missing grids
   await Promise.all(
     missingGrids.map(async (grid) => {
-      const id = await createGrid(grid, language)
+      const id = await createGrid(grid, language, context)
       if (id) {
         grid.id = id
 
@@ -159,7 +167,7 @@ export async function setGrids(props: ISetGrids) {
         if (jsonGrid) {
           jsonGrid.id = existingGrid.id
           if (jsonGrid.id) {
-            await updateGrid(jsonGrid, language)
+            await updateGrid(jsonGrid, language, context)
             await publishGrid(jsonGrid.id, language)
           }
         }

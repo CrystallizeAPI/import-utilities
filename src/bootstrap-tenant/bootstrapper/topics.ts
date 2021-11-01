@@ -7,7 +7,7 @@ import {
   getTenantId,
   getTranslation,
   AreaUpdate,
-  TenantContext,
+  BootstrapperContext,
 } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
@@ -165,7 +165,7 @@ function translateTopicForInput(
 
 async function createTopic(
   topic: JSONTopic,
-  context: TenantContext,
+  context: BootstrapperContext,
   parentId?: string
 ): Promise<string> {
   const language = context.defaultLanguage.code
@@ -237,7 +237,7 @@ async function createTopic(
 
 function createTopicAndChildren(
   topic: JSONTopic,
-  context: TenantContext,
+  context: BootstrapperContext,
   parentId?: string
 ) {
   async function handleLevel(levelTopic: JSONTopic, parentId?: string) {
@@ -263,7 +263,7 @@ function createTopicAndChildren(
 
 function updateTopic(
   topic: JSONTopic,
-  context: TenantContext,
+  context: BootstrapperContext,
   allTopics: JSONTopic[]
 ) {
   function findExistingTopic(props: {
@@ -357,7 +357,7 @@ function enrichWithHierarchyPath(topicMaps: JSONTopic[], language: string) {
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
-  context: TenantContext
+  context: BootstrapperContext
 }
 
 export async function setTopics({
