@@ -27,6 +27,8 @@ import { setItems } from './items'
 import { getAllCatalogueItems } from './utils/get-all-catalogue-items'
 import { getAllGrids } from './utils/get-all-grids'
 import { setGrids } from './grids'
+import { clearCache as clearTopicCache } from './utils/get-topic-id'
+import { clearCache as clearItemCache } from './utils/get-item-id'
 
 export interface ItemsCreateSpecOptions {
   basePath?: String
@@ -122,6 +124,12 @@ export class Bootstrapper extends EventEmitter {
   setTenantIdentifier(tenantIdentifier: string) {
     this.tenantIdentifier = tenantIdentifier
     setTenantIdentifier(this.tenantIdentifier)
+  }
+
+  constructor() {
+    super()
+    clearTopicCache()
+    clearItemCache()
   }
 
   async getTenantBasics() {

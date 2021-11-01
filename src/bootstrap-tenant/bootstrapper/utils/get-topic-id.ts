@@ -4,6 +4,10 @@ import { callPIM } from './api'
 
 const cache = new Map()
 
+export function clearCache() {
+  cache.clear()
+}
+
 export async function getTopicIds(
   topics: JSONItemTopic[],
   language: string,

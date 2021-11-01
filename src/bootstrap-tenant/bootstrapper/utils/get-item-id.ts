@@ -1,6 +1,10 @@
+import { callCatalogue, callPIM } from './api'
+
 const cache = new Map()
 
-import { callCatalogue, callPIM } from './api'
+export function clearCache() {
+  cache.clear()
+}
 
 export async function getItemIdFromExternalReference(
   externalReference: string,
