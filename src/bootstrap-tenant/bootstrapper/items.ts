@@ -1019,6 +1019,22 @@ export async function setItems({
         variants,
       }
 
+      // Add existing product variants
+      if (existingProductVariants) {
+        inp.variants.push(
+          ...existingProductVariants.map(
+            ({ priceVariants, ...rest }) =>
+              ({
+                ...rest,
+                priceVariants: priceVariants?.map((p) => ({
+                  identifier: p.identifier,
+                  price: p.price,
+                })),
+              } as CreateProductVariantInput)
+          )
+        )
+      }
+
       for (let i = 0; i < product.variants.length; i++) {
         const vr = product.variants[i]
         const existingProductVariant = existingProductVariants?.find(
@@ -1031,7 +1047,23 @@ export async function setItems({
           existingProductVariant
         )
 
-        inp.variants.push(variant)
+        if (existingProductVariant) {
+          inp.variants[
+            inp.variants.findIndex(
+              (v) =>
+                v.sku === vr.sku || v.externalReference === vr.externalReference
+            )
+          ] = variant
+        } else {
+          inp.variants.push(variant)
+        }
+      }
+
+      // Ensure that only one is set as the default
+      const defaultVariants = inp.variants.filter((v) => v.isDefault)
+      if (defaultVariants.length !== 1) {
+        defaultVariants.forEach((v) => (v.isDefault = false))
+        defaultVariants[0].isDefault = true
       }
 
       return inp

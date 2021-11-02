@@ -1,5 +1,6 @@
 export interface CreateProductVariantInput {
   name?: string
+  externalReference?: string
   sku: string
   isDefault: boolean
   stock?: number
