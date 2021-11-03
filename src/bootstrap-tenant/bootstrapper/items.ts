@@ -1215,8 +1215,7 @@ export async function setItems({
         item.parentExternalReference,
         context.defaultLanguage.code,
         getTenantId(),
-        context.useReferenceCache,
-        item.shape
+        context.useReferenceCache
       )
     }
 
