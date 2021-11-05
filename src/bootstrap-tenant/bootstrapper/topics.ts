@@ -156,6 +156,7 @@ function translateTopicForInput(
   return {
     tenantId,
     name: getTranslation(topic.name, language) || '',
+    ...(topic.path && { path: topic.path }),
     ...(topic.parentId && { parentId: topic.parentId }),
     ...(topic.children && {
       children: topic.children.map(translateChild),
