@@ -4,6 +4,7 @@ export interface TopicInput {
   tenantId: string
   parentId?: string
   name: string
+  pathIdentifier?: string
   children?: TopicChildInput[]
 }
 
