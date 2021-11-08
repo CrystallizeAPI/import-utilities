@@ -60,7 +60,7 @@ export async function getExistingShapesForSpec(
       id: identifier,
       identifier,
       type: eShape.type,
-      components: eShape?.components.map(handleComponent),
+      components: eShape?.components?.map(handleComponent),
     }
     return shape
   })
@@ -217,17 +217,18 @@ async function createOrUpdateShape(
     const existingShape = existingShapes.find(
       (s) => s.identifier === shape.identifier
     )
-    const components = shape.components?.map((c) => {
-      return {
-        id: c.id,
-        name: c.name,
-        type: getComponentType(c.type),
-        ...(c.description && { description: c.description }),
-        ...buildComponentConfigInput(c),
-      }
-    })
+    const components =
+      shape.components?.map((c) => {
+        return {
+          id: c.id,
+          name: c.name,
+          type: getComponentType(c.type),
+          ...(c.description && { description: c.description }),
+          ...buildComponentConfigInput(c),
+        }
+      }) || []
 
-    if (existingShape) {
+    if (existingShape?.components) {
       existingShape.components.forEach((c) => {
         if (!components.some((e) => e.id === c.id)) {
           components.push({

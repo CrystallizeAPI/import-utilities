@@ -5,5 +5,5 @@ export interface Shape {
   identifier: string
   name: string
   type: string
-  components: Component[]
+  components?: Component[]
 }

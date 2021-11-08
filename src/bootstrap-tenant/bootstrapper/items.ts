@@ -612,7 +612,7 @@ async function createComponentsInput(
 
   for (let i = 0; i < componentIds.length; i++) {
     const componentId = componentIds[i]
-    const componentDefinition = shape.components.find(
+    const componentDefinition = shape.components?.find(
       (c) => c.id === componentId
     )
     if (componentDefinition && item.components) {
@@ -1313,7 +1313,7 @@ export async function setItems({
             const shape = context.shapes?.find(
               (s) => s.identifier === item.shape
             )
-            const def = shape?.components.find((c) => c.id === componentId)
+            const def = shape?.components?.find((c) => c.id === componentId)
 
             let mutationInput = null
 
