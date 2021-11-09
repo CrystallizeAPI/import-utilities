@@ -1,6 +1,4 @@
-import { Shape } from '../../types'
-
-export { Shape } from '../../types'
+import { SelectionOption } from '../../types'
 
 export type JSONTranslation =
   | Record<string, string>
@@ -228,8 +226,81 @@ export interface JSONGrid {
   rows: JSONGridRow[]
 }
 
+export interface JSONShape {
+  identifier: string
+  name: string
+  type: string
+  components?: JSONShapeComponent[]
+}
+
+export interface JSONShapeComponent {
+  id: string
+  name: string
+  type:
+    | 'boolean'
+    | 'componentChoice'
+    | 'contentChunk'
+    | 'datetime'
+    | 'gridRelations'
+    | 'images'
+    | 'itemRelations'
+    | 'location'
+    | 'numeric'
+    | 'paragraphCollection'
+    | 'propertiesTable'
+    | 'richText'
+    | 'selection'
+    | 'singleLine'
+    | 'videos'
+  description?: string
+  config?: JSONShapeComponentConfig
+}
+
+export type JSONShapeComponentConfig =
+  | JSONShapeComponentSelectionConfig
+  | JSONShapeComponentComponentChoiceConfig
+  | JSONShapeComponentContentChunkConfig
+  | JSONShapeComponentItemRelationsConfig
+  | JSONShapeComponentNumericConfig
+  | JSONShapeComponentPropertiesTableConfig
+
+interface JSONShapeComponentConfigMinMax {
+  min?: number | null
+  max?: number | null
+}
+export interface JSONShapeComponentSelectionConfig
+  extends JSONShapeComponentConfigMinMax {
+  options?: SelectionOption[]
+}
+
+export interface JSONShapeComponentComponentChoiceConfig {
+  choices: JSONShapeComponent[]
+}
+
+export interface JSONShapeComponentContentChunkConfig {
+  repeatable?: boolean
+  components: JSONShapeComponent[]
+}
+
+export interface JSONShapeComponentItemRelationsConfig
+  extends JSONShapeComponentConfigMinMax {
+  acceptedShapeIdentifiers?: string[]
+}
+
+export interface JSONShapeComponentNumericConfig {
+  decimalPlaces?: number
+  units?: string[]
+}
+
+export interface JSONShapeComponentPropertiesTableConfig {
+  sections: {
+    title?: string
+    keys: string[]
+  }[]
+}
+
 export interface JsonSpec {
-  shapes?: Shape[]
+  shapes?: JSONShape[]
   priceVariants?: JSONPriceVariant[]
   languages?: JSONLanguage[]
   vatTypes?: JSONVatType[]

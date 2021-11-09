@@ -1131,6 +1131,26 @@ export async function setItems({
         throw new Error(`Item name cannot be empty for the default language`)
       }
 
+      /**
+       * Ensure that variants are present when creating
+       * a product
+       */
+      if (shape.type === 'product') {
+        const product = item as JSONProduct
+        if (!product.variants || product.variants.length === 0) {
+          onUpdate({
+            warning: {
+              code: 'OTHER',
+              message: `Skipping  "${getTranslation(
+                item.name,
+                context.defaultLanguage.code
+              )}". No variants defined for product`,
+            },
+          })
+          return null
+        }
+      }
+
       const response = await createForLanguage(context.defaultLanguage.code)
       itemId = response?.data?.[shape?.type]?.create?.id
     }
@@ -1313,7 +1333,9 @@ export async function setItems({
             const shape = context.shapes?.find(
               (s) => s.identifier === item.shape
             )
-            const def = shape?.components?.find((c) => c.id === componentId)
+            const def = shape?.components?.find(
+              (c: any) => c.id === componentId
+            )
 
             let mutationInput = null
 

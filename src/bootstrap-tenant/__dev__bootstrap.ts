@@ -28,35 +28,30 @@ function bootstrap() {
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
     jsonSpec: {
-      items: [
+      shapes: [
         {
-          name: 'My only product',
-          externalReference: 'my-only-product',
-          shape: 'default-product',
-          vatType: 'No Tax',
-          variants: [
+          identifier: 'few-comps',
+          name: 'few comps',
+          type: 'document',
+          components: [
             {
-              sku: 'hey-sku-3',
-              name: 'HEY3!',
-              price: {
-                default: 110,
+              id: 'rel',
+              name: 'Rels',
+              type: 'itemRelations',
+              config: {
+                acceptedShapeIdentifiers: ['folder'],
+                min: 0,
+                max: 1,
               },
-              stock: 110,
-              isDefault: false,
-            },
-            {
-              sku: 'hey-sku',
-              name: 'HEY!',
-              price: {
-                default: 10,
-              },
-              stock: 110,
-              isDefault: true,
             },
           ],
-          _options: {
-            publish: true,
-          },
+        },
+      ],
+      items: [
+        {
+          name: 'few comps',
+          shape: 'few-comps',
+          externalReference: 'few-comps',
         },
       ],
     },

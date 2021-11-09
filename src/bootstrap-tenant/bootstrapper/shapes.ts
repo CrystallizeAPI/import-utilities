@@ -174,6 +174,13 @@ function buildComponentConfigInput(component: Component) {
         },
       }
     }
+    case 'itemRelations': {
+      return {
+        config: {
+          itemRelations: component.config,
+        },
+      }
+    }
     case 'componentChoice': {
       return {
         config: {

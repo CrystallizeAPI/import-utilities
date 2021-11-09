@@ -1,9 +1,5 @@
-import {
-  JSONLanguage,
-  JSONPriceVariant,
-  Shape,
-  JSONVatType,
-} from '../../json-spec'
+import { Shape } from '../../../types'
+import { JSONLanguage, JSONPriceVariant, JSONVatType } from '../../json-spec'
 import { callPIM } from './api'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
 
