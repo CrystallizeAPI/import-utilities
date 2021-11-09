@@ -952,7 +952,10 @@ export async function setItems({
       existingProductVariant?: ProductVariant
     ): Promise<CreateProductVariantInput> {
       let priceVariants
+      let stockLocations
       let price
+      let stock
+
       if (jsonVariant.price && typeof jsonVariant.price === 'object') {
         const p = jsonVariant.price as Record<string, number>
         priceVariants = Object.keys(jsonVariant.price).map((identifier) => ({
@@ -961,6 +964,16 @@ export async function setItems({
         }))
       } else {
         price = jsonVariant.price
+      }
+
+      if (jsonVariant.stock && typeof jsonVariant.stock === 'object') {
+        const p = jsonVariant.stock as Record<string, number>
+        stockLocations = Object.keys(jsonVariant.stock).map((identifier) => ({
+          identifier,
+          stock: p[identifier],
+        }))
+      } else {
+        stock = jsonVariant.stock
       }
 
       let attributes
@@ -979,11 +992,15 @@ export async function setItems({
         name: getTranslation(jsonVariant.name, language),
         sku: jsonVariant.sku,
         isDefault: jsonVariant.isDefault || false,
-        stock: jsonVariant.stock ?? 0,
         ...(priceVariants
           ? { priceVariants }
           : {
               price: price ?? 0,
+            }),
+        ...(stockLocations
+          ? { stockLocations }
+          : {
+              stock: stock ?? 0,
             }),
         ...(attributes && { attributes }),
       }

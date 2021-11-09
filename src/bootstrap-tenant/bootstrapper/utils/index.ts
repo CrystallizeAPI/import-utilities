@@ -3,6 +3,7 @@ import {
   JSONPriceVariant,
   Shape,
   JSONVatType,
+  JSONStockLocation,
 } from '../../json-spec'
 import { callPIM } from './api'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
@@ -27,6 +28,8 @@ export const EVENT_NAMES = {
   GRIDS_DONE: 'BOOTSTRAPPER_GRIDS_DONE',
   ITEMS_UPDATE: 'BOOTSTRAPPER_ITEMS_UPDATE',
   ITEMS_DONE: 'BOOTSTRAPPER_ITEMS_DONE',
+  STOCK_LOCATIONS_UPDATE: 'BOOTSTRAPPER_STOCK_LOCATIONS_UPDATE',
+  STOCK_LOCATIONS_DONE: 'BOOTSTRAPPER_STOCK_LOCATIONS_DONE',
 }
 
 export interface AreaWarning {
@@ -52,6 +55,7 @@ export interface BootstrapperContext {
   vatTypes?: JSONVatType[]
   config: Config
   useReferenceCache: boolean
+  stockLocations?: JSONStockLocation[]
 }
 
 let tenantId = ''

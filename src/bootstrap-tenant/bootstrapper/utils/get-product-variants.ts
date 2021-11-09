@@ -32,8 +32,10 @@ query GET_PRODUCT_INFO($language: String!, $itemId: ID!) {
         priceVariants {
           ...pr
         }
+        stockLocations {
+          ...stockLocation
+        }
         sku
-        stock
         subscriptionPlans {
           identifier
           name
@@ -88,5 +90,15 @@ fragment pr on ProductPriceVariant {
   identifier
   name
   price
+}
+
+fragment stockLocation on ProductStockLocation {
+  identifier
+  name
+  settings {
+    minimum
+    unlimited
+  }
+  stock
 }
 `

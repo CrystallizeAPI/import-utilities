@@ -354,6 +354,11 @@ fragment product on Product {
       currency
     }
     stock
+    stockLocations {
+      identifier
+      name
+      stock
+    }
     images {
       ...image
     }

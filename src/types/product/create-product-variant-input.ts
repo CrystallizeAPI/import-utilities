@@ -14,4 +14,8 @@ export interface CreateProductVariantInput {
     identifier: string
     price?: number
   }[]
+  stockLocations?: {
+    identifier: string
+    stock: number
+  }[]
 }

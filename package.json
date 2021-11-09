@@ -26,7 +26,7 @@
     "dev:spec:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__create-spec.ts\"",
     "dev:bootstrapper": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
     "dev:bootstrapper:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
-    "generate-graphql-types": "graphql-codegen --config codegen.yml"
+    "generate-graphql-types": "graphql-codegen --require dotenv/config --config codegen.yml"
   },
   "dependencies": {
     "@crystallize/content-transformer": "^9.0.1",

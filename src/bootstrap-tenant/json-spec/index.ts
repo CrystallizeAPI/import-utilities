@@ -13,6 +13,12 @@ export interface JSONPriceVariant {
   currency: string
 }
 
+export interface JSONStockLocation {
+  identifier: string
+  name: string
+  minimum?: number
+}
+
 export interface JSONLanguage {
   code: string
   name: string
@@ -193,13 +199,15 @@ export interface JSONDocument extends JSONItemBase {}
 
 export type JSONProductVariantPriceVariants = Record<string, number>
 
+export type JSONProductVariantStockLocations = Record<string, number>
+
 export interface JSONProductVariant {
   isDefault?: boolean
   name: JSONTranslation
   sku: string
   price: JSONProductVariantPriceVariants | number
   images?: JSONImage[]
-  stock?: number
+  stock?: JSONProductVariantStockLocations | number
   attributes?: Record<string, string>
   externalReference?: string
 }
@@ -231,6 +239,7 @@ export interface JSONGrid {
 export interface JsonSpec {
   shapes?: Shape[]
   priceVariants?: JSONPriceVariant[]
+  stockLocations?: JSONStockLocation[]
   languages?: JSONLanguage[]
   vatTypes?: JSONVatType[]
   topicMaps?: JSONTopic[]

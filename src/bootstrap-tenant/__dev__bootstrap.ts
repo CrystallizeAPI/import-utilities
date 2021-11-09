@@ -41,7 +41,9 @@ function bootstrap() {
               price: {
                 default: 110,
               },
-              stock: 110,
+              stock: {
+                default: 110,
+              },
               isDefault: false,
             },
             {
@@ -50,7 +52,9 @@ function bootstrap() {
               price: {
                 default: 10,
               },
-              stock: 110,
+              stock: {
+                default: 110,
+              },
               isDefault: true,
             },
           ],
