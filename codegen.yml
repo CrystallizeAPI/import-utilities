@@ -1,9 +1,9 @@
 overwrite: true
 schema:
-  - 'https://pim.crystallize.com/graphql':
+  - ${PUBLIC_API_URL}/graphql:
       headers:
-        X-Crystallize-Access-Token-Id: ${ACCESS_TOKEN_ID}
-        X-Crystallize-Access-Token-Secret: ${ACCESS_TOKEN_SECRET}
+        X-Crystallize-Access-Token-Id: ${CRYSTALLIZE_ACCESS_TOKEN_ID}
+        X-Crystallize-Access-Token-Secret: ${CRYSTALLIZE_ACCESS_TOKEN_SECRET}
 documents: null
 generates:
   src/generated/graphql.ts:

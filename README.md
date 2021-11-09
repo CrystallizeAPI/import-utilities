@@ -248,3 +248,41 @@ const createItemMutation = buildCreateItemMutation(itemData)
 ```
 
 [0]: https://crystallize.com/learn/developer-guides/api-overview/api-endpoints
+
+## Tenant specification and bootstrap
+
+The specification/bootstrap of tenant is broken down into two separate
+operations
+
+1. Create a backup of a tenant, storing it as a `.json` specification
+2. Bootstrapping a tenant, using a `.json` specification
+
+### Create a tenant specification
+
+The tenant specification describes how the tenant is configured, and can contain
+information on:
+
+- [Languages](https://crystallize.com/learn/concepts/pim/multilingual)
+- [VAT types](https://crystallize.com/learn/concepts/ecommerce/tax)
+- [Price variants](https://crystallize.com/learn/concepts/ecommerce/price-variant)
+- [Stock locations](https://crystallize.com/learn/concepts/ecommerce/stock-location)
+- [Shapes](https://crystallize.com/learn/concepts/pim/shape)
+- [Topics](https://crystallize.com/learn/concepts/pim/topic-map)
+- [Grids](https://crystallize.com/learn/concepts/pim/grid-organizer)
+- [Products](https://crystallize.com/learn/concepts/pim/product),
+  [Documents](https://crystallize.com/learn/concepts/pim/document) and
+  [Folders](https://crystallize.com/learn/concepts/pim/folder)
+
+It is described in a `.json` file, like such:
+
+```json
+{
+  "languages": [],
+  "vatTypes": [],
+  "priceVariants": [],
+  "shapes": [],
+  "topicMaps": [],
+  "grids": [],
+  "items": []
+}
+```

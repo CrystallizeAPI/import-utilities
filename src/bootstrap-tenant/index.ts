@@ -40,6 +40,7 @@ export async function createJSONSpec(
     vatTypes: true,
     topicMaps: true,
     onUpdate: props.onUpdate,
+    stockLocations: true,
   })
 }
 
