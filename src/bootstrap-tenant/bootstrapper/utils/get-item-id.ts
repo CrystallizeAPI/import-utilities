@@ -16,7 +16,6 @@ export async function getItemIdFromExternalReference(
   if (useCache) {
     const cacheItem = cache.get(`externalReference:${externalReference}`)
     if (cacheItem) {
-      console.log('CACHE HIT', cacheItem)
       return cacheItem
     }
   }
@@ -68,7 +67,6 @@ export async function getItemIdFromCataloguePath(
   if (useCache) {
     const cacheItem = cache.get(`path:${path}`)
     if (cacheItem) {
-      console.log('CACHE HIT', cacheItem)
       return cacheItem
     }
   }
