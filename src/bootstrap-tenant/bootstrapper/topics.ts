@@ -248,7 +248,7 @@ function createTopicAndChildren(
       const childNames = new Set()
       for (let i = 0; i < levelTopic.children.length; i++) {
         const child = levelTopic.children[i]
-        console.log('child', child)
+
         if (!childNames.has(child.name)) {
           await handleLevel(child, id)
           childNames.add(child.name)
