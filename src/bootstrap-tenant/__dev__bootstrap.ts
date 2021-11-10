@@ -1,7 +1,8 @@
 import { config } from 'dotenv'
 config()
 
-// import { readFileSync } from 'fs'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
 import Progress from 'cli-progress'
 
 import { bootstrapTenant } from './index'
@@ -9,10 +10,12 @@ import { EVENT_NAMES, Status } from './bootstrapper'
 
 function bootstrap() {
   const tenantIdentifier = 'hkn-examples'
-  // const spec = JSON.parse(readFileSync(
-  //   resolve(__dirname, '../../json-spec/simple-item-relation.json'),
-  //   'utf-8'
-  // ))
+  const jsonSpec = JSON.parse(
+    readFileSync(
+      resolve(__dirname, '../../json-spec/this-will-error-out.json'),
+      'utf-8'
+    )
+  )
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -27,34 +30,7 @@ function bootstrap() {
 
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
-    jsonSpec: {
-      shapes: [
-        {
-          identifier: 'few-comps',
-          name: 'few comps',
-          type: 'document',
-          components: [
-            {
-              id: 'rel',
-              name: 'Rels',
-              type: 'itemRelations',
-              config: {
-                acceptedShapeIdentifiers: ['folder'],
-                min: 0,
-                max: 1,
-              },
-            },
-          ],
-        },
-      ],
-      items: [
-        {
-          name: 'few comps',
-          shape: 'few-comps',
-          externalReference: 'few-comps',
-        },
-      ],
-    },
+    jsonSpec,
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
@@ -104,6 +80,10 @@ function bootstrap() {
   // bootstrapper.on(EVENT_NAMES.ITEMS_UPDATE, (a) => {
   //   console.log(JSON.stringify(a, null, 1))
   // })
+
+  bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
+    console.log(error)
+  })
 
   bootstrapper.config.itemTopics = 'amend'
 

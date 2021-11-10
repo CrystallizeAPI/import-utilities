@@ -17,6 +17,7 @@ import {
   BootstrapperContext,
   AreaWarning,
   Config,
+  setErrorNotifier,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -135,6 +136,10 @@ export class Bootstrapper extends EventEmitter {
     super()
     clearTopicCache()
     clearItemCache()
+
+    setErrorNotifier(({ error }) => {
+      this.emit(EVENT_NAMES.ERROR, { error })
+    })
   }
 
   async getTenantBasics() {
@@ -270,9 +275,7 @@ export class Bootstrapper extends EventEmitter {
         end,
         duration: new Duration(start, end).toString(1),
       })
-    } catch (e) {
-      console.log(e)
-    }
+    } catch (e) {}
   }
   private areaUpdate(
     statusArea:

@@ -47,14 +47,23 @@ interface QueuedRequest {
   working?: boolean
 }
 
+type errorNotifierFn = (args: { error: string }) => void
+
 class ApiManager {
   queue: QueuedRequest[] = []
   url: string = ''
   maxWorkers: number = 5
+  errorNotifier: errorNotifierFn
 
   constructor(url: string) {
     this.url = url
+    this.errorNotifier = () => null
+
     setInterval(() => this.work(), 5)
+  }
+
+  setErrorNotifier(fn: errorNotifierFn) {
+    this.errorNotifier = fn
   }
 
   push(props: IcallAPI): Promise<IcallAPIResult> {
@@ -122,15 +131,33 @@ class ApiManager {
       errorString = JSON.stringify(e, null, 1)
     }
 
+    // There are errors in the payload
     if (json?.errors) {
-      errorString = JSON.stringify(json.errors, null, 1)
-    }
-    if (errorString || !json) {
+      errorString = JSON.stringify(
+        {
+          ...item.props,
+          apiReponse: json.errors,
+        },
+        null,
+        1
+      )
+
+      this.errorNotifier({
+        error: errorString,
+      })
+
+      resolveWith({
+        data: null,
+        errors: [{ error: errorString }],
+      })
+    } else if (errorString) {
       item.failCount++
 
+      await sleep(item.failCount * 1000)
+
       if (item.failCount > 5) {
-        console.log(JSON.stringify(item.props, null, 1))
-        console.log(errorString)
+        // console.log(JSON.stringify(item.props, null, 1))
+        // console.log(errorString)
 
         /**
          * Reduce the amount of workers to lessen the
@@ -144,13 +171,14 @@ class ApiManager {
 
       // Stop if there are too many errors
       if (item.failCount > 10) {
+        this.errorNotifier({ error: errorString })
         resolveWith({
           data: null,
           errors: [{ error: errorString }],
         })
       }
       item.working = false
-    } else {
+    } else if (json) {
       resolveWith(json)
     }
   }
@@ -173,6 +201,10 @@ export function callPIM(props: IcallAPI) {
   return MyPIMApiManager.push(props)
 }
 
+export function setErrorNotifier(fn: errorNotifierFn) {
+  MyPIMApiManager.setErrorNotifier(fn)
+}
+
 let MyCatalogueApiManager: ApiManager
 let MyCatalogueApiManagerTenantIdentifier = ''
 export function callCatalogue(props: IcallAPI) {
@@ -185,5 +217,10 @@ export function callCatalogue(props: IcallAPI) {
       `https://${urls.catalogue}/${CRYSTALLIZE_TENANT_IDENTIFIER}/catalogue`
     )
   }
+
+  if (MyCatalogueApiManager.errorNotifier !== MyPIMApiManager.errorNotifier) {
+    MyCatalogueApiManager.errorNotifier = MyPIMApiManager.errorNotifier
+  }
+
   return MyCatalogueApiManager.push(props)
 }
