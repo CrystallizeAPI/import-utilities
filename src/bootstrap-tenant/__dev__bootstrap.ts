@@ -9,13 +9,14 @@ import { bootstrapTenant } from './index'
 import { EVENT_NAMES, Status } from './bootstrapper'
 
 function bootstrap() {
-  const tenantIdentifier = 'hkn-examples'
-  const jsonSpec = JSON.parse(
-    readFileSync(
-      resolve(__dirname, '../../json-spec/this-will-error-out.json'),
-      'utf-8'
-    )
-  )
+  // const tenantIdentifier = 'hkn-examples'
+  const tenantIdentifier = 'fagmobler-product-import'
+  // const jsonSpec = JSON.parse(
+  //   readFileSync(
+  //     resolve(__dirname, '../../json-spec/this-will-error-out.json'),
+  //     'utf-8'
+  //   )
+  // )
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -30,7 +31,26 @@ function bootstrap() {
 
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
-    jsonSpec,
+    jsonSpec: {
+      topicMaps: [
+        {
+          name: 'Serier - testing',
+          path: 'serier-hkn',
+          children: [
+            {
+              name: 'Bodahl M\u00f8bler',
+              path: 'bb',
+              children: [
+                {
+                  name: 'Extreme',
+                  path: 'extreme',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
@@ -77,9 +97,9 @@ function bootstrap() {
   // bootstrapper.on(EVENT_NAMES.ITEMS_DONE, ProgressItems.stop)
   // bootstrapper.on(EVENT_NAMES.GRIDS_DONE, ProgressGrids.stop)
 
-  // bootstrapper.on(EVENT_NAMES.ITEMS_UPDATE, (a) => {
-  //   console.log(JSON.stringify(a, null, 1))
-  // })
+  bootstrapper.on(EVENT_NAMES.STATUS_UPDATE, (a) => {
+    console.log(JSON.stringify(a, null, 1))
+  })
 
   bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
     console.log(error)

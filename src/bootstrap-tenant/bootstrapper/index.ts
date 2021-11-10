@@ -44,8 +44,8 @@ export interface ICreateSpec {
   priceVariants: boolean
   vatTypes: boolean
   topicMaps: boolean
-  onUpdate: (t: AreaUpdate) => any
   stockLocations: boolean
+  onUpdate: (t: AreaUpdate) => any
 }
 
 export const createSpecDefaults = {
@@ -56,8 +56,8 @@ export const createSpecDefaults = {
   priceVariants: true,
   vatTypes: true,
   topicMaps: true,
-  onUpdate: () => null,
   stockLocations: true,
+  onUpdate: () => null,
 }
 
 interface AreaStatus {
