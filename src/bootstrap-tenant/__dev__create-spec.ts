@@ -7,7 +7,7 @@ import { resolve } from 'path'
 import { Bootstrapper } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'furniture'
+  const tenantIdentifier = 'hkn-examples'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -32,14 +32,12 @@ async function createSpec() {
   const spec = await bootstrapper.createSpec({
     shapes: false,
     grids: false,
-    items: {
-      basePath: '/courses',
-    },
+    items: false,
     languages: false,
     priceVariants: false,
     stockLocations: false,
     vatTypes: false,
-    topicMaps: false,
+    topicMaps: true,
     onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 

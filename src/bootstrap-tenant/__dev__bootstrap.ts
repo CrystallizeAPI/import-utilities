@@ -9,8 +9,7 @@ import { bootstrapTenant } from './index'
 import { EVENT_NAMES, Status } from './bootstrapper'
 
 function bootstrap() {
-  // const tenantIdentifier = 'hkn-examples'
-  const tenantIdentifier = 'fagmobler-product-import'
+  const tenantIdentifier = 'hkn-examples'
   // const jsonSpec = JSON.parse(
   //   readFileSync(
   //     resolve(__dirname, '../../json-spec/this-will-error-out.json'),
@@ -34,21 +33,9 @@ function bootstrap() {
     jsonSpec: {
       topicMaps: [
         {
-          name: 'Serier - testing',
-          path: 'serier-hkn',
-          children: [
-            {
-              name: 'Bodahl M\u00f8bler',
-              path: 'bb',
-              children: [
-                {
-                  name: 'Extreme',
-                  path: 'extreme',
-                },
-              ],
-            },
-          ],
-        },
+          name: 'Krogs Møbler FTW',
+          path: '/serier-hkn/kroghs-mobler'
+        }
       ],
     },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,

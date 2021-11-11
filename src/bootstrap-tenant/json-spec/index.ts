@@ -35,6 +35,7 @@ export interface JSONTopic {
   children?: JSONTopic[]
   parentId?: string
   path?: string
+  pathIdentifier?: string
   hierarchyPath?: string
   parentHierarchyPath?: string
 }
