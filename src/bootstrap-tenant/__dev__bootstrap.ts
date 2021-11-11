@@ -31,11 +31,11 @@ function bootstrap() {
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
     jsonSpec: {
-      topicMaps: [
+      topics: [
         {
           name: 'Krogs Møbler FTW',
-          path: '/serier-hkn/kroghs-mobler'
-        }
+          path: '/serier-hkn/kroghs-mobler',
+        },
       ],
     },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
@@ -71,7 +71,7 @@ function bootstrap() {
   //   ProgressPriceVariants.update(status.priceVariants.progress)
   //   ProgressVatTypes.update(status.vatTypes.progress)
   //   ProgressShapes.update(status.shapes.progress)
-  //   ProgressTopics.update(status.topicMaps.progress)
+  //   ProgressTopics.update(status.topics.progress)
   //   ProgressGrids.update(status.grids.progress)
   //   ProgressItems.update(status.items.progress)
   // })

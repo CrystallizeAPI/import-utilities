@@ -38,7 +38,7 @@ export async function createJSONSpec(
     languages: true,
     priceVariants: true,
     vatTypes: true,
-    topicMaps: true,
+    topics: true,
     stockLocations: true,
     onUpdate: props.onUpdate,
   })

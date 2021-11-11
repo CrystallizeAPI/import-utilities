@@ -43,7 +43,7 @@ export interface ICreateSpec {
   languages: boolean
   priceVariants: boolean
   vatTypes: boolean
-  topicMaps: boolean
+  topics: boolean
   stockLocations: boolean
   onUpdate: (t: AreaUpdate) => any
 }
@@ -55,7 +55,7 @@ export const createSpecDefaults = {
   languages: true,
   priceVariants: true,
   vatTypes: true,
-  topicMaps: true,
+  topics: true,
   stockLocations: true,
   onUpdate: () => null,
 }
@@ -73,7 +73,7 @@ export interface Status {
   languages: AreaStatus
   priceVariants: AreaStatus
   vatTypes: AreaStatus
-  topicMaps: AreaStatus
+  topics: AreaStatus
   stockLocations: AreaStatus
 }
 
@@ -115,7 +115,7 @@ export class Bootstrapper extends EventEmitter {
     languages: defaultAreaStatus(),
     priceVariants: defaultAreaStatus(),
     vatTypes: defaultAreaStatus(),
-    topicMaps: defaultAreaStatus(),
+    topics: defaultAreaStatus(),
     stockLocations: defaultAreaStatus(),
   }
 
@@ -214,8 +214,8 @@ export class Bootstrapper extends EventEmitter {
 
     // Topic maps (in just 1 language right now)
     const allTopicsWithIds = await getAllTopicsForSpec(defaultLanguage)
-    if (props.topicMaps) {
-      spec.topicMaps = allTopicsWithIds.map(removeTopicId)
+    if (props.topics) {
+      spec.topics = allTopicsWithIds.map(removeTopicId)
     }
 
     // Shapes
@@ -283,7 +283,7 @@ export class Bootstrapper extends EventEmitter {
       | 'shapes'
       | 'priceVariants'
       | 'vatTypes'
-      | 'topicMaps'
+      | 'topics'
       | 'grids'
       | 'items'
       | 'media'
@@ -366,7 +366,7 @@ export class Bootstrapper extends EventEmitter {
       spec: this.SPEC,
       onUpdate: (areaUpdate: AreaUpdate) => {
         this.emit(EVENT_NAMES.TOPICS_UPDATE, areaUpdate)
-        this.areaUpdate('topicMaps', areaUpdate)
+        this.areaUpdate('topics', areaUpdate)
       },
       context: this.context,
     })

@@ -314,6 +314,7 @@ export interface JsonSpec {
   stockLocations?: JSONStockLocation[]
   languages?: JSONLanguage[]
   vatTypes?: JSONVatType[]
+  topics?: JSONTopic[]
   topicMaps?: JSONTopic[]
   items?: JSONItem[]
   grids?: JSONGrid[]

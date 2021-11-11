@@ -34,7 +34,7 @@ It is described in a `.json` file, like such:
   "vatTypes": [],
   "priceVariants": [],
   "shapes": [],
-  "topicMaps": [],
+  "topics": [],
   "grids": [],
   "items": []
 }
@@ -281,7 +281,7 @@ It is described in a `.json` file, like such:
   "vatTypes": [],
   "priceVariants": [],
   "shapes": [],
-  "topicMaps": [],
+  "topics": [],
   "grids": [],
   "items": []
 }

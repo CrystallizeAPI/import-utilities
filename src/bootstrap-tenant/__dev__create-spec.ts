@@ -37,7 +37,7 @@ async function createSpec() {
     priceVariants: false,
     stockLocations: false,
     vatTypes: false,
-    topicMaps: true,
+    topics: true,
     onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 

@@ -102,7 +102,7 @@ export async function getAllTopicsForSpec(
     },
   })
 
-  const topicMaps: JSONTopic[] = []
+  const topics: JSONTopic[] = []
 
   const rootTopics: {
     id: string
@@ -114,12 +114,12 @@ export async function getAllTopicsForSpec(
     rootTopics.map(async (rootTopic) => {
       const topic = await handleTopic(rootTopic)
       if (topic) {
-        topicMaps.push(topic)
+        topics.push(topic)
       }
     })
   )
 
-  return topicMaps
+  return topics
 }
 
 function prepareTopicForInput(topic: JSONTopic, language: string): TopicInput {
@@ -233,7 +233,7 @@ export async function setTopics({
   onUpdate,
   context,
 }: Props): Promise<void> {
-  if (!spec?.topicMaps) {
+  if (!spec?.topics) {
     return
   }
 
@@ -245,7 +245,7 @@ export async function setTopics({
       topic.children.forEach(count)
     }
   }
-  spec.topicMaps.forEach(count)
+  spec.topics.forEach(count)
 
   async function findExistingTopic(path?: string): Promise<JSONTopic | null> {
     const response = await callCatalogue({
@@ -263,7 +263,7 @@ export async function setTopics({
         language: context.defaultLanguage.code,
       },
     })
-  
+
     if (!response.data?.topic) {
       return null
     }
@@ -281,8 +281,10 @@ export async function setTopics({
       if (!existingTopic) {
         level.id = await createTopic(level, context, parentId)
       } else {
-
-        const preparedTopic = prepareTopicForInput(level, context.defaultLanguage.code)
+        const preparedTopic = prepareTopicForInput(
+          level,
+          context.defaultLanguage.code
+        )
 
         // Update topic
         await callPIM({
@@ -304,8 +306,10 @@ export async function setTopics({
             language: context.defaultLanguage.code,
             input: {
               name: preparedTopic.name,
-              ...(preparedTopic.pathIdentifier && { pathIdentifier: preparedTopic.pathIdentifier })
-            }
+              ...(preparedTopic.pathIdentifier && {
+                pathIdentifier: preparedTopic.pathIdentifier,
+              }),
+            },
           },
         })
       }
@@ -335,8 +339,8 @@ export async function setTopics({
     }
   }
 
-  for (let i = 0; i < spec.topicMaps.length; i++) {
-    await handleLevel(spec.topicMaps[i])
+  for (let i = 0; i < spec.topics.length; i++) {
+    await handleLevel(spec.topics[i])
   }
 
   onUpdate({
