@@ -299,10 +299,15 @@ export class Bootstrapper extends EventEmitter {
           status[statusArea].warnings.push(areaUpdate.warning)
         }
       })
+
       this.emit(
         EVENT_NAMES.STATUS_UPDATE,
         immer(this.status, () => {})
       )
+    } else if (areaUpdate.warning) {
+      this.emit(EVENT_NAMES.ERROR, {
+        error: JSON.stringify(areaUpdate.warning, null, 1),
+      })
     }
   }
 

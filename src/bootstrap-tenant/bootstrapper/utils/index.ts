@@ -35,7 +35,13 @@ export const EVENT_NAMES = {
 
 export interface AreaWarning {
   message: string
-  code: 'FFMPEG_UNAVAILABLE' | 'UPLOAD_FAILED' | 'SHAPE_ID_TRUNCATED' | 'OTHER'
+  code:
+    | 'FFMPEG_UNAVAILABLE'
+    | 'UPLOAD_FAILED'
+    | 'SHAPE_ID_TRUNCATED'
+    | 'CANNOT_HANDLE_ITEM'
+    | 'CANNOT_HANDLE_PRODUCT'
+    | 'OTHER'
 }
 
 export interface AreaUpdate {

@@ -775,7 +775,7 @@ export async function setItems({
     if (!shape) {
       onUpdate({
         warning: {
-          code: 'OTHER',
+          code: 'CANNOT_HANDLE_ITEM',
           message: `Skipping  "${getTranslation(
             item.name,
             context.defaultLanguage.code
@@ -837,11 +837,11 @@ export async function setItems({
       if (!shape || !itemId) {
         onUpdate({
           warning: {
-            code: 'OTHER',
+            code: 'CANNOT_HANDLE_PRODUCT',
             message: `Cannot update "${getTranslation(
               item.name,
               language
-            )}" for language "${language}"`,
+            )}" for language "${language}". Missing shape or itemId`,
           },
         })
         return
@@ -934,7 +934,7 @@ export async function setItems({
       if (!vatType) {
         onUpdate({
           warning: {
-            code: 'OTHER',
+            code: 'CANNOT_HANDLE_PRODUCT',
             message: `Cannot create product "${product.name}". Vat type "${product.vatType}" does not exist`,
           },
         })
@@ -1079,8 +1079,8 @@ export async function setItems({
       // Ensure that only one is set as the default
       const defaultVariants = inp.variants.filter((v) => v.isDefault)
       if (defaultVariants.length !== 1) {
-        defaultVariants.forEach((v) => (v.isDefault = false))
-        defaultVariants[0].isDefault = true
+        inp.variants.forEach((v) => (v.isDefault = false))
+        inp.variants[0].isDefault = true
       }
 
       return inp
@@ -1140,11 +1140,11 @@ export async function setItems({
       if (!getTranslation(item.name, context.defaultLanguage.code)) {
         onUpdate({
           warning: {
-            code: 'OTHER',
+            code: 'CANNOT_HANDLE_ITEM',
             message: `Item name cannot be empty for the default language`,
           },
         })
-        console.log(JSON.stringify(item, null, 1))
+
         throw new Error(`Item name cannot be empty for the default language`)
       }
 
@@ -1157,7 +1157,7 @@ export async function setItems({
         if (!product.variants || product.variants.length === 0) {
           onUpdate({
             warning: {
-              code: 'OTHER',
+              code: 'CANNOT_HANDLE_PRODUCT',
               message: `Skipping  "${getTranslation(
                 item.name,
                 context.defaultLanguage.code
@@ -1175,7 +1175,7 @@ export async function setItems({
     if (!itemId) {
       onUpdate({
         warning: {
-          code: 'OTHER',
+          code: 'CANNOT_HANDLE_ITEM',
           message: `Could not create or update item "${getTranslation(
             item.name,
             context.defaultLanguage.code
@@ -1497,7 +1497,19 @@ export async function setItems({
   }
 
   for (let i = 0; i < spec.items.length; i++) {
-    await handleItem(spec.items[i], rootItemId, false)
+    try {
+      await handleItem(spec.items[i], rootItemId, false)
+    } catch (e) {
+      onUpdate({
+        warning: {
+          code: 'CANNOT_HANDLE_ITEM',
+          message: `Skipping "${getTranslation(
+            spec.items[i].name,
+            context.defaultLanguage.code
+          )}"`,
+        },
+      })
+    }
   }
 
   /**
@@ -1517,6 +1529,8 @@ export async function setItems({
   for (let i = 0; i < spec.items.length; i++) {
     await handleItemRelations(spec.items[i])
   }
+
+  clearInterval(getFileuploaderStatusInterval)
 
   onUpdate({
     progress: 1,
