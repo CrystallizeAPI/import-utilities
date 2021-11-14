@@ -984,8 +984,11 @@ export async function setItems({
         }))
       }
 
-      const { priceVariants: _p, ...restOfExistingProductVariant } =
-        existingProductVariant || {}
+      const {
+        priceVariants: _p,
+        stockLocations: _s,
+        ...restOfExistingProductVariant
+      } = existingProductVariant || {}
 
       const variant: CreateProductVariantInput = {
         ...(restOfExistingProductVariant as CreateProductVariantInput),
@@ -997,12 +1000,19 @@ export async function setItems({
           : {
               price: price ?? 0,
             }),
-        ...(stockLocations
-          ? { stockLocations }
-          : {
-              stock: stock ?? 0,
-            }),
         ...(attributes && { attributes }),
+      }
+
+      if (stockLocations !== undefined) {
+        variant.stockLocations = stockLocations
+      } else if (stock !== undefined) {
+        variant.stock = stock
+      } else if (_s) {
+        variant.stockLocations = _s?.map((s) => ({
+          identifier: s.identifier,
+          stock: s.stock ?? 0,
+          meta: s.meta || [],
+        }))
       }
 
       if (jsonVariant.images) {
@@ -1040,12 +1050,17 @@ export async function setItems({
       if (existingProductVariants) {
         inp.variants.push(
           ...existingProductVariants.map(
-            ({ priceVariants, ...rest }) =>
+            ({ priceVariants, stockLocations, ...rest }) =>
               ({
                 ...rest,
                 priceVariants: priceVariants?.map((p) => ({
                   identifier: p.identifier,
                   price: p.price,
+                })),
+                stockLocations: stockLocations?.map((p) => ({
+                  identifier: p.identifier,
+                  stock: p.stock,
+                  meta: p.meta,
                 })),
               } as CreateProductVariantInput)
           )

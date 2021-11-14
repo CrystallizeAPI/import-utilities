@@ -31,11 +31,25 @@ function bootstrap() {
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
     jsonSpec: {
-      topicMaps: [
+      items: [
         {
-          name: 'Krogs Møbler FTW',
-          path: '/serier-hkn/kroghs-mobler'
-        }
+          name: 'Prod topics test',
+          externalReference: 'prod-topics-test',
+          shape: 'prod',
+          vatType: 'No Tax',
+          topics: [{ path: '/serier-hkn/kroghs-mobler' }],
+          variants: [
+            {
+              sku: 'laskdmlasdals',
+              name: 'var',
+              price: 0,
+              stock: {
+                default: 8,
+                'eu-wh': 96,
+              },
+            },
+          ],
+        },
       ],
     },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
@@ -84,9 +98,9 @@ function bootstrap() {
   // bootstrapper.on(EVENT_NAMES.ITEMS_DONE, ProgressItems.stop)
   // bootstrapper.on(EVENT_NAMES.GRIDS_DONE, ProgressGrids.stop)
 
-  bootstrapper.on(EVENT_NAMES.STATUS_UPDATE, (a) => {
-    console.log(JSON.stringify(a, null, 1))
-  })
+  // bootstrapper.on(EVENT_NAMES.STATUS_UPDATE, (a) => {
+  //   console.log(JSON.stringify(a, null, 1))
+  // })
 
   bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
     console.log(error)
