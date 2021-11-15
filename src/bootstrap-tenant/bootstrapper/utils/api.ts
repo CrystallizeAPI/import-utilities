@@ -116,7 +116,9 @@ class ApiManager {
     }
 
     try {
-      console.log(JSON.stringify(item.props, null, 1))
+      if (this.logLevel === 'verbose') {
+        console.log(JSON.stringify(item.props, null, 1))
+      }
       const response = await fetch(this.url, {
         method: 'post',
         headers: {

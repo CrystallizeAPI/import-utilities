@@ -9,13 +9,13 @@ import { bootstrapTenant } from './index'
 import { EVENT_NAMES, Status } from './bootstrapper'
 
 function bootstrap() {
-  const tenantIdentifier = 'hkn-examples'
-  // const jsonSpec = JSON.parse(
-  //   readFileSync(
-  //     resolve(__dirname, '../../json-spec/this-will-error-out.json'),
-  //     'utf-8'
-  //   )
-  // )
+  const tenantIdentifier = 'hkn-bos-15-11-21'
+  const jsonSpec = JSON.parse(
+    readFileSync(
+      resolve(__dirname, '../../json-spec/bos-prod-without-media.json'),
+      'utf-8'
+    )
+  )
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -30,38 +30,7 @@ function bootstrap() {
 
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
-    jsonSpec: {
-      topicMaps: [
-        {
-          path: '/serier-2',
-          name: 'serier-2',
-        },
-        {
-          path: '/serier-2/hei',
-          name: 'Hei',
-        },
-      ],
-      // items: [
-      //   {
-      //     name: 'Prod topics test',
-      //     externalReference: 'prod-topics-test',
-      //     shape: 'prod',
-      //     vatType: 'No Tax',
-      //     topics: [{ path: '/serier-hkn/kroghs-mobler' }],
-      //     variants: [
-      //       {
-      //         sku: 'laskdmlasdals',
-      //         name: 'var',
-      //         price: 0,
-      //         stock: {
-      //           default: 8,
-      //           'eu-wh': 96,
-      //         },
-      //       },
-      //     ],
-      //   },
-      // ],
-    },
+    jsonSpec,
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
@@ -108,8 +77,13 @@ function bootstrap() {
   // bootstrapper.on(EVENT_NAMES.ITEMS_DONE, ProgressItems.stop)
   // bootstrapper.on(EVENT_NAMES.GRIDS_DONE, ProgressGrids.stop)
 
+  let itemProgress = -1
   bootstrapper.on(EVENT_NAMES.STATUS_UPDATE, (a) => {
-    console.log(JSON.stringify(a, null, 1))
+    const i = a.items.progress
+    if (i !== itemProgress) {
+      itemProgress = i
+      console.log(new Date(), itemProgress)
+    }
   })
 
   bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
@@ -117,7 +91,7 @@ function bootstrap() {
   })
 
   bootstrapper.config.itemTopics = 'amend'
-  bootstrapper.config.logLevel = 'silent'
+  // bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()
