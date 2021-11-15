@@ -175,10 +175,14 @@ function buildComponentConfigInput(component: Component) {
       }
     }
     case 'itemRelations': {
-      return {
-        config: {
-          itemRelations: component.config,
-        },
+      if (component.config) {
+        return {
+          config: {
+            itemRelations: component.config,
+          },
+        }
+      } else {
+        return {}
       }
     }
     case 'componentChoice': {
