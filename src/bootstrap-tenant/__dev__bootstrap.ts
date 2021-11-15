@@ -31,36 +31,35 @@ function bootstrap() {
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
     jsonSpec: {
-      topicMaps: [
+      shapes: [
         {
-          path: '/serier-2',
-          name: 'serier-2',
-        },
-        {
-          path: '/serier-2/hei',
-          name: 'Hei',
+          type: 'document',
+          identifier: 'doc-w-m',
+          name: 'Doc',
+          components: [
+            {
+              id: 'singleLine',
+              name: 'Single line',
+              type: 'singleLine',
+            },
+            {
+              id: 'singleLine2',
+              name: 'Single line2',
+              type: 'singleLine',
+            },
+          ],
         },
       ],
-      // items: [
-      //   {
-      //     name: 'Prod topics test',
-      //     externalReference: 'prod-topics-test',
-      //     shape: 'prod',
-      //     vatType: 'No Tax',
-      //     topics: [{ path: '/serier-hkn/kroghs-mobler' }],
-      //     variants: [
-      //       {
-      //         sku: 'laskdmlasdals',
-      //         name: 'var',
-      //         price: 0,
-      //         stock: {
-      //           default: 8,
-      //           'eu-wh': 96,
-      //         },
-      //       },
-      //     ],
-      //   },
-      // ],
+      items: [
+        {
+          name: 'doc with multiple components',
+          shape: 'doc-w-m',
+          components: {
+            singleLine: 'here is some data',
+            singleLine2: 'here is some more',
+          },
+        },
+      ],
     },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
@@ -117,7 +116,7 @@ function bootstrap() {
   })
 
   bootstrapper.config.itemTopics = 'amend'
-  bootstrapper.config.logLevel = 'silent'
+  bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()

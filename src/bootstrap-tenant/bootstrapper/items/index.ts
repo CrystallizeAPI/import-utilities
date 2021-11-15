@@ -25,13 +25,13 @@ import {
   SingleLineComponentContentInput,
   VideoContentInput,
   VideosComponentContentInput,
-} from '../../types'
+} from '../../../types'
 import {
   buildCreateItemMutation,
   buildUpdateItemMutation,
   buildMoveItemMutation,
   buildUpdateItemComponentMutation,
-} from '../../graphql'
+} from '../../../graphql'
 
 import {
   JSONItem,
@@ -57,7 +57,7 @@ import {
   JSONVideo,
   JSONGrid,
   JSONProductVariant,
-} from '../json-spec'
+} from '../../json-spec'
 import {
   callPIM,
   getItemIdFromCataloguePath,
@@ -71,12 +71,13 @@ import {
   fileUploader,
   ItemVersionDescription,
   getItemVersionsForLanguages,
-} from './utils'
-import { getAllGrids } from './utils/get-all-grids'
-import { ffmpegAvailable } from './utils/remote-file-upload'
-import { ProductVariant } from '../../generated/graphql'
-import { getProductVariants } from './utils/get-product-variants'
-import { getTopicIds } from './utils/get-topic-id'
+} from '../utils'
+import { getAllGrids } from '../utils/get-all-grids'
+import { ffmpegAvailable } from '../utils/remote-file-upload'
+import { ProductVariant } from '../../../generated/graphql'
+import { getProductVariants } from '../utils/get-product-variants'
+import { getTopicIds } from '../utils/get-topic-id'
+import { ComponentUpdatesBatchHandler } from './update-components'
 
 export interface Props {
   spec: JsonSpec | null
@@ -1356,6 +1357,8 @@ export async function setItems({
         itemId: item.id,
       })
 
+      const componentUpdatesBatchHandler = new ComponentUpdatesBatchHandler()
+
       await Promise.all(
         Object.keys(item.components).map(async (componentId) => {
           const jsonItem = item.components?.[
@@ -1461,28 +1464,46 @@ export async function setItems({
 
             // Update the component
             if (mutationInput) {
-              const r = await callPIM({
-                query: `
-                  mutation UPDATE_RELATIONS_COMPONENT($itemId: ID!, $language: String!, $input: ComponentInput!) {
-                    item {
+              componentUpdatesBatchHandler.addComponentUpdate(mutationInput)
+            }
+          }
+        })
+      )
+
+      await Promise.all(
+        componentUpdatesBatchHandler.getBatches().map((batch: any[]) => {
+          return callPIM({
+            query: `
+            mutation UPDATE_COMPONENT(
+              $itemId: ID!,
+              $language: String!,
+              ${batch
+                .map((_, index) => `$input${index}: ComponentInput!`)
+                .join(',')}
+            ) {
+              ${batch
+                .map(
+                  (_, index) => `
+                    item${index} {
                       updateComponent(
                         itemId: $itemId
                         language: $language
-                        input: $input
+                        input: $input${index}
                       ) {
                         id
                       }
                     }
-                  }
-                `,
-                variables: {
-                  itemId: item.id,
-                  language: context.defaultLanguage.code,
-                  input: mutationInput,
-                },
-              })
-            }
-          }
+                  `
+                )
+                .join('\n')} 
+            }    
+          `,
+            variables: {
+              itemId: item.id,
+              language: context.defaultLanguage.code,
+              ...batch.map((b, index) => ({ [`input${index}`]: b })),
+            },
+          })
         })
       )
 
