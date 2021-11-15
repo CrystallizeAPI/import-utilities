@@ -336,6 +336,13 @@ export class Bootstrapper extends EventEmitter {
     }
 
     this.context.defaultLanguage = defaultLanguage
+
+    /**
+     * Only do the default languge as of now. Waiting for a
+     * good multilingual use case
+     */
+    this.context.languages = [defaultLanguage]
+
     this.emit(EVENT_NAMES.LANGUAGES_DONE)
   }
 
