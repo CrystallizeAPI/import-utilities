@@ -1,5 +1,6 @@
 import fetch from 'node-fetch'
 import { v4 as uuid } from 'uuid'
+import { LogLevel } from './types'
 
 let CRYSTALLIZE_ACCESS_TOKEN_ID = ''
 let CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
@@ -54,6 +55,7 @@ class ApiManager {
   url: string = ''
   maxWorkers: number = 5
   errorNotifier: errorNotifierFn
+  logLevel: LogLevel = 'silent'
 
   constructor(url: string) {
     this.url = url
@@ -64,6 +66,10 @@ class ApiManager {
 
   setErrorNotifier(fn: errorNotifierFn) {
     this.errorNotifier = fn
+  }
+
+  setLogLevel(level: LogLevel) {
+    this.logLevel = level
   }
 
   push(props: IcallAPI): Promise<IcallAPIResult> {
@@ -110,6 +116,7 @@ class ApiManager {
     }
 
     try {
+      console.log(JSON.stringify(item.props, null, 1))
       const response = await fetch(this.url, {
         method: 'post',
         headers: {
@@ -203,6 +210,11 @@ export function callPIM(props: IcallAPI) {
 
 export function setErrorNotifier(fn: errorNotifierFn) {
   MyPIMApiManager.setErrorNotifier(fn)
+}
+export function setLogLevel(level?: LogLevel) {
+  if (level) {
+    MyPIMApiManager.setLogLevel(level)
+  }
 }
 
 let MyCatalogueApiManager: ApiManager

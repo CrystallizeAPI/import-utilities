@@ -34,12 +34,12 @@ function bootstrap() {
       topicMaps: [
         {
           path: '/serier-2',
-          name: "serier-2"
+          name: 'serier-2',
         },
         {
           path: '/serier-2/hei',
-          name: "Hei"
-        }
+          name: 'Hei',
+        },
       ],
       // items: [
       //   {
@@ -108,15 +108,16 @@ function bootstrap() {
   // bootstrapper.on(EVENT_NAMES.ITEMS_DONE, ProgressItems.stop)
   // bootstrapper.on(EVENT_NAMES.GRIDS_DONE, ProgressGrids.stop)
 
-  // bootstrapper.on(EVENT_NAMES.STATUS_UPDATE, (a) => {
-  //   console.log(JSON.stringify(a, null, 1))
-  // })
+  bootstrapper.on(EVENT_NAMES.STATUS_UPDATE, (a) => {
+    console.log(JSON.stringify(a, null, 1))
+  })
 
   bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
     console.log(error)
   })
 
   bootstrapper.config.itemTopics = 'amend'
+  bootstrapper.config.logLevel = 'silent'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()

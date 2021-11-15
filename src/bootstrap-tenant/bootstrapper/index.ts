@@ -18,6 +18,7 @@ import {
   AreaWarning,
   Config,
   setErrorNotifier,
+  setLogLevel,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -105,6 +106,7 @@ export class Bootstrapper extends EventEmitter {
 
   config: Config = {
     itemTopics: 'amend',
+    logLevel: 'silent',
   }
 
   status: Status = {
@@ -173,6 +175,8 @@ export class Bootstrapper extends EventEmitter {
   }
 
   async createSpec(props: ICreateSpec = createSpecDefaults): Promise<JsonSpec> {
+    setLogLevel(this.config.logLevel)
+
     await this.getTenantBasics()
 
     const spec: JsonSpec = {}
@@ -250,6 +254,8 @@ export class Bootstrapper extends EventEmitter {
 
   async start() {
     try {
+      setLogLevel(this.config.logLevel)
+
       // Store the config in the context for easy access
       this.context.config = this.config
 

@@ -7,6 +7,7 @@ import {
 } from '../../json-spec'
 import { callPIM } from './api'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
+import { LogLevel } from './types'
 
 export * from './api'
 export * from './get-item-id'
@@ -52,6 +53,7 @@ export interface AreaUpdate {
 
 export interface Config {
   itemTopics?: 'amend' | 'replace'
+  logLevel?: LogLevel
 }
 
 export interface BootstrapperContext {
