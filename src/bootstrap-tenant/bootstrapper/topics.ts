@@ -9,9 +9,11 @@ import {
   AreaUpdate,
   BootstrapperContext,
   callCatalogue,
+  sleep,
 } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
+import { getTopicId } from './utils/get-topic-id'
 
 export function removeTopicId(topic: JSONTopic): JSONTopic {
   const { id, children, ...rest } = topic
@@ -167,6 +169,22 @@ async function createTopic(
   const preparedTopic = prepareTopicForInput(topicWithoutChildren, language)
   if (parentId) {
     preparedTopic.parentId = parentId
+  } else if (topic.path) {
+    // Check if there is a parent with first part of path
+    const pathParts = topic.path.split('/')
+    pathParts.pop()
+    const parentPath = pathParts.join('/')
+
+    const id = await getTopicId(
+      {
+        path: parentPath,
+      },
+      context.defaultLanguage.code,
+      false
+    )
+    if (id) {
+      preparedTopic.parentId = id
+    }
   }
 
   // Create the topic
@@ -263,7 +281,7 @@ export async function setTopics({
         language: context.defaultLanguage.code,
       },
     })
-  
+
     if (!response.data?.topic) {
       return null
     }
@@ -281,8 +299,10 @@ export async function setTopics({
       if (!existingTopic) {
         level.id = await createTopic(level, context, parentId)
       } else {
-
-        const preparedTopic = prepareTopicForInput(level, context.defaultLanguage.code)
+        const preparedTopic = prepareTopicForInput(
+          level,
+          context.defaultLanguage.code
+        )
 
         // Update topic
         await callPIM({
@@ -304,8 +324,10 @@ export async function setTopics({
             language: context.defaultLanguage.code,
             input: {
               name: preparedTopic.name,
-              ...(preparedTopic.pathIdentifier && { pathIdentifier: preparedTopic.pathIdentifier })
-            }
+              ...(preparedTopic.pathIdentifier && {
+                pathIdentifier: preparedTopic.pathIdentifier,
+              }),
+            },
           },
         })
       }
@@ -337,6 +359,10 @@ export async function setTopics({
 
   for (let i = 0; i < spec.topicMaps.length; i++) {
     await handleLevel(spec.topicMaps[i])
+
+    // Sleep for 5 seconds between each top level map
+    // We can remove this once we can get topics using path/language in PIM
+    await sleep(5000)
   }
 
   onUpdate({

@@ -31,26 +31,36 @@ function bootstrap() {
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
     jsonSpec: {
-      items: [
+      topicMaps: [
         {
-          name: 'Prod topics test',
-          externalReference: 'prod-topics-test',
-          shape: 'prod',
-          vatType: 'No Tax',
-          topics: [{ path: '/serier-hkn/kroghs-mobler' }],
-          variants: [
-            {
-              sku: 'laskdmlasdals',
-              name: 'var',
-              price: 0,
-              stock: {
-                default: 8,
-                'eu-wh': 96,
-              },
-            },
-          ],
+          path: '/serier-2',
+          name: "serier-2"
         },
+        {
+          path: '/serier-2/hei',
+          name: "Hei"
+        }
       ],
+      // items: [
+      //   {
+      //     name: 'Prod topics test',
+      //     externalReference: 'prod-topics-test',
+      //     shape: 'prod',
+      //     vatType: 'No Tax',
+      //     topics: [{ path: '/serier-hkn/kroghs-mobler' }],
+      //     variants: [
+      //       {
+      //         sku: 'laskdmlasdals',
+      //         name: 'var',
+      //         price: 0,
+      //         stock: {
+      //           default: 8,
+      //           'eu-wh': 96,
+      //         },
+      //       },
+      //     ],
+      //   },
+      // ],
     },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
