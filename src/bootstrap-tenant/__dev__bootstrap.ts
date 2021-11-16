@@ -9,14 +9,14 @@ import { bootstrapTenant } from './index'
 import { EVENT_NAMES, Status } from './bootstrapper'
 
 function bootstrap() {
-  // const tenantIdentifier = 'hkn-bos-15-11-21'
-  const tenantIdentifier = 'hkn-examples'
-  // const jsonSpec = JSON.parse(
-  //   readFileSync(
-  //     resolve(__dirname, '../../json-spec/bos-prod-without-media.json'),
-  //     'utf-8'
-  //   )
-  // )
+  const tenantIdentifier = 'hkn-bos-15-11-21'
+  // const tenantIdentifier = 'hkn-examples'
+  const jsonSpec = JSON.parse(
+    readFileSync(
+      resolve(__dirname, '../../json-spec/bos-prod-without-media.json'),
+      'utf-8'
+    )
+  )
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -31,40 +31,41 @@ function bootstrap() {
 
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
-    jsonSpec: {
-      shapes: [
-        {
-          identifier: 'example-item-relation',
-          name: 'Example item relation',
-          type: 'document',
-          components: [
-            {
-              id: 'an-item-relation',
-              name: 'An item relation',
-              type: 'itemRelations',
-            },
-          ],
-        },
-      ],
-      items: [
-        {
-          name: 'Example item with item relation',
-          shape: 'example-item-relation',
-          components: {
-            'an-item-relation': [
-              {
-                externalReference: '12345678',
-              },
-            ],
-          },
-        },
-        {
-          name: 'Example item with external reference',
-          shape: 'example-item-relation',
-          externalReference: '12345678',
-        },
-      ],
-    },
+    jsonSpec,
+    // jsonSpec: {
+    //   shapes: [
+    //     {
+    //       identifier: 'example-item-relation',
+    //       name: 'Example item relation',
+    //       type: 'document',
+    //       components: [
+    //         {
+    //           id: 'an-item-relation',
+    //           name: 'An item relation',
+    //           type: 'itemRelations',
+    //         },
+    //       ],
+    //     },
+    //   ],
+    //   items: [
+    //     {
+    //       name: 'Example item with item relation',
+    //       shape: 'example-item-relation',
+    //       components: {
+    //         'an-item-relation': [
+    //           {
+    //             externalReference: '12345678',
+    //           },
+    //         ],
+    //       },
+    //     },
+    //     {
+    //       name: 'Example item with external reference',
+    //       shape: 'example-item-relation',
+    //       externalReference: '12345678',
+    //     },
+    //   ],
+    // },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
@@ -125,7 +126,7 @@ function bootstrap() {
   })
 
   bootstrapper.config.itemTopics = 'amend'
-  // bootstrapper.config.logLevel = 'verbose'
+  bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()

@@ -79,11 +79,9 @@ export async function getTopicIds(
   language: string,
   useCache: boolean = true
 ): Promise<string[]> {
-  const ids: string[] = []
-
-  await Promise.all(
+  const ids = await Promise.all(
     topics.map((topic) => getTopicId(topic, language, useCache))
   )
 
-  return ids
+  return ids.filter(Boolean) as string[]
 }
