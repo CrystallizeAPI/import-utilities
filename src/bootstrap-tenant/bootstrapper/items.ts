@@ -801,10 +801,10 @@ export async function setItems({
       item._topicsData = {}
       if (item.topics) {
         item._topicsData = {
-          topicIds: await getTopicIds(
-            item.topics || [],
-            context.defaultLanguage.code
-          ),
+          topicIds: await getTopicIds({
+            topics: item.topics || [],
+            language: context.defaultLanguage.code,
+          }),
         }
       }
 
@@ -1107,10 +1107,10 @@ export async function setItems({
 
     // Get new topics
     item._topicsData = {
-      topicIds: await getTopicIds(
-        item.topics || [],
-        context.defaultLanguage.code
-      ),
+      topicIds: await getTopicIds({
+        topics: item.topics || [],
+        language: context.defaultLanguage.code,
+      }),
     }
 
     if (itemId) {

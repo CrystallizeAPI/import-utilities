@@ -1,6 +1,6 @@
 import { getTenantId } from '.'
 import { JSONItemTopic } from '../../json-spec'
-import { callPIM } from './api'
+import { callPIM, IcallAPI, IcallAPIResult } from './api'
 
 const cache = new Map()
 
@@ -8,11 +8,15 @@ export function clearCache() {
   cache.clear()
 }
 
-export async function getTopicId(
-  topic: JSONItemTopic,
-  language: string,
+export type ApiFN = (props: IcallAPI) => Promise<IcallAPIResult>
+
+export async function getTopicId(props: {
+  topic: JSONItemTopic
+  language: string
   useCache: boolean
-): Promise<string | null> {
+  apiFn?: ApiFN
+}): Promise<string | null> {
+  const { topic, language, useCache, apiFn = callPIM } = props
   let searchTerm: string | undefined = ''
 
   if (typeof topic === 'string') {
@@ -32,7 +36,7 @@ export async function getTopicId(
     }
   }
 
-  const result = await callPIM({
+  const result = await apiFn({
     query: `
         query GET_TOPIC($tenantId: ID!, $language: String!, $searchTerm: String!) {
           search {
@@ -53,7 +57,6 @@ export async function getTopicId(
       searchTerm,
     },
   })
-
   const edges = result?.data?.search?.topics?.edges || []
 
   let edge
@@ -74,13 +77,19 @@ export async function getTopicId(
   return null
 }
 
-export async function getTopicIds(
-  topics: JSONItemTopic[],
-  language: string,
-  useCache: boolean = true
-): Promise<string[]> {
+export async function getTopicIds({
+  topics,
+  language,
+  useCache = true,
+  apiFn = callPIM,
+}: {
+  topics: JSONItemTopic[]
+  language: string
+  useCache?: boolean
+  apiFn?: ApiFN
+}): Promise<string[]> {
   const ids = await Promise.all(
-    topics.map((topic) => getTopicId(topic, language, useCache))
+    topics.map((topic) => getTopicId({ topic, language, useCache, apiFn }))
   )
 
   return ids.filter(Boolean) as string[]

@@ -175,13 +175,13 @@ async function createTopic(
     pathParts.pop()
     const parentPath = pathParts.join('/')
 
-    const id = await getTopicId(
-      {
+    const id = await getTopicId({
+      topic: {
         path: parentPath,
       },
-      context.defaultLanguage.code,
-      false
-    )
+      language: context.defaultLanguage.code,
+      useCache: false,
+    })
     if (id) {
       preparedTopic.parentId = id
     }
