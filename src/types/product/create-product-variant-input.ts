@@ -1,3 +1,6 @@
+import { KeyValuePairInput } from '..'
+import { StockLocationReferenceInput } from '../../generated/graphql'
+
 export interface CreateProductVariantInput {
   name?: string
   externalReference?: string
@@ -14,8 +17,5 @@ export interface CreateProductVariantInput {
     identifier: string
     price?: number
   }[]
-  stockLocations?: {
-    identifier: string
-    stock: number
-  }[]
+  stockLocations?: StockLocationReferenceInput[]
 }

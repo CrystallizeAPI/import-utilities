@@ -1011,8 +1011,20 @@ export async function setItems({
         variant.stockLocations = _s?.map((s) => ({
           identifier: s.identifier,
           stock: s.stock ?? 0,
-          meta: s.meta || [],
+          meta: s.meta,
         }))
+      }
+
+      /**
+       * Stock locations input does not like
+       * meta=undefined
+       */
+      if (variant.stockLocations) {
+        variant.stockLocations.forEach((s) => {
+          if (!s.meta) {
+            s.meta = []
+          }
+        })
       }
 
       if (jsonVariant.images) {

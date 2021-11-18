@@ -30,14 +30,17 @@ export async function getTenantSettings(): Promise<TenantSettings> {
       tenantId,
     },
   })
-
   const data = r.data?.tenant?.get || {}
+
   const availableLanguages = data.availableLanguages || []
   const defaultLanguage =
     data?.defaults?.language || availableLanguages[0]?.code
-  availableLanguages.forEach(
-    (l: JSONLanguage) => (l.isDefault = l.code === defaultLanguage)
-  )
+
+  {
+    availableLanguages.forEach((l: JSONLanguage) => {
+      l.isDefault = l.code === defaultLanguage
+    })
+  }
 
   return {
     availableLanguages,
@@ -101,9 +104,12 @@ export async function setLanguages({
     spec.languages.find((l) => l.isDefault)?.code ||
     tenantSettings.defaultLanguage ||
     languages[0].code
-  languages.forEach((l) => {
-    l.isDefault = l.code === defaultLanguage
-  })
+
+  {
+    languages.forEach((l) => {
+      l.isDefault = l.code === defaultLanguage
+    })
+  }
 
   if (defaultLanguage !== tenantSettings.defaultLanguage) {
     const result = await callPIM({

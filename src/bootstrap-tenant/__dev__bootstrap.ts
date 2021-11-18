@@ -11,12 +11,12 @@ import { EVENT_NAMES, Status } from './bootstrapper'
 function bootstrap() {
   const tenantIdentifier = 'hkn-bos-15-11-21'
   // const tenantIdentifier = 'hkn-examples'
-  const jsonSpec = JSON.parse(
-    readFileSync(
-      resolve(__dirname, '../../json-spec/bos-prod-without-media.json'),
-      'utf-8'
-    )
-  )
+  // const jsonSpec = JSON.parse(
+  //   readFileSync(
+  //     resolve(__dirname, '../../json-spec/bos-prod-without-media.json'),
+  //     'utf-8'
+  //   )
+  // )
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -31,7 +31,25 @@ function bootstrap() {
 
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
-    jsonSpec,
+    jsonSpec: {
+      languages: [
+        {
+          code: 'no',
+          name: 'Norwegian',
+          isDefault: true,
+        },
+      ],
+      topicMaps: [
+        {
+          name: 'Geo 2',
+          children: [
+            {
+              name: 'World',
+            },
+          ],
+        },
+      ],
+    },
     // jsonSpec: {
     //   shapes: [
     //     {
@@ -125,8 +143,8 @@ function bootstrap() {
     console.log(error)
   })
 
-  bootstrapper.config.itemTopics = 'amend'
-  bootstrapper.config.logLevel = 'verbose'
+  // bootstrapper.config.itemTopics = 'amend'
+  // bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()

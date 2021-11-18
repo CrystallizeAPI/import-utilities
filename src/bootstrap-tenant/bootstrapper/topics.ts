@@ -265,38 +265,22 @@ export async function setTopics({
   }
   spec.topicMaps.forEach(count)
 
-  async function findExistingTopic(path?: string): Promise<JSONTopic | null> {
-    const response = await callCatalogue({
-      query: `
-          query GET_TOPIC_FROM_PATH ($path: String!, $language: String!) {
-            topic(path: $path, language: $language) {
-              id
-              name
-              path
-            }
-          }
-        `,
-      variables: {
-        path,
-        language: context.defaultLanguage.code,
-      },
-    })
-
-    if (!response.data?.topic) {
-      return null
-    }
-
-    return response.data?.topic as JSONTopic
-  }
-
   async function handleLevel(level: JSONTopic, parentId?: string) {
     try {
-      const existingTopic = await findExistingTopic(level.path)
+      const language = context.defaultLanguage.code
 
-      level.id = existingTopic?.id
+      const existingTopicId = await getTopicId({
+        topic: level.path ? { path: level.path } : level.name,
+        language,
+        useCache: false,
+      })
+
+      if (existingTopicId) {
+        level.id = existingTopicId
+      }
 
       // Can't find this topic, let's create it
-      if (!existingTopic) {
+      if (!existingTopicId) {
         level.id = await createTopic(level, context, parentId)
       } else {
         const preparedTopic = prepareTopicForInput(
@@ -320,7 +304,7 @@ export async function setTopics({
             }
             `,
           variables: {
-            id: existingTopic.id,
+            id: existingTopicId,
             language: context.defaultLanguage.code,
             input: {
               name: preparedTopic.name,
@@ -338,7 +322,7 @@ export async function setTopics({
         message: `${getTranslation(
           level.name,
           context.defaultLanguage.code
-        )}: ${existingTopic ? 'updated' : 'created'}`,
+        )}: ${existingTopicId ? 'updated' : 'created'}`,
       })
 
       if (level.children) {
