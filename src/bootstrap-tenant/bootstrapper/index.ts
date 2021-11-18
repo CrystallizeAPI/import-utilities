@@ -35,6 +35,11 @@ import { setGrids } from './grids'
 import { clearCache as clearTopicCache } from './utils/get-topic-id'
 import { clearCache as clearItemCache } from './utils/get-item-id'
 import { setStockLocations, getExistingStockLocations } from './stock-locations'
+import {
+  getExistingSubscriptionPlans,
+  setSubscriptionPlans,
+} from './subscription-plans'
+import { SubscriptionPeriodUnit } from '../../generated/graphql'
 
 export interface ICreateSpec {
   shapes: boolean
@@ -43,18 +48,20 @@ export interface ICreateSpec {
   languages: boolean
   priceVariants: boolean
   vatTypes: boolean
+  subscriptionPlans: boolean
   topicMaps: boolean
   stockLocations: boolean
   onUpdate: (t: AreaUpdate) => any
 }
 
-export const createSpecDefaults = {
+export const createSpecDefaults: ICreateSpec = {
   shapes: true,
   grids: true,
   items: true,
   languages: true,
   priceVariants: true,
   vatTypes: true,
+  subscriptionPlans: true,
   topicMaps: true,
   stockLocations: true,
   onUpdate: () => null,
@@ -73,6 +80,7 @@ export interface Status {
   languages: AreaStatus
   priceVariants: AreaStatus
   vatTypes: AreaStatus
+  subscriptionPlans: AreaStatus
   topicMaps: AreaStatus
   stockLocations: AreaStatus
 }
@@ -123,6 +131,7 @@ export class Bootstrapper extends EventEmitter {
     languages: defaultAreaStatus(),
     priceVariants: defaultAreaStatus(),
     vatTypes: defaultAreaStatus(),
+    subscriptionPlans: defaultAreaStatus(),
     topicMaps: defaultAreaStatus(),
     stockLocations: defaultAreaStatus(),
   }
@@ -183,6 +192,17 @@ export class Bootstrapper extends EventEmitter {
   async createSpec(props: ICreateSpec = createSpecDefaults): Promise<JsonSpec> {
     setLogLevel(this.config.logLevel)
 
+    function removeIds(o: any) {
+      if (o && typeof o === 'object') {
+        delete o.id
+        Object.values(o).forEach(removeIds)
+      }
+      if (Array.isArray(o)) {
+        o.forEach(removeIds)
+      }
+      return o
+    }
+
     await this.getTenantBasics()
 
     const spec: JsonSpec = {}
@@ -217,9 +237,33 @@ export class Bootstrapper extends EventEmitter {
       })
     }
 
+    // Subscription plans
+    if (props.subscriptionPlans) {
+      const subscriptionPlans = await getExistingSubscriptionPlans()
+
+      // @ts-ignore
+      spec.subscriptionPlans = subscriptionPlans.map((s) => ({
+        identifier: s.identifier,
+        name: s.name || '',
+        meteredVariables:
+          s.meteredVariables?.map((m) => ({
+            identifier: m.identifier,
+            name: m.name || '',
+            unit: m.unit,
+          })) || [],
+        periods:
+          s.periods?.map((p) => ({
+            name: p.name || '',
+            initial: removeIds(p.initial),
+            recurring: removeIds(p.recurring),
+          })) || [],
+      }))
+    }
+
     // Price variants
+    const priceVariants = await getExistingPriceVariants()
     if (props.priceVariants) {
-      spec.priceVariants = await getExistingPriceVariants()
+      spec.priceVariants = priceVariants
     }
 
     // Topic maps (in just 1 language right now)
@@ -248,6 +292,21 @@ export class Bootstrapper extends EventEmitter {
       }
 
       spec.items = await getAllCatalogueItems(defaultLanguage, options)
+      spec.items.forEach((i: any) => {
+        function handleLevel(a: any) {
+          if (a && typeof a === 'object') {
+            if ('subscriptionPlans' in a && 'sku' in a) {
+              removeIds(a.subscriptionPlans)
+            } else {
+              Object.values(a).forEach(handleLevel)
+            }
+          } else if (Array.isArray(a)) {
+            a.forEach(handleLevel)
+          }
+        }
+
+        handleLevel(i)
+      })
     }
 
     // Stock locations
@@ -271,6 +330,7 @@ export class Bootstrapper extends EventEmitter {
       await this.setLanguages()
       await this.setPriceVariants()
       await this.setStockLocations()
+      await this.setSubscriptionPlans()
       await this.setVatTypes()
       await this.setShapes()
       await this.setTopics()
@@ -293,6 +353,7 @@ export class Bootstrapper extends EventEmitter {
       | 'languages'
       | 'shapes'
       | 'priceVariants'
+      | 'subscriptionPlans'
       | 'vatTypes'
       | 'topicMaps'
       | 'grids'
@@ -372,7 +433,16 @@ export class Bootstrapper extends EventEmitter {
     })
     this.emit(EVENT_NAMES.PRICE_VARIANTS_DONE)
   }
-
+  async setSubscriptionPlans() {
+    this.context.subscriptionPlans = await setSubscriptionPlans({
+      spec: this.SPEC,
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.SUBSCRIPTION_PLANS_UPDATE, areaUpdate)
+        this.areaUpdate('subscriptionPlans', areaUpdate)
+      },
+    })
+    this.emit(EVENT_NAMES.SUBSCRIPTION_PLANS_DONE)
+  }
   async setVatTypes() {
     this.context.vatTypes = await setVatTypes({
       spec: this.SPEC,

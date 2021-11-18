@@ -1,22 +1,21 @@
 import { config } from 'dotenv'
 config()
 
-import { readFileSync } from 'fs'
+import { readFile } from 'fs/promises'
 import { resolve } from 'path'
 import Progress from 'cli-progress'
 
 import { bootstrapTenant } from './index'
 import { EVENT_NAMES, Status } from './bootstrapper'
 
-function bootstrap() {
-  const tenantIdentifier = 'hkn-bos-15-11-21'
-  // const tenantIdentifier = 'hkn-examples'
-  // const jsonSpec = JSON.parse(
-  //   readFileSync(
-  //     resolve(__dirname, '../../json-spec/bos-prod-without-media.json'),
-  //     'utf-8'
-  //   )
-  // )
+async function bootstrap() {
+  const tenantIdentifier = 'hkn-examples'
+  const jsonSpec = JSON.parse(
+    await readFile(
+      resolve(__dirname, '../../json-spec/testagain.json'),
+      'utf-8'
+    )
+  )
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -32,58 +31,26 @@ function bootstrap() {
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
     jsonSpec: {
-      languages: [
+      items: [
         {
-          code: 'no',
-          name: 'Norwegian',
-          isDefault: true,
-        },
-      ],
-      topicMaps: [
-        {
-          name: 'Geo 2',
-          children: [
+          name: 'Product test again',
+          shape: 'default-product',
+          vatType: 'No tax',
+          externalReference: 'o123u1829313no1',
+          variants: [
             {
-              name: 'World',
+              sku: 'aslkdjklasdjlasdl',
+              stock: {
+                'eu-wh': 22,
+              },
+              price: 99,
+              isDefault: true,
+              name: 'asuidha',
             },
           ],
         },
       ],
     },
-    // jsonSpec: {
-    //   shapes: [
-    //     {
-    //       identifier: 'example-item-relation',
-    //       name: 'Example item relation',
-    //       type: 'document',
-    //       components: [
-    //         {
-    //           id: 'an-item-relation',
-    //           name: 'An item relation',
-    //           type: 'itemRelations',
-    //         },
-    //       ],
-    //     },
-    //   ],
-    //   items: [
-    //     {
-    //       name: 'Example item with item relation',
-    //       shape: 'example-item-relation',
-    //       components: {
-    //         'an-item-relation': [
-    //           {
-    //             externalReference: '12345678',
-    //           },
-    //         ],
-    //       },
-    //     },
-    //     {
-    //       name: 'Example item with external reference',
-    //       shape: 'example-item-relation',
-    //       externalReference: '12345678',
-    //     },
-    //   ],
-    // },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
@@ -144,13 +111,14 @@ function bootstrap() {
   })
 
   // bootstrapper.config.itemTopics = 'amend'
-  // bootstrapper.config.logLevel = 'verbose'
+  bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()
     console.log(
       `✓ Done bootstrapping ${tenantIdentifier}. Duration: ${duration}`
     )
+    process.exit(0)
   })
 }
 

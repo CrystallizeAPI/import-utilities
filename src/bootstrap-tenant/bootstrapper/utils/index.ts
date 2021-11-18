@@ -1,3 +1,4 @@
+import { SubscriptionPlan } from '../../../generated/graphql'
 import { Shape } from '../../../types'
 import {
   JSONLanguage,
@@ -20,6 +21,8 @@ export const EVENT_NAMES = {
   SHAPES_DONE: 'BOOTSTRAPPER_SHAPES_DONE',
   PRICE_VARIANTS_UPDATE: 'BOOTSTRAPPER_PRICE_VARIANTS_UPDATE',
   PRICE_VARIANTS_DONE: 'BOOTSTRAPPER_PRICE_VARIANTS_DONE',
+  SUBSCRIPTION_PLANS_UPDATE: 'BOOTSTRAPPER_SUBSCRIPTION_PLANS_UPDATE',
+  SUBSCRIPTION_PLANS_DONE: 'BOOTSTRAPPER_SUBSCRIPTION_PLANS_DONE',
   LANGUAGES_UPDATE: 'BOOTSTRAPPER_LANGUAGES_UPDATE',
   LANGUAGES_DONE: 'BOOTSTRAPPER_LANGUAGES_DONE',
   VAT_TYPES_UPDATE: 'BOOTSTRAPPER_VAT_TYPES_UPDATE',
@@ -62,6 +65,7 @@ export interface BootstrapperContext {
   languages: JSONLanguage[]
   shapes?: Shape[]
   priceVariants?: JSONPriceVariant[]
+  subscriptionPlans?: SubscriptionPlan[]
   vatTypes?: JSONVatType[]
   config: Config
   useReferenceCache: boolean
