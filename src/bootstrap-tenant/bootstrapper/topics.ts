@@ -46,7 +46,6 @@ export async function getAllTopicsForSpec(
                 id
                 name
                 path
-                pathIdentifier
               }
             }
           }
