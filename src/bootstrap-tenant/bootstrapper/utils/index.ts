@@ -122,12 +122,17 @@ class FileUploadManager {
       return
     }
 
+    const removeWorker = (item: fileUploadQueueItem) => {
+      const index = this.workerQueue.findIndex((q) => q === item)
+      this.workerQueue.splice(index, 1)
+    }
+
     item.status = 'working'
 
     try {
       const result = await remoteFileUpload(item.url, getTenantId())
       item.resolve(result)
-      item.status = 'done'
+      removeWorker(item)
     } catch (e) {
       if (!item.failCount) {
         item.failCount = 0
@@ -137,7 +142,7 @@ class FileUploadManager {
       // Allow for 5 fails
       if (item.failCount > 5) {
         item.reject(e)
-        item.status = 'done'
+        removeWorker(item)
       } else {
         item.status = 'not-started'
       }
