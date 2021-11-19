@@ -100,10 +100,11 @@ type fileUploadQueueItem = {
   reject: (r: any) => void
 }
 
-class FileUploadManager {
+export class FileUploadManager {
   uploads: uploadFileRecord[] = []
   maxWorkers: number = 2
   workerQueue: fileUploadQueueItem[] = []
+  remoteFileUpload = remoteFileUpload
 
   constructor() {
     setInterval(() => this.work(), 5)
@@ -130,7 +131,7 @@ class FileUploadManager {
     item.status = 'working'
 
     try {
-      const result = await remoteFileUpload(item.url, getTenantId())
+      const result = await this.remoteFileUpload(item.url, getTenantId())
       item.resolve(result)
       removeWorker(item)
     } catch (e) {
