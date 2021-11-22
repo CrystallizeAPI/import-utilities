@@ -46,18 +46,25 @@ function handlePropertiesTableSection(section: any) {
   }
 }
 
+export interface ItemsCreateSpecOptions {
+  basePath?: String
+  version?: 'published' | 'draft'
+}
+
 export async function getAllCatalogueItems(
   language: string,
-  options?: {
-    basePath?: String
-  }
+  options?: ItemsCreateSpecOptions
 ): Promise<JSONItem[]> {
+  console.log(options)
+  const version = options?.version || 'draft'
+
   async function getItem(path: string): Promise<JSONItem | null> {
     const itemResponse = await callCatalogue({
       query: GET_ITEM_QUERY,
       variables: {
         language,
         path,
+        version,
       },
     })
 
@@ -122,6 +129,7 @@ export async function getAllCatalogueItems(
           variables: {
             path: item.cataloguePath,
             language,
+            version,
             after,
           },
         })
@@ -238,6 +246,7 @@ export async function getAllCatalogueItems(
     variables: {
       language,
       path: options?.basePath || '/',
+      version,
     },
   })
 
@@ -254,8 +263,8 @@ export async function getAllCatalogueItems(
 }
 
 const GET_ROOT_ITEMS_QUERY = `
-query GET_ROOT_CATALOGUE_ITEMS ($language: String!, $path: String!) {
-  catalogue(language: $language, path: $path) {
+query GET_ROOT_CATALOGUE_ITEMS ($language: String!, $path: String!, $version: VersionLabel!) {
+  catalogue(language: $language, path: $path, version: $version) {
     children {
       path
     }
@@ -264,8 +273,8 @@ query GET_ROOT_CATALOGUE_ITEMS ($language: String!, $path: String!) {
 `
 
 const GET_ITEM_QUERY = `
-query GET_ITEM ($language: String!, $path: String!) {
-  catalogue(language: $language, path: $path) {
+query GET_ITEM ($language: String!, $path: String!, $version: VersionLabel!) {
+  catalogue(language: $language, path: $path, version: $version) {
     ...item
     ...product
   }
@@ -466,8 +475,8 @@ fragment paragraphCollectionContent on ParagraphCollectionContent {
 `
 
 const GET_ITEM_CHILDREN_PAGE = `
-query GET_ITEM_CHILDREN_PAGE ($path: String!, $language: String!, $after: String) {
-  catalogue(path: $path, language: $language) {
+query GET_ITEM_CHILDREN_PAGE ($path: String!, $language: String!, $version: VersionLabel!, $after: String) {
+  catalogue(path: $path, language: $language, version: $version) {
     subtree (
       first: 1000
       after: $after

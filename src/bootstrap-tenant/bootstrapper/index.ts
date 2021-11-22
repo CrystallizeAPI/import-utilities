@@ -26,16 +26,15 @@ import { setLanguages, getTenantSettings } from './languages'
 import { setVatTypes, getExistingVatTypes } from './vat-types'
 import { getAllTopicsForSpec, removeTopicId, setTopics } from './topics'
 import { setItems } from './items'
-import { getAllCatalogueItems } from './utils/get-all-catalogue-items'
+import {
+  getAllCatalogueItems,
+  ItemsCreateSpecOptions,
+} from './utils/get-all-catalogue-items'
 import { getAllGrids } from './utils/get-all-grids'
 import { setGrids } from './grids'
 import { clearCache as clearTopicCache } from './utils/get-topic-id'
 import { clearCache as clearItemCache } from './utils/get-item-id'
 import { setStockLocations, getExistingStockLocations } from './stock-locations'
-
-export interface ItemsCreateSpecOptions {
-  basePath?: String
-}
 
 export interface ICreateSpec {
   shapes: boolean
@@ -237,9 +236,8 @@ export class Bootstrapper extends EventEmitter {
       const options: ItemsCreateSpecOptions = { basePath: '/' }
 
       if (typeof props.items !== 'boolean') {
-        if (props.items.basePath) {
-          options.basePath = props.items.basePath
-        }
+        const optionsOverride = props.items
+        Object.assign(options, optionsOverride)
       }
 
       spec.items = await getAllCatalogueItems(defaultLanguage, options)
