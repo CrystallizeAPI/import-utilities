@@ -65,6 +65,7 @@ export interface BootstrapperContext {
   config: Config
   useReferenceCache: boolean
   stockLocations?: JSONStockLocation[]
+  itemJSONCataloguePathToIDMap: Map<string, string>
 }
 
 let tenantId = ''

@@ -60,8 +60,6 @@ import {
 } from '../json-spec'
 import {
   callPIM,
-  getItemIdFromCataloguePath,
-  getItemIdFromExternalReference,
   getTenantId,
   getTranslation,
   AreaUpdate,
@@ -71,6 +69,7 @@ import {
   fileUploader,
   ItemVersionDescription,
   getItemVersionsForLanguages,
+  getItemId,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
@@ -1212,7 +1211,9 @@ export async function setItems({
       return null
     }
 
-    const passedPublishConfig = item._options?.publish
+    // Todo: store jsonCataloguePath: itemId reference
+
+    const passedPublishConfig = item._options?.publish || true
     if (typeof passedPublishConfig === 'boolean') {
       if (passedPublishConfig) {
         await publishItem(context.defaultLanguage.code, itemId)
@@ -1233,7 +1234,7 @@ export async function setItems({
     for (let i = 0; i < remainingLanguages.length; i++) {
       await updateForLanguage(remainingLanguages[i], itemId)
 
-      const passedPublishConfig = item._options?.publish
+      const passedPublishConfig = item._options?.publish || true
       if (typeof passedPublishConfig === 'boolean') {
         if (passedPublishConfig) {
           await publishItem(remainingLanguages[i], itemId)
@@ -1258,29 +1259,22 @@ export async function setItems({
       return
     }
 
-    if (item.externalReference) {
-      item.id = await getItemIdFromExternalReference(
-        item.externalReference,
-        context.defaultLanguage.code,
-        getTenantId(),
-        context.useReferenceCache,
-        item.shape
-      )
-    } else if (item.cataloguePath) {
-      item.id = await getItemIdFromCataloguePath(
-        item.cataloguePath,
-        context.defaultLanguage.code,
-        context.useReferenceCache
-      )
-    }
+    item.id = await getItemId({
+      externalReference: item.externalReference,
+      cataloguePath: item.cataloguePath,
+      context,
+      language: context.defaultLanguage.code,
+      tenantId: getTenantId(),
+      shapeIdentifier: item.shape,
+    })
 
     if (item.parentExternalReference) {
-      parentId = await getItemIdFromExternalReference(
-        item.parentExternalReference,
-        context.defaultLanguage.code,
-        getTenantId(),
-        context.useReferenceCache
-      )
+      parentId = await getItemId({
+        externalReference: item.parentExternalReference,
+        context,
+        language: context.defaultLanguage.code,
+        tenantId: getTenantId(),
+      })
     }
 
     item.id = (await createOrUpdateItem(
@@ -1297,14 +1291,23 @@ export async function setItems({
         context.defaultLanguage.code
       )}`,
     })
+    if (item.id) {
+      /**
+       * Store the item id for the cataloguePath. Very useful if the generated
+       * cataloguePath is different than the one in the JSON spec
+       */
+      if (item.cataloguePath) {
+        context.itemJSONCataloguePathToIDMap.set(item.cataloguePath, item.id)
+      }
 
-    if (item.id && 'children' in item) {
-      const itm = item as JSONFolder
+      if ('children' in item) {
+        const itm = item as JSONFolder
 
-      if (itm.children) {
-        await Promise.all(
-          itm.children.map((child) => handleItem(child, itm.id, true))
-        )
+        if (itm.children) {
+          await Promise.all(
+            itm.children.map((child) => handleItem(child, itm.id, true))
+          )
+        }
       }
     }
   }
@@ -1337,21 +1340,15 @@ export async function setItems({
       await Promise.all(
         itemRelations.map(async (itemRelation) => {
           if (typeof itemRelation === 'object') {
-            let id
-            if (itemRelation.externalReference) {
-              id = await getItemIdFromExternalReference(
-                itemRelation.externalReference,
-                context.defaultLanguage.code,
-                getTenantId(),
-                context.useReferenceCache
-              )
-            } else if (itemRelation.cataloguePath) {
-              id = await getItemIdFromCataloguePath(
-                itemRelation.cataloguePath,
-                context.defaultLanguage.code,
-                context.useReferenceCache
-              )
-            }
+            const id = await getItemId({
+              externalReference: itemRelation.externalReference,
+              cataloguePath: itemRelation.cataloguePath,
+              context,
+              language: context.defaultLanguage.code,
+              tenantId: getTenantId(),
+              shapeIdentifier: item.shape,
+            })
+
             if (id) {
               ids.push(id)
             }

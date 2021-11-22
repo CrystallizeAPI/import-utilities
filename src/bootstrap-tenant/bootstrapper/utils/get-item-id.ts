@@ -1,3 +1,4 @@
+import { BootstrapperContext } from '.'
 import { callCatalogue, callPIM } from './api'
 
 const cache = new Map()
@@ -6,7 +7,49 @@ export function clearCache() {
   cache.clear()
 }
 
-export async function getItemIdFromExternalReference(
+export async function getItemId(props: {
+  externalReference?: string
+  cataloguePath?: string
+  language: string
+  tenantId: string
+  context: BootstrapperContext
+  shapeIdentifier?: string
+}) {
+  const {
+    externalReference,
+    cataloguePath,
+    language,
+    tenantId,
+    shapeIdentifier,
+    context,
+  } = props
+
+  let id
+
+  if (externalReference) {
+    id = await getItemIdFromExternalReference(
+      externalReference,
+      language,
+      tenantId,
+      context.useReferenceCache,
+      shapeIdentifier
+    )
+  } else if (cataloguePath) {
+    id = await getItemIdFromCataloguePath(
+      cataloguePath,
+      language,
+      context.useReferenceCache
+    )
+
+    if (!id) {
+      id = context.itemJSONCataloguePathToIDMap.get(cataloguePath)
+    }
+  }
+
+  return id
+}
+
+async function getItemIdFromExternalReference(
   externalReference: string,
   language: string,
   tenantId: string,
@@ -59,7 +102,7 @@ export async function getItemIdFromExternalReference(
   return id
 }
 
-export async function getItemIdFromCataloguePath(
+async function getItemIdFromCataloguePath(
   path: string,
   language: string,
   useCache: boolean

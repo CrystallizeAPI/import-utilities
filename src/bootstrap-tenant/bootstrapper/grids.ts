@@ -4,8 +4,7 @@ import { GridRow } from '../../types'
 import { JSONGrid, JsonSpec } from '../json-spec'
 import {
   callPIM,
-  getItemIdFromCataloguePath,
-  getItemIdFromExternalReference,
+  getItemId,
   getTenantId,
   getTranslation,
   AreaUpdate,
@@ -30,21 +29,13 @@ async function setItemIds(
     grid.rows.map(async (row) => {
       await Promise.all(
         row.columns.map(async (column) => {
-          let itemId
-          if (column.item?.externalReference) {
-            itemId = await getItemIdFromExternalReference(
-              column.item?.externalReference,
-              language,
-              getTenantId(),
-              context.useReferenceCache
-            )
-          } else if (column.item?.cataloguePath) {
-            itemId = await getItemIdFromCataloguePath(
-              column.item?.cataloguePath,
-              language,
-              context.useReferenceCache
-            )
-          }
+          const itemId = await getItemId({
+            externalReference: column.item?.externalReference,
+            cataloguePath: column.item?.cataloguePath,
+            context,
+            language: context.defaultLanguage.code,
+            tenantId: getTenantId(),
+          })
           if (itemId) {
             column.itemId = itemId
           }

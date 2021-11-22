@@ -101,6 +101,12 @@ export class Bootstrapper extends EventEmitter {
      * topic id
      */
     useReferenceCache: false,
+
+    /**
+     * A map keeping a reference of all of the items in
+     * the current spec and their (possible) item id
+     */
+    itemJSONCataloguePathToIDMap: new Map(),
   }
 
   config: Config = {
