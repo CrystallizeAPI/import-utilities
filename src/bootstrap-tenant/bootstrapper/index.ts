@@ -111,6 +111,7 @@ export class Bootstrapper extends EventEmitter {
 
   config: Config = {
     itemTopics: 'amend',
+    itemPublish: 'auto',
     logLevel: 'silent',
   }
 

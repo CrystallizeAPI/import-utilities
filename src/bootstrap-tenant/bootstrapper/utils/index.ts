@@ -53,6 +53,7 @@ export interface AreaUpdate {
 
 export interface Config {
   itemTopics?: 'amend' | 'replace'
+  itemPublish?: 'publish' | 'auto'
   logLevel?: LogLevel
 }
 

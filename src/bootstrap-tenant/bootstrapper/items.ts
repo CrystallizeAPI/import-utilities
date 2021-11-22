@@ -1213,12 +1213,13 @@ export async function setItems({
 
     // Todo: store jsonCataloguePath: itemId reference
 
-    const passedPublishConfig = item._options?.publish || true
+    const passedPublishConfig = item._options?.publish
     if (typeof passedPublishConfig === 'boolean') {
       if (passedPublishConfig) {
         await publishItem(context.defaultLanguage.code, itemId)
       }
     } else if (
+      context.config.itemPublish === 'publish' ||
       !versionsInfo ||
       versionsInfo[context.defaultLanguage.code] ===
         ItemVersionDescription.Published
@@ -1234,12 +1235,13 @@ export async function setItems({
     for (let i = 0; i < remainingLanguages.length; i++) {
       await updateForLanguage(remainingLanguages[i], itemId)
 
-      const passedPublishConfig = item._options?.publish || true
+      const passedPublishConfig = item._options?.publish
       if (typeof passedPublishConfig === 'boolean') {
         if (passedPublishConfig) {
           await publishItem(remainingLanguages[i], itemId)
         }
       } else if (
+        context.config.itemPublish === 'publish' ||
         !versionsInfo ||
         versionsInfo[remainingLanguages[i]] === ItemVersionDescription.Published
       ) {
