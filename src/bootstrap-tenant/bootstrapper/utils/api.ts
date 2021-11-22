@@ -235,6 +235,9 @@ export function callCatalogue(props: IcallAPI) {
   if (MyCatalogueApiManager.errorNotifier !== MyPIMApiManager.errorNotifier) {
     MyCatalogueApiManager.errorNotifier = MyPIMApiManager.errorNotifier
   }
+  if (MyCatalogueApiManager.logLevel !== MyPIMApiManager.logLevel) {
+    MyCatalogueApiManager.setLogLevel(MyPIMApiManager.logLevel)
+  }
 
   return MyCatalogueApiManager.push(props)
 }

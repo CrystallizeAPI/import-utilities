@@ -55,7 +55,6 @@ export async function getAllCatalogueItems(
   language: string,
   options?: ItemsCreateSpecOptions
 ): Promise<JSONItem[]> {
-  console.log(options)
   const version = options?.version || 'draft'
 
   async function getItem(path: string): Promise<JSONItem | null> {
@@ -63,8 +62,8 @@ export async function getAllCatalogueItems(
       query: GET_ITEM_QUERY,
       variables: {
         language,
-        path,
         version,
+        path,
       },
     })
 
@@ -127,9 +126,9 @@ export async function getAllCatalogueItems(
         const pageResponse = await callCatalogue({
           query: GET_ITEM_CHILDREN_PAGE,
           variables: {
-            path: item.cataloguePath,
             language,
             version,
+            path: item.cataloguePath,
             after,
           },
         })
@@ -245,8 +244,8 @@ export async function getAllCatalogueItems(
     query: GET_ROOT_ITEMS_QUERY,
     variables: {
       language,
-      path: options?.basePath || '/',
       version,
+      path: options?.basePath || '/',
     },
   })
 
