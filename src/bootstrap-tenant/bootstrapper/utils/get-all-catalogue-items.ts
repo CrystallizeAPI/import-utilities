@@ -123,6 +123,7 @@ export async function getAllCatalogueItems(
       let after: string | undefined = undefined
 
       async function crawlChildren() {
+        const pageSize = 1000
         const pageResponse = await callCatalogue({
           query: GET_ITEM_CHILDREN_PAGE,
           variables: {
@@ -130,6 +131,7 @@ export async function getAllCatalogueItems(
             version,
             path: item.cataloguePath,
             after,
+            pageSize,
           },
         })
 
@@ -144,7 +146,7 @@ export async function getAllCatalogueItems(
             }
           }
 
-          if (page.pageInfo?.hasNextPage) {
+          if (page.pageInfo?.hasNextPage && page.edges?.length === pageSize) {
             after = page.pageInfo.endCursor
             await crawlChildren()
           }
@@ -474,10 +476,16 @@ fragment paragraphCollectionContent on ParagraphCollectionContent {
 `
 
 const GET_ITEM_CHILDREN_PAGE = `
-query GET_ITEM_CHILDREN_PAGE ($path: String!, $language: String!, $version: VersionLabel!, $after: String) {
+query GET_ITEM_CHILDREN_PAGE (
+  $path: String!,
+  $language: String!,
+  $version: VersionLabel!,
+  $after: String,
+  $pageSize: Int
+  ) {
   catalogue(path: $path, language: $language, version: $version) {
     subtree (
-      first: 1000
+      first: $pageSize
       after: $after
     ) {
       pageInfo {
