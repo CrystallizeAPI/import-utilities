@@ -34,7 +34,9 @@ export async function getItemId(props: {
       context.useReferenceCache,
       shapeIdentifier
     )
-  } else if (cataloguePath) {
+  }
+
+  if (!id && cataloguePath) {
     id = await getItemIdFromCataloguePath(
       cataloguePath,
       language,

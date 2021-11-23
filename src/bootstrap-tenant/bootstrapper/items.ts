@@ -1125,10 +1125,12 @@ export async function setItems({
     }
 
     if (itemId) {
-      versionsInfo = await getItemVersionsForLanguages({
-        itemId,
-        languages: context.languages.map((l) => l.code),
-      })
+      if (context.config.itemPublish === 'auto') {
+        versionsInfo = await getItemVersionsForLanguages({
+          itemId,
+          languages: context.languages.map((l) => l.code),
+        })
+      }
 
       if (item._options?.moveToRoot) {
         await callPIM({
@@ -1210,8 +1212,6 @@ export async function setItems({
       })
       return null
     }
-
-    // Todo: store jsonCataloguePath: itemId reference
 
     const passedPublishConfig = item._options?.publish
     if (typeof passedPublishConfig === 'boolean') {
@@ -1348,7 +1348,6 @@ export async function setItems({
               context,
               language: context.defaultLanguage.code,
               tenantId: getTenantId(),
-              shapeIdentifier: item.shape,
             })
 
             if (id) {
@@ -1362,16 +1361,21 @@ export async function setItems({
     }
 
     if (item.components && item.id) {
-      const versionsInfo = await getItemVersionsForLanguages({
-        languages: context.languages.map((l) => l.code),
-        itemId: item.id,
-      })
+      let versionsInfo
+
+      if (context.config.itemPublish === 'auto') {
+        versionsInfo = await getItemVersionsForLanguages({
+          languages: context.languages.map((l) => l.code),
+          itemId: item.id,
+        })
+      }
 
       await Promise.all(
         Object.keys(item.components).map(async (componentId) => {
           const jsonItem = item.components?.[
             componentId
           ] as JSONComponentContent
+
           if (jsonItem) {
             const shape = context.shapes?.find(
               (s) => s.identifier === item.shape
@@ -1500,7 +1504,10 @@ export async function setItems({
       // Ensure publishing of items
       for (let i = 0; i < context.languages.length; i++) {
         const language = context.languages[i].code
-        if (versionsInfo[language] === ItemVersionDescription.Published) {
+        if (
+          versionsInfo &&
+          versionsInfo[language] === ItemVersionDescription.Published
+        ) {
           await publishItem(language, item.id as string)
         }
       }
