@@ -189,6 +189,7 @@ export interface JSONItemBase {
   }
   _componentsData?: Record<string, any>
   _topicsData?: Record<string, string[]>
+  _exists?: boolean
 }
 
 export interface JSONFolder extends JSONItemBase {

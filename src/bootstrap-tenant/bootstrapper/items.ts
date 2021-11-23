@@ -1138,7 +1138,10 @@ export async function setItems({
             parentId: rootItemId,
           }),
         })
-      } else if (isInParentChildrenArray || item.parentExternalReference) {
+      } else if (
+        item._exists &&
+        (isInParentChildrenArray || item.parentExternalReference)
+      ) {
         /**
          * Move the item if it is a part of a children array,
          * or if item.parentExternalReference is passed
@@ -1278,6 +1281,9 @@ export async function setItems({
         tenantId: getTenantId(),
       })
     }
+
+    // If the item exists in Crystallize already
+    item._exists = Boolean(item.id)
 
     item.id = (await createOrUpdateItem(
       item,
