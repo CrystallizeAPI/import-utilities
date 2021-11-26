@@ -7,7 +7,7 @@ import { resolve } from 'path'
 import { Bootstrapper } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'hkn-examples'
+  const tenantIdentifier = 'testagain'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -30,20 +30,23 @@ async function createSpec() {
   bootstrapper.setTenantIdentifier(tenantIdentifier)
 
   const spec = await bootstrapper.createSpec({
-    shapes: false,
+    shapes: true,
     grids: false,
-    items: false,
+    items: {
+      basePath: '/pricing-page',
+    },
     languages: false,
     priceVariants: false,
     stockLocations: false,
     vatTypes: false,
-    topicMaps: true,
+    subscriptionPlans: true,
+    topicMaps: false,
     onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 
   writeFileSync(
     resolve(__dirname, `../../json-spec/${tenantIdentifier}.json`),
-    JSON.stringify(spec),
+    JSON.stringify(spec, null, 2),
     'utf-8'
   )
 

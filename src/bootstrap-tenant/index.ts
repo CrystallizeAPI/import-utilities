@@ -38,6 +38,7 @@ export async function createJSONSpec(
     languages: true,
     priceVariants: true,
     vatTypes: true,
+    subscriptionPlans: true,
     topicMaps: true,
     stockLocations: true,
     onUpdate: props.onUpdate,

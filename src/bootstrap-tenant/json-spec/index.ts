@@ -1,4 +1,9 @@
 import { SelectionOption } from '../../types'
+import {
+  SubscriptionPeriodUnit,
+  SubscriptionPlanPeriod,
+  TierType,
+} from '../../generated/graphql'
 
 export type JSONTranslation =
   | Record<string, string>
@@ -15,6 +20,18 @@ export interface JSONStockLocation {
   identifier: string
   name: string
   minimum?: number
+}
+
+export interface JSONSubscriptionPlan {
+  identifier: string
+  name: string
+  meteredVariables: {
+    id?: string
+    identifier: string
+    name: string
+    unit: SubscriptionPeriodUnit
+  }[]
+  periods: SubscriptionPlanPeriod[]
 }
 
 export interface JSONLanguage {
@@ -201,6 +218,39 @@ export type JSONProductVariantPriceVariants = Record<string, number>
 
 export type JSONProductVariantStockLocations = Record<string, number>
 
+export interface JSONProductVariantSubscriptionPlanMeteredVariableTier {
+  threshold: number
+  price: JSONProductVariantPriceVariants
+}
+
+export interface JSONProductVariantSubscriptionPlanMeteredVariable {
+  id?: string
+  identifier: string
+  name: string
+  tierType: TierType
+  tiers: JSONProductVariantSubscriptionPlanMeteredVariableTier[]
+}
+
+export interface JSONProductSubscriptionPlanPricing {
+  period: string
+  unit: SubscriptionPeriodUnit
+  price: JSONProductVariantPriceVariants
+  meteredVariables: JSONProductVariantSubscriptionPlanMeteredVariable[]
+}
+
+export interface JSONProductSubscriptionPlanPeriod {
+  id?: string
+  name: string
+  initial?: JSONProductSubscriptionPlanPricing
+  recurring: JSONProductSubscriptionPlanPricing
+}
+
+export interface JSONProductSubscriptionPlan {
+  identifier: string
+  name: string
+  periods: JSONProductSubscriptionPlanPeriod[]
+}
+
 export interface JSONProductVariant {
   isDefault?: boolean
   name: JSONTranslation
@@ -210,6 +260,7 @@ export interface JSONProductVariant {
   stock?: JSONProductVariantStockLocations | number
   attributes?: Record<string, string>
   externalReference?: string
+  subscriptionPlans?: JSONProductSubscriptionPlan[]
 }
 
 export interface JSONProduct extends JSONItemBase {
@@ -313,6 +364,7 @@ export interface JsonSpec {
   shapes?: JSONShape[]
   priceVariants?: JSONPriceVariant[]
   stockLocations?: JSONStockLocation[]
+  subscriptionPlans?: JSONSubscriptionPlan[]
   languages?: JSONLanguage[]
   vatTypes?: JSONVatType[]
   topicMaps?: JSONTopic[]

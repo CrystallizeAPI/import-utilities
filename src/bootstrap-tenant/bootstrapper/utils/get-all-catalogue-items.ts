@@ -1,3 +1,4 @@
+import { PriceVariant } from '../../../generated/graphql'
 import {
   JSONComponentContent,
   JSONDocument,
@@ -5,7 +6,12 @@ import {
   JSONItem,
   JSONItemTopic,
   JSONProduct,
+  JSONProductSubscriptionPlan,
+  JSONProductSubscriptionPlanPeriod,
+  JSONProductSubscriptionPlanPricing,
   JSONProductVariant,
+  JSONProductVariantPriceVariants,
+  JSONProductVariantSubscriptionPlanMeteredVariableTier,
   JSONTopic,
 } from '../../json-spec'
 import { callCatalogue } from './api'
@@ -15,6 +21,63 @@ function handleImage(image: any) {
     src: image.url,
     altText: image.altText,
     caption: image.caption,
+  }
+}
+
+function handlePriceVariants(
+  priceVariants: { identifier: string; price: number }[]
+): JSONProductVariantPriceVariants {
+  if (!priceVariants) {
+    return {}
+  }
+
+  const p: JSONProductVariantPriceVariants = {}
+
+  priceVariants.forEach((pV) => {
+    p[pV.identifier] = pV.price
+  })
+
+  return p
+}
+
+function handleSubscriptionPlan(plan: any): JSONProductSubscriptionPlan {
+  function handleTier(
+    tier: any
+  ): JSONProductVariantSubscriptionPlanMeteredVariableTier {
+    return {
+      threshold: tier.threshold,
+      price: handlePriceVariants(tier.priceVariants),
+    }
+  }
+
+  function handlePricing(pricing: any): JSONProductSubscriptionPlanPricing {
+    return {
+      period: pricing.period,
+      unit: pricing.unit,
+      price: handlePriceVariants(pricing.priceVariants),
+      meteredVariables: pricing.meteredVariables.map((m: any) => ({
+        id: m.id,
+        identifier: m.identifier,
+        name: m.name,
+        tierType: m.tierType,
+        tiers: m.tiers?.map(handleTier),
+      })),
+    }
+  }
+
+  function handlePeriod(period: any): JSONProductSubscriptionPlanPeriod {
+    return {
+      id: period.id,
+      name: period.name,
+      initial: period.initial ? handlePricing(period.initial) : undefined,
+      recurring: handlePricing(period.recurring),
+    }
+  }
+
+  return {
+    identifier: plan.identifier,
+    name: plan.name,
+    periods: plan.periods.map(handlePeriod),
   }
 }
 
@@ -99,12 +162,13 @@ export async function getAllCatalogueItems(
         const variant: JSONProductVariant = {
           name: v.name,
           sku: v.sku,
-          price: v.price,
+          price: handlePriceVariants(v.priceVariants),
           isDefault: v.isDefault,
           attributes,
           externalReference: v.externalReference,
           stock: v.stock,
           images: v.images?.map(handleImage),
+          subscriptionPlans: v.subscriptionPlans?.map(handleSubscriptionPlan),
         }
 
         return variant
@@ -351,7 +415,6 @@ fragment product on Product {
     externalReference
     name
     sku
-    price
     isDefault
     attributes {
       attribute
@@ -359,9 +422,7 @@ fragment product on Product {
     }
     priceVariants {
       identifier
-      name
       price
-      currency
     }
     stock
     stockLocations {
@@ -371,6 +432,21 @@ fragment product on Product {
     }
     images {
       ...image
+    }
+    subscriptionPlans {
+      identifier
+      name
+      periods {
+        id
+        name
+        initial {
+          ...subscriptionPlanPricing
+        }
+        recurring {
+          ...subscriptionPlanPricing
+        }
+
+      }
     }
   }
 }
@@ -470,6 +546,28 @@ fragment paragraphCollectionContent on ParagraphCollectionContent {
     }
     images {
       ...image
+    }
+  }
+}
+
+fragment subscriptionPlanPricing on ProductVariantSubscriptionPlanPricing {
+  period
+  unit
+  priceVariants {
+    identifier
+    price
+  }
+  meteredVariables {
+    id
+    identifier
+    name
+    tierType
+    tiers {
+      threshold
+      priceVariants {
+        identifier
+        price
+      }
     }
   }
 }

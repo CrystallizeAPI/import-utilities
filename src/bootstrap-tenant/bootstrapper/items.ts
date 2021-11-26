@@ -7,7 +7,6 @@ import {
   ComponentChoiceComponentContentInput,
   ComponentContentInput,
   ContentChunkComponentContentInput,
-  CreateProductVariantInput,
   DateTimeComponentContentInput,
   GridRelationsComponentContentInput,
   ImageComponentContentInput,
@@ -31,6 +30,7 @@ import {
   buildUpdateItemMutation,
   buildMoveItemMutation,
   buildUpdateItemComponentMutation,
+  buildCreateItemQueryAndVariables,
 } from '../../graphql'
 
 import {
@@ -57,6 +57,10 @@ import {
   JSONVideo,
   JSONGrid,
   JSONProductVariant,
+  JSONProductSubscriptionPlanPricing,
+  JSONProductVariantPriceVariants,
+  JSONProductVariantSubscriptionPlanMeteredVariable,
+  JSONProductVariantStockLocations,
 } from '../json-spec'
 import {
   callPIM,
@@ -73,7 +77,18 @@ import {
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
-import { ProductVariant } from '../../generated/graphql'
+import {
+  CreateProductVariantInput,
+  PriceVariantReferenceInput,
+  ProductPriceVariant,
+  ProductStockLocation,
+  ProductVariant,
+  ProductVariantAttributeInput,
+  StockLocationReferenceInput,
+  SubscriptionPlanMeteredVariable,
+  SubscriptionPlanMeteredVariableReferenceInput,
+  SubscriptionPlanPriceInput,
+} from '../../generated/graphql'
 import { getProductVariants } from './utils/get-product-variants'
 import { getTopicIds } from './utils/get-topic-id'
 
@@ -693,6 +708,161 @@ async function getExistingTopicIdsForItem(
   return result.data?.item?.get?.topics?.map((t: any) => t.id) || []
 }
 
+function getSubscriptionPlanMeteredVariables({
+  planIdentifier,
+  context,
+}: {
+  planIdentifier: string
+  context: BootstrapperContext
+}): SubscriptionPlanMeteredVariable[] {
+  const plan = context.subscriptionPlans?.find(
+    (p) => p.identifier === planIdentifier
+  )
+  return plan?.meteredVariables || []
+}
+
+function getSubscriptionPlanPeriodId({
+  planIdentifier,
+  periodName,
+  context,
+}: {
+  planIdentifier: string
+  periodName: string
+  context: BootstrapperContext
+}): null | string {
+  const plan = context.subscriptionPlans?.find(
+    (p) => p.identifier === planIdentifier
+  )
+  if (plan) {
+    return plan.periods?.find((p) => p.name === periodName)?.id || null
+  }
+
+  return null
+}
+
+function subscriptionPlanPrincingJsonToInput(
+  pricing: JSONProductSubscriptionPlanPricing,
+  meteredVaribles: SubscriptionPlanMeteredVariable[]
+): SubscriptionPlanPriceInput {
+  function handleMeteredVariable(
+    mv: JSONProductVariantSubscriptionPlanMeteredVariable
+  ): SubscriptionPlanMeteredVariableReferenceInput {
+    const id = meteredVaribles.find((m) => m.identifier === mv.identifier)?.id
+    if (!id) {
+      throw new Error('Cannot find id for metered variable ' + mv.identifier)
+    }
+
+    return {
+      id,
+      tierType: mv.tierType,
+      tiers: mv.tiers?.map((t) => ({
+        threshold: t.threshold,
+        priceVariants: handleJsonPriceToPriceInput({
+          jsonPrice: t.price,
+        }),
+      })),
+    }
+  }
+
+  return {
+    priceVariants: handleJsonPriceToPriceInput({
+      jsonPrice: pricing.price,
+    }),
+    meteredVariables: pricing.meteredVariables.map(handleMeteredVariable),
+  }
+}
+
+function handleJsonPriceToPriceInput({
+  jsonPrice,
+  existingProductVariantPriceVariants,
+}: {
+  jsonPrice: number | JSONProductVariantPriceVariants
+  existingProductVariantPriceVariants?: ProductPriceVariant[] | null
+}): PriceVariantReferenceInput[] {
+  const priceVariants: PriceVariantReferenceInput[] =
+    existingProductVariantPriceVariants || []
+
+  if (jsonPrice && typeof jsonPrice === 'object') {
+    const p = jsonPrice as Record<string, number>
+    Object.keys(jsonPrice).forEach((identifier) => {
+      const existingEntry = priceVariants.find(
+        (i) => i.identifier === identifier
+      )
+      if (existingEntry) {
+        existingEntry.price = p[identifier]
+      } else {
+        priceVariants.push({
+          identifier,
+          price: p[identifier],
+        })
+      }
+    })
+  } else {
+    const defaultStock = priceVariants.find((i) => i.identifier === 'default')
+    if (defaultStock) {
+      defaultStock.price = jsonPrice
+    } else {
+      priceVariants.push({
+        identifier: 'default',
+        price: jsonPrice,
+      })
+    }
+  }
+
+  return priceVariants.map(({ identifier, price }) => ({
+    identifier,
+    price,
+  }))
+}
+
+function handleJsonStockToStockInput({
+  jsonStock,
+  existingProductVariantStockLocations,
+}: {
+  jsonStock?: number | JSONProductVariantStockLocations
+  existingProductVariantStockLocations?: ProductStockLocation[] | null
+}): undefined | StockLocationReferenceInput[] {
+  if (typeof jsonStock === undefined) {
+    return undefined
+  }
+
+  const stockVariants: StockLocationReferenceInput[] =
+    existingProductVariantStockLocations || []
+
+  if (jsonStock && typeof jsonStock === 'object') {
+    const p = jsonStock as Record<string, number>
+    Object.keys(jsonStock).forEach((identifier) => {
+      const existingEntry = stockVariants.find(
+        (i) => i.identifier === identifier
+      )
+      if (existingEntry) {
+        existingEntry.stock = p[identifier]
+      } else {
+        stockVariants.push({
+          identifier,
+          stock: p[identifier],
+        })
+      }
+    })
+  } else {
+    const defaultStock = stockVariants.find((i) => i.identifier === 'default')
+    if (defaultStock) {
+      defaultStock.stock = jsonStock
+    } else {
+      stockVariants.push({
+        identifier: 'default',
+        stock: jsonStock,
+      })
+    }
+  }
+
+  return stockVariants.map(({ identifier, stock, meta }) => ({
+    identifier,
+    stock,
+    meta: meta || [],
+  }))
+}
+
 export async function setItems({
   spec,
   onUpdate,
@@ -807,8 +977,8 @@ export async function setItems({
         }
       }
 
-      return callPIM({
-        query: buildCreateItemMutation(
+      return callPIM(
+        buildCreateItemQueryAndVariables(
           {
             name: getTranslation(item.name, language) || '',
             shapeIdentifier: item.shape,
@@ -828,8 +998,8 @@ export async function setItems({
           // @ts-ignore
           shape?.type,
           language
-        ),
-      })
+        )
+      )
     }
 
     async function updateForLanguage(language: string, itemId: string) {
@@ -929,7 +1099,9 @@ export async function setItems({
     function createProductBaseInfo() {
       const product = item as JSONProduct
 
-      const vatType = context.vatTypes?.find((v) => v.name === product.vatType)
+      const vatType = context.vatTypes?.find(
+        (v) => v.name?.toLowerCase() === product.vatType.toLowerCase()
+      )
       if (!vatType) {
         onUpdate({
           warning: {
@@ -950,42 +1122,19 @@ export async function setItems({
       language: string,
       existingProductVariant?: ProductVariant
     ): Promise<CreateProductVariantInput> {
-      let priceVariants
-      let stockLocations
-      let price
-      let stock
-
-      if (jsonVariant.price && typeof jsonVariant.price === 'object') {
-        const p = jsonVariant.price as Record<string, number>
-        priceVariants = Object.keys(jsonVariant.price).map((identifier) => ({
-          identifier,
-          price: p[identifier],
-        }))
-      } else {
-        price = jsonVariant.price
-      }
-
-      if (jsonVariant.stock && typeof jsonVariant.stock === 'object') {
-        const p = jsonVariant.stock as Record<string, number>
-        stockLocations = Object.keys(jsonVariant.stock).map((identifier) => ({
-          identifier,
-          stock: p[identifier],
-        }))
-      } else {
-        stock = jsonVariant.stock
-      }
-
-      let attributes
+      let attributes: undefined | ProductVariantAttributeInput[]
       if (jsonVariant.attributes) {
-        attributes = Object.keys(jsonVariant.attributes).map((attribute) => ({
-          attribute,
-          value: jsonVariant.attributes?.[attribute],
-        }))
+        attributes = Object.keys(jsonVariant.attributes).map(
+          (attribute: string) => ({
+            attribute,
+            value: jsonVariant.attributes?.[attribute] || '',
+          })
+        )
       }
 
       const {
-        priceVariants: _p,
-        stockLocations: _s,
+        priceVariants: existingProductVariantPriceVariants,
+        stockLocations: existingProductVariantStockLocations,
         ...restOfExistingProductVariant
       } = existingProductVariant || {}
 
@@ -994,34 +1143,51 @@ export async function setItems({
         name: getTranslation(jsonVariant.name, language),
         sku: jsonVariant.sku,
         isDefault: jsonVariant.isDefault || false,
-        ...(priceVariants
-          ? { priceVariants }
-          : {
-              price: price ?? 0,
-            }),
+        stockLocations: handleJsonStockToStockInput({
+          jsonStock: jsonVariant.stock,
+          existingProductVariantStockLocations,
+        }),
+        priceVariants: handleJsonPriceToPriceInput({
+          jsonPrice: jsonVariant.price,
+          existingProductVariantPriceVariants,
+        }),
         ...(attributes && { attributes }),
       }
 
-      if (stockLocations !== undefined) {
-        variant.stockLocations = stockLocations
-      } else if (stock !== undefined) {
-        variant.stock = stock
-      } else if (_s) {
-        variant.stockLocations = _s?.map((s) => ({
-          identifier: s.identifier,
-          stock: s.stock ?? 0,
-          meta: s.meta,
-        }))
-      }
+      if (jsonVariant.subscriptionPlans) {
+        variant.subscriptionPlans = jsonVariant.subscriptionPlans.map((sP) => {
+          const meteredVariables = getSubscriptionPlanMeteredVariables({
+            planIdentifier: sP.identifier,
+            context,
+          })
 
-      /**
-       * Stock locations input does not like
-       * meta=undefined
-       */
-      if (variant.stockLocations) {
-        variant.stockLocations.forEach((s) => {
-          if (!s.meta) {
-            s.meta = []
+          return {
+            identifier: sP.identifier,
+            periods: sP.periods.map((p) => {
+              const id = getSubscriptionPlanPeriodId({
+                planIdentifier: sP.identifier,
+                periodName: p.name,
+                context,
+              })
+
+              if (!id) {
+                throw new Error('Plan period id is null')
+              }
+
+              return {
+                id,
+                ...(p.initial && {
+                  initial: subscriptionPlanPrincingJsonToInput(
+                    p.initial,
+                    meteredVariables
+                  ),
+                }),
+                recurring: subscriptionPlanPrincingJsonToInput(
+                  p.recurring,
+                  meteredVariables
+                ),
+              }
+            }),
           }
         })
       }
@@ -1032,14 +1198,6 @@ export async function setItems({
           language,
           onUpdate,
         })
-      }
-
-      /**
-       * Temp: API does not like images being set to
-       * null at the moment. #3983
-       */
-      if (variant.images === null) {
-        delete variant.images
       }
 
       return variant
@@ -1539,6 +1697,7 @@ export async function setItems({
     try {
       await handleItem(spec.items[i], rootItemId, false)
     } catch (e) {
+      console.log(e)
       onUpdate({
         warning: {
           code: 'CANNOT_HANDLE_ITEM',
