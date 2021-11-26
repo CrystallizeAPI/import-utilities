@@ -57,7 +57,6 @@ export async function setSubscriptionPlans({
 }: Props): Promise<SubscriptionPlan[]> {
   // Get all the subscription plans from the tenant
   const existingSubscriptionPlans = await getExistingSubscriptionPlans()
-
   if (!spec?.subscriptionPlans) {
     onUpdate({
       progress: 1,

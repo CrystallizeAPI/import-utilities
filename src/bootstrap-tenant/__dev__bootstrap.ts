@@ -30,27 +30,7 @@ async function bootstrap() {
 
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
-    jsonSpec: {
-      items: [
-        {
-          name: 'Product test again',
-          shape: 'default-product',
-          vatType: 'No tax',
-          externalReference: 'o123u1829313no1',
-          variants: [
-            {
-              sku: 'aslkdjklasdjlasdl',
-              stock: {
-                'eu-wh': 22,
-              },
-              price: 99,
-              isDefault: true,
-              name: 'asuidha',
-            },
-          ],
-        },
-      ],
-    },
+    jsonSpec,
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
@@ -111,7 +91,7 @@ async function bootstrap() {
   })
 
   // bootstrapper.config.itemTopics = 'amend'
-  bootstrapper.config.logLevel = 'verbose'
+  // bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()

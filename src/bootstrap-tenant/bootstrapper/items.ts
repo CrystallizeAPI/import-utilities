@@ -85,6 +85,7 @@ import {
   ProductVariant,
   ProductVariantAttributeInput,
   StockLocationReferenceInput,
+  SubscriptionPlanMeteredVariable,
   SubscriptionPlanMeteredVariableReferenceInput,
   SubscriptionPlanPriceInput,
 } from '../../generated/graphql'
@@ -707,6 +708,19 @@ async function getExistingTopicIdsForItem(
   return result.data?.item?.get?.topics?.map((t: any) => t.id) || []
 }
 
+function getSubscriptionPlanMeteredVariables({
+  planIdentifier,
+  context,
+}: {
+  planIdentifier: string
+  context: BootstrapperContext
+}): SubscriptionPlanMeteredVariable[] {
+  const plan = context.subscriptionPlans?.find(
+    (p) => p.identifier === planIdentifier
+  )
+  return plan?.meteredVariables || []
+}
+
 function getSubscriptionPlanPeriodId({
   planIdentifier,
   periodName,
@@ -727,17 +741,19 @@ function getSubscriptionPlanPeriodId({
 }
 
 function subscriptionPlanPrincingJsonToInput(
-  pricing: JSONProductSubscriptionPlanPricing
+  pricing: JSONProductSubscriptionPlanPricing,
+  meteredVaribles: SubscriptionPlanMeteredVariable[]
 ): SubscriptionPlanPriceInput {
   function handleMeteredVariable(
     mv: JSONProductVariantSubscriptionPlanMeteredVariable
   ): SubscriptionPlanMeteredVariableReferenceInput {
-    if (typeof mv.id !== 'string') {
-      throw new Error('Metered variable is missing id')
+    const id = meteredVaribles.find((m) => m.identifier === mv.identifier)?.id
+    if (!id) {
+      throw new Error('Cannot find id for metered variable ' + mv.identifier)
     }
 
     return {
-      id: mv.id,
+      id,
       tierType: mv.tierType,
       tiers: mv.tiers?.map((t) => ({
         threshold: t.threshold,
@@ -1139,28 +1155,41 @@ export async function setItems({
       }
 
       if (jsonVariant.subscriptionPlans) {
-        variant.subscriptionPlans = jsonVariant.subscriptionPlans.map((sP) => ({
-          identifier: sP.identifier,
-          periods: sP.periods.map((p) => {
-            const id = getSubscriptionPlanPeriodId({
-              planIdentifier: sP.identifier,
-              periodName: p.name,
-              context,
-            })
+        variant.subscriptionPlans = jsonVariant.subscriptionPlans.map((sP) => {
+          const meteredVariables = getSubscriptionPlanMeteredVariables({
+            planIdentifier: sP.identifier,
+            context,
+          })
 
-            if (!id) {
-              throw new Error('Plan period id is null')
-            }
+          return {
+            identifier: sP.identifier,
+            periods: sP.periods.map((p) => {
+              const id = getSubscriptionPlanPeriodId({
+                planIdentifier: sP.identifier,
+                periodName: p.name,
+                context,
+              })
 
-            return {
-              id,
-              ...(p.initial && {
-                initial: subscriptionPlanPrincingJsonToInput(p.initial),
-              }),
-              recurring: subscriptionPlanPrincingJsonToInput(p.recurring),
-            }
-          }),
-        }))
+              if (!id) {
+                throw new Error('Plan period id is null')
+              }
+
+              return {
+                id,
+                ...(p.initial && {
+                  initial: subscriptionPlanPrincingJsonToInput(
+                    p.initial,
+                    meteredVariables
+                  ),
+                }),
+                recurring: subscriptionPlanPrincingJsonToInput(
+                  p.recurring,
+                  meteredVariables
+                ),
+              }
+            }),
+          }
+        })
       }
 
       if (jsonVariant.images) {
@@ -1668,6 +1697,7 @@ export async function setItems({
     try {
       await handleItem(spec.items[i], rootItemId, false)
     } catch (e) {
+      console.log(e)
       onUpdate({
         warning: {
           code: 'CANNOT_HANDLE_ITEM',
