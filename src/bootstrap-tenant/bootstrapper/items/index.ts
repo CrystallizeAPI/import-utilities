@@ -193,7 +193,7 @@ export async function setItems({
       progress,
     })
 
-    if (progress === 1) {
+    if (progress >= 1) {
       clearInterval(getFileuploaderStatusInterval)
     }
   }, 1000)
@@ -212,7 +212,7 @@ export async function setItems({
   }
   spec.items.forEach(getCount)
 
-  // Double the item count since we're doing add/update _and_ item relations later
+  // Double the item count since we're doing create&update _and_ item relations later
   totalItems *= 2
 
   let finishedItems = 0
