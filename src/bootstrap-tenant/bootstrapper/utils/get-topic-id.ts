@@ -45,6 +45,7 @@ export async function getTopicId(props: {
                 node {
                   id
                   path
+                  name
                 }
               }
             }
@@ -62,8 +63,10 @@ export async function getTopicId(props: {
   let edge
   if (typeof topic !== 'string' && topic.path) {
     edge = edges.find((e: any) => e.node.path === topic.path)
+  } else if (typeof topic === 'string') {
+    edge = edges.find((e: any) => e.node.name === topic)
   } else {
-    edge = edges[edges.length - 1]
+    edge = edges[0]
   }
 
   if (edge) {
