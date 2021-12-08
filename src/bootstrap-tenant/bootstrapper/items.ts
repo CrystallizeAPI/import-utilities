@@ -858,7 +858,7 @@ function handleJsonStockToStockInput({
 
   return stockVariants.map(({ identifier, stock, meta }) => ({
     identifier,
-    stock,
+    stock: stock ?? 0,
     meta: meta || [],
   }))
 }
