@@ -255,7 +255,7 @@ export interface JSONProductVariant {
   isDefault?: boolean
   name: JSONTranslation
   sku: string
-  price: JSONProductVariantPriceVariants | number
+  price?: JSONProductVariantPriceVariants | number
   images?: JSONImage[]
   stock?: JSONProductVariantStockLocations | number
   attributes?: Record<string, string>

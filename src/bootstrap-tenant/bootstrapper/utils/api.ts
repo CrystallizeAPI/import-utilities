@@ -165,8 +165,9 @@ class ApiManager {
       await sleep(item.failCount * 1000)
 
       if (item.failCount > 5) {
-        // console.log(JSON.stringify(item.props, null, 1))
-        // console.log(errorString)
+        if (this.logLevel === 'verbose') {
+          console.log(errorString)
+        }
 
         /**
          * Reduce the amount of workers to lessen the
