@@ -1303,14 +1303,17 @@ export async function setItems({
       }
 
       if (item._options?.moveToRoot) {
-        await callPIM({
-          query: buildMoveItemMutation(itemId, {
-            parentId: rootItemId,
-          }),
-        })
+        if (item._parentId !== rootItemId) {
+          await callPIM({
+            query: buildMoveItemMutation(itemId, {
+              parentId: rootItemId,
+            }),
+          })
+        }
       } else if (
         item._exists &&
-        (isInParentChildrenArray || item.parentExternalReference)
+        // (item.parentExternalReference || isInParentChildrenArray) &&
+        item._parentId !== parentId
       ) {
         /**
          * Move the item if it is a part of a children array,
@@ -1434,7 +1437,7 @@ export async function setItems({
       return
     }
 
-    item.id = await getItemId({
+    const itemAndParentId = await getItemId({
       externalReference: item.externalReference,
       cataloguePath: item.cataloguePath,
       context,
@@ -1443,13 +1446,17 @@ export async function setItems({
       shapeIdentifier: item.shape,
     })
 
+    item.id = itemAndParentId.itemId
+    item._parentId = itemAndParentId.parentId
+
     if (item.parentExternalReference) {
-      parentId = await getItemId({
+      const parentItemAndParentId = await getItemId({
         externalReference: item.parentExternalReference,
         context,
         language: context.defaultLanguage.code,
         tenantId: getTenantId(),
       })
+      parentId = parentItemAndParentId.itemId
     }
 
     // If the item exists in Crystallize already
@@ -1475,7 +1482,10 @@ export async function setItems({
        * cataloguePath is different than the one in the JSON spec
        */
       if (item.cataloguePath) {
-        context.itemJSONCataloguePathToIDMap.set(item.cataloguePath, item.id)
+        context.itemJSONCataloguePathToIDMap.set(item.cataloguePath, {
+          itemId: item.id,
+          parentId: parentId || rootItemId,
+        })
       }
 
       if ('children' in item) {
@@ -1518,7 +1528,7 @@ export async function setItems({
       await Promise.all(
         itemRelations.map(async (itemRelation) => {
           if (typeof itemRelation === 'object') {
-            const id = await getItemId({
+            const { itemId } = await getItemId({
               externalReference: itemRelation.externalReference,
               cataloguePath: itemRelation.cataloguePath,
               context,
@@ -1526,8 +1536,8 @@ export async function setItems({
               tenantId: getTenantId(),
             })
 
-            if (id) {
-              ids.push(id)
+            if (itemId) {
+              ids.push(itemId)
             }
           }
         })

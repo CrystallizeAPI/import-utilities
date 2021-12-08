@@ -7,6 +7,7 @@ import {
   JSONStockLocation,
 } from '../../json-spec'
 import { callPIM } from './api'
+import { ItemAndParentId } from './get-item-id'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
 import { LogLevel } from './types'
 
@@ -70,7 +71,7 @@ export interface BootstrapperContext {
   config: Config
   useReferenceCache: boolean
   stockLocations?: JSONStockLocation[]
-  itemJSONCataloguePathToIDMap: Map<string, string>
+  itemJSONCataloguePathToIDMap: Map<string, ItemAndParentId>
 }
 
 let tenantId = ''

@@ -200,6 +200,7 @@ export interface JSONItemBase {
   components?: Record<string, JSONComponentContent | JSONComponentChoice> | null
   topics?: JSONItemTopic[]
   parentExternalReference?: string
+  _parentId?: string
   _options?: {
     publish?: boolean
     moveToRoot?: boolean

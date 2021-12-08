@@ -10,12 +10,12 @@ import { EVENT_NAMES, Status } from './bootstrapper'
 
 async function bootstrap() {
   const tenantIdentifier = 'hkn-examples'
-  const jsonSpec = JSON.parse(
-    await readFile(
-      resolve(__dirname, '../../json-spec/testagain.json'),
-      'utf-8'
-    )
-  )
+  // const jsonSpec = JSON.parse(
+  //   await readFile(
+  //     resolve(__dirname, '../../json-spec/testagain.json'),
+  //     'utf-8'
+  //   )
+  // )
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -30,7 +30,28 @@ async function bootstrap() {
 
   const bootstrapper = bootstrapTenant({
     tenantIdentifier,
-    jsonSpec,
+    jsonSpec: {
+      items: [
+        {
+          name: 'Move test',
+          shape: 'example-product-folder',
+          externalReference: 'move-test-0',
+          children: [
+            {
+              name: 'Move test 1 - new name',
+              shape: 'example-product-folder',
+              externalReference: 'move-test-1',
+            },
+          ],
+        },
+        {
+          name: 'Move test 2 - new name',
+          shape: 'example-product-folder',
+          externalReference: 'move-test-2',
+          parentExternalReference: 'move-test-1',
+        },
+      ],
+    },
     CRYSTALLIZE_ACCESS_TOKEN_ID: process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
     CRYSTALLIZE_ACCESS_TOKEN_SECRET:
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
@@ -91,7 +112,7 @@ async function bootstrap() {
   })
 
   // bootstrapper.config.itemTopics = 'amend'
-  // bootstrapper.config.logLevel = 'verbose'
+  bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
     // ProgressBar.stop()

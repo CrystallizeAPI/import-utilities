@@ -3,6 +3,11 @@ import { callCatalogue, callPIM } from './api'
 
 const cache = new Map()
 
+export interface ItemAndParentId {
+  itemId?: string
+  parentId?: string
+}
+
 export function clearCache() {
   cache.clear()
 }
@@ -14,7 +19,7 @@ export async function getItemId(props: {
   tenantId: string
   context: BootstrapperContext
   shapeIdentifier?: string
-}) {
+}): Promise<ItemAndParentId> {
   const {
     externalReference,
     cataloguePath,
@@ -24,10 +29,10 @@ export async function getItemId(props: {
     context,
   } = props
 
-  let id
+  let idAndParent: ItemAndParentId = {}
 
   if (externalReference) {
-    id = await getItemIdFromExternalReference(
+    idAndParent = await getItemIdFromExternalReference(
       externalReference,
       language,
       tenantId,
@@ -36,19 +41,20 @@ export async function getItemId(props: {
     )
   }
 
-  if (!id && cataloguePath) {
-    id = await getItemIdFromCataloguePath(
+  if (!idAndParent.itemId && cataloguePath) {
+    idAndParent = await getItemIdFromCataloguePath(
       cataloguePath,
       language,
       context.useReferenceCache
     )
 
-    if (!id) {
-      id = context.itemJSONCataloguePathToIDMap.get(cataloguePath)
+    if (!idAndParent.itemId) {
+      idAndParent =
+        context.itemJSONCataloguePathToIDMap.get(cataloguePath) || {}
     }
   }
 
-  return id
+  return idAndParent
 }
 
 async function getItemIdFromExternalReference(
@@ -57,7 +63,7 @@ async function getItemIdFromExternalReference(
   tenantId: string,
   useCache: boolean,
   shapeIdentifier?: string
-): Promise<string> {
+): Promise<ItemAndParentId> {
   if (useCache) {
     const cacheItem = cache.get(`externalReference:${externalReference}`)
     if (cacheItem) {
@@ -78,6 +84,9 @@ async function getItemIdFromExternalReference(
             shape {
               identifier
             }
+            tree {
+              parentId
+            }
           }
         }
       }
@@ -95,20 +104,27 @@ async function getItemIdFromExternalReference(
     items = items.filter((s: any) => s.shape.identifier === shapeIdentifier)
   }
 
-  const id = items[0]?.id || ''
-
-  if (useCache) {
-    cache.set(`externalReference:${externalReference}`, id)
+  const item = items[0]
+  if (!item) {
+    return {}
+  }
+  const idAndParent = {
+    itemId: item.id,
+    parentId: item.tree?.parentId,
   }
 
-  return id
+  if (useCache) {
+    cache.set(`externalReference:${externalReference}`, idAndParent)
+  }
+
+  return idAndParent
 }
 
 async function getItemIdFromCataloguePath(
   path: string,
   language: string,
   useCache: boolean
-): Promise<string> {
+): Promise<ItemAndParentId> {
   if (useCache) {
     const cacheItem = cache.get(`path:${path}`)
     if (cacheItem) {
@@ -121,6 +137,9 @@ async function getItemIdFromCataloguePath(
       query GET_ID_FROM_PATH ($path: String, $language: String) {
         catalogue(path: $path, language: $language) {
           id
+          parent {
+            id
+          }
         }
       }
     `,
@@ -130,11 +149,18 @@ async function getItemIdFromCataloguePath(
     },
   })
 
-  const id = response.data?.catalogue?.id || ''
-
-  if (useCache) {
-    cache.set(`path:${path}`, id)
+  const item = response.data?.catalogue
+  if (!item) {
+    return {}
+  }
+  const idAndParent = {
+    itemId: item.id,
+    parentId: item.parent?.id,
   }
 
-  return id
+  if (useCache) {
+    cache.set(`path:${path}`, idAndParent)
+  }
+
+  return idAndParent
 }

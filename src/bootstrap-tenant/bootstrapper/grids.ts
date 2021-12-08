@@ -29,7 +29,7 @@ async function setItemIds(
     grid.rows.map(async (row) => {
       await Promise.all(
         row.columns.map(async (column) => {
-          const itemId = await getItemId({
+          const { itemId } = await getItemId({
             externalReference: column.item?.externalReference,
             cataloguePath: column.item?.cataloguePath,
             context,
