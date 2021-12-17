@@ -95,6 +95,7 @@ export class Bootstrapper extends EventEmitter {
 
   PIMAPIManager: ApiManager | null = null
   catalogueAPIManager: ApiManager | null = null
+  tenantIdentifier = ''
 
   context: BootstrapperContext = {
     defaultLanguage: { code: 'en', name: 'English' },
@@ -168,6 +169,7 @@ export class Bootstrapper extends EventEmitter {
 
   setTenantIdentifier = async (tenantIdentifier: string) => {
     this.context.tenantIdentifier = tenantIdentifier
+    this.tenantIdentifier = tenantIdentifier
     return this.getTenantBasics()
   }
 
