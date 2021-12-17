@@ -154,7 +154,6 @@ export class Bootstrapper extends EventEmitter {
       errorNotifier: ({ error }) => {
         this.emit(EVENT_NAMES.ERROR, { error })
       },
-      logLevel: this.config.logLevel,
     })
 
     this.PIMAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = ACCESS_TOKEN_ID
@@ -231,6 +230,11 @@ ${error}
         this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
           tenant.staticAuthToken
         this.context.callCatalogue = this.catalogueAPIManager.push
+
+        // Set log level late so that we'll catch late changes to the config
+        if (this.PIMAPIManager && this.config.logLevel) {
+          this.PIMAPIManager.logLevel = this.config.logLevel
+        }
 
         resolve(true)
       }

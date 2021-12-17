@@ -3,16 +3,16 @@ config()
 
 import { readFile } from 'fs/promises'
 import { resolve } from 'path'
-import Progress from 'cli-progress'
+// import Progress from 'cli-progress'
 
 import { Bootstrapper, EVENT_NAMES, Status } from './bootstrapper'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'furniture-hkn'
+    const tenantIdentifier = 'photo-hkn'
     const jsonSpec = JSON.parse(
       await readFile(
-        resolve(__dirname, '../../json-spec/furniture.json'),
+        resolve(__dirname, '../../json-spec/photofinder.json'),
         'utf-8'
       )
     )
