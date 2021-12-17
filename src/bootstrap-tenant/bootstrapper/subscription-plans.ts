@@ -1,15 +1,15 @@
 import { JsonSpec } from '../json-spec'
-import { callPIM, getTenantId, AreaUpdate } from './utils'
+import { AreaUpdate, BootstrapperContext } from './utils'
 import {
   CreateSubscriptionPlanInput,
   SubscriptionPlan,
 } from '../../generated/graphql'
 
-export async function getExistingSubscriptionPlans(): Promise<
-  SubscriptionPlan[]
-> {
-  const tenantId = getTenantId()
-  const r = await callPIM({
+export async function getExistingSubscriptionPlans(
+  context: BootstrapperContext
+): Promise<SubscriptionPlan[]> {
+  const tenantId = context.tenantId
+  const r = await context.callPIM({
     query: `
       query GET_TENANT_SUBSCRIPTION_PLANS($tenantId: ID!) {
         subscriptionPlan {
@@ -49,14 +49,16 @@ export async function getExistingSubscriptionPlans(): Promise<
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
+  context: BootstrapperContext
 }
 
 export async function setSubscriptionPlans({
   spec,
   onUpdate,
+  context,
 }: Props): Promise<SubscriptionPlan[]> {
   // Get all the subscription plans from the tenant
-  const existingSubscriptionPlans = await getExistingSubscriptionPlans()
+  const existingSubscriptionPlans = await getExistingSubscriptionPlans(context)
   if (!spec?.subscriptionPlans) {
     onUpdate({
       progress: 1,
@@ -73,7 +75,7 @@ export async function setSubscriptionPlans({
       message: `Adding ${missingSubscriptionPlans.length} subscription plan(s)...`,
     })
 
-    const tenantId = getTenantId()
+    const tenantId = context.tenantId
 
     let finished = 0
 
@@ -86,7 +88,7 @@ export async function setSubscriptionPlans({
           periods: subscriptionPlan.periods,
           meteredVariables: subscriptionPlan.meteredVariables,
         }
-        const result = await callPIM({
+        const result = await context.callPIM({
           query: `
             mutation CREATE_SUBSCRIPTION_PLAN ($input: CreateSubscriptionPlanInput!) {
               subscriptionPlan {
@@ -118,5 +120,5 @@ export async function setSubscriptionPlans({
     progress: 1,
   })
 
-  return await getExistingSubscriptionPlans()
+  return await getExistingSubscriptionPlans(context)
 }

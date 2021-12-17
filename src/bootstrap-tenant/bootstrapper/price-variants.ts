@@ -2,11 +2,13 @@ import { PriceVariant } from '../../types'
 import { buildCreatePriceVariantMutation } from '../../graphql'
 
 import { JsonSpec, JSONPriceVariant as JsonPriceVariant } from '../json-spec'
-import { callPIM, getTenantId, AreaUpdate } from './utils'
+import { AreaUpdate, BootstrapperContext } from './utils'
 
-export async function getExistingPriceVariants(): Promise<PriceVariant[]> {
-  const tenantId = getTenantId()
-  const r = await callPIM({
+export async function getExistingPriceVariants(
+  context: BootstrapperContext
+): Promise<PriceVariant[]> {
+  const tenantId = context.tenantId
+  const r = await context.callPIM({
     query: `
       query GET_TENANT_PRICE_VARIANTS($tenantId: ID!) {
         priceVariant {
@@ -29,14 +31,16 @@ export async function getExistingPriceVariants(): Promise<PriceVariant[]> {
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
+  context: BootstrapperContext
 }
 
 export async function setPriceVariants({
   spec,
   onUpdate,
+  context,
 }: Props): Promise<JsonPriceVariant[]> {
   // Get all the price variants from the tenant
-  const existingPriceVariants = await getExistingPriceVariants()
+  const existingPriceVariants = await getExistingPriceVariants(context)
 
   if (!spec?.priceVariants) {
     return existingPriceVariants
@@ -54,13 +58,13 @@ export async function setPriceVariants({
       message: `Adding ${missingPriceVariants.length} price variant(s)...`,
     })
 
-    const tenantId = getTenantId()
+    const tenantId = context.tenantId
 
     let finished = 0
 
     await Promise.all(
       missingPriceVariants.map(async (priceVariant) => {
-        const result = await callPIM({
+        const result = await context.callPIM({
           query: buildCreatePriceVariantMutation({
             tenantId,
             identifier: priceVariant.identifier,

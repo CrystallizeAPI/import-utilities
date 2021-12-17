@@ -1,3 +1,4 @@
+import { BootstrapperContext } from '.'
 import { PriceVariant } from '../../../generated/graphql'
 import {
   JSONComponentContent,
@@ -14,7 +15,6 @@ import {
   JSONProductVariantSubscriptionPlanMeteredVariableTier,
   JSONTopic,
 } from '../../json-spec'
-import { callCatalogue } from './api'
 
 function handleImage(image: any) {
   return {
@@ -116,12 +116,13 @@ export interface ItemsCreateSpecOptions {
 
 export async function getAllCatalogueItems(
   language: string,
+  context: BootstrapperContext,
   options?: ItemsCreateSpecOptions
 ): Promise<JSONItem[]> {
   const version = options?.version || 'draft'
 
   async function getItem(path: string): Promise<JSONItem | null> {
-    const itemResponse = await callCatalogue({
+    const itemResponse = await context.callCatalogue({
       query: GET_ITEM_QUERY,
       variables: {
         language,
@@ -188,7 +189,7 @@ export async function getAllCatalogueItems(
 
       async function crawlChildren() {
         const pageSize = 1000
-        const pageResponse = await callCatalogue({
+        const pageResponse = await context.callCatalogue({
           query: GET_ITEM_CHILDREN_PAGE,
           variables: {
             language,
@@ -306,7 +307,7 @@ export async function getAllCatalogueItems(
 
   const allCatalogueItems: JSONItem[] = []
 
-  const rootItemsResponse = await callCatalogue({
+  const rootItemsResponse = await context.callCatalogue({
     query: GET_ROOT_ITEMS_QUERY,
     variables: {
       language,

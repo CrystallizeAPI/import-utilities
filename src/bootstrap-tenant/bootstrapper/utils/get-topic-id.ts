@@ -1,6 +1,6 @@
-import { getTenantId } from '.'
+import { BootstrapperContext } from '.'
 import { JSONItemTopic } from '../../json-spec'
-import { callPIM, IcallAPI, IcallAPIResult } from './api'
+import { IcallAPI, IcallAPIResult } from './api'
 
 const cache = new Map()
 
@@ -14,9 +14,10 @@ export async function getTopicId(props: {
   topic: JSONItemTopic
   language: string
   useCache: boolean
+  context: BootstrapperContext
   apiFn?: ApiFN
 }): Promise<string | null> {
-  const { topic, language, useCache, apiFn = callPIM } = props
+  const { topic, language, useCache, context, apiFn = context.callPIM } = props
   let searchTerm: string | undefined = ''
 
   if (typeof topic === 'string') {
@@ -53,7 +54,7 @@ export async function getTopicId(props: {
         }
     `,
     variables: {
-      tenantId: getTenantId(),
+      tenantId: context.tenantId,
       language,
       searchTerm,
     },
@@ -84,15 +85,19 @@ export async function getTopicIds({
   topics,
   language,
   useCache = true,
-  apiFn = callPIM,
+  context,
+  apiFn = context.callPIM,
 }: {
   topics: JSONItemTopic[]
   language: string
   useCache?: boolean
+  context: BootstrapperContext
   apiFn?: ApiFN
 }): Promise<string[]> {
   const ids = await Promise.all(
-    topics.map((topic) => getTopicId({ topic, language, useCache, apiFn }))
+    topics.map((topic) =>
+      getTopicId({ topic, language, useCache, context, apiFn })
+    )
   )
 
   return ids.filter(Boolean) as string[]

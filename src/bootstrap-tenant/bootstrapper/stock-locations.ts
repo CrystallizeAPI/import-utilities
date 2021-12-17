@@ -2,11 +2,13 @@ import { StockLocation } from '../../types'
 import { buildCreateStockLocationMutation } from '../../graphql'
 
 import { JsonSpec, JSONStockLocation as JsonStockLocation } from '../json-spec'
-import { callPIM, getTenantId, AreaUpdate } from './utils'
+import { AreaUpdate, BootstrapperContext } from './utils'
 
-export async function getExistingStockLocations(): Promise<StockLocation[]> {
-  const tenantId = getTenantId()
-  const r = await callPIM({
+export async function getExistingStockLocations(
+  context: BootstrapperContext
+): Promise<StockLocation[]> {
+  const tenantId = context.tenantId
+  const r = await context.callPIM({
     query: `
       query GET_TENANT_STOCK_LOCATIONS($tenantId: ID!) {
         stockLocation {
@@ -32,14 +34,16 @@ export async function getExistingStockLocations(): Promise<StockLocation[]> {
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
+  context: BootstrapperContext
 }
 
 export async function setStockLocations({
   spec,
   onUpdate,
+  context,
 }: Props): Promise<JsonStockLocation[]> {
   // Get all the stock locations from the tenant
-  const existingStockLocations = await getExistingStockLocations()
+  const existingStockLocations = await getExistingStockLocations(context)
 
   if (!spec?.stockLocations) {
     return existingStockLocations
@@ -57,13 +61,13 @@ export async function setStockLocations({
       message: `Adding ${missingStockLocations.length} stock location(s)...`,
     })
 
-    const tenantId = getTenantId()
+    const tenantId = context.tenantId
 
     let finished = 0
 
     await Promise.all(
       missingStockLocations.map(async (stockLocation) => {
-        const result = await callPIM({
+        const result = await context.callPIM({
           query: buildCreateStockLocationMutation({
             tenantId,
             identifier: stockLocation.identifier,

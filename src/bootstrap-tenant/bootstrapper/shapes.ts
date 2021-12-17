@@ -5,13 +5,14 @@ import {
 } from '../../graphql'
 
 import { JsonSpec } from '../json-spec'
-import { callPIM, getTenantId, AreaUpdate, validShapeIdentifier } from './utils'
+import { AreaUpdate, BootstrapperContext, validShapeIdentifier } from './utils'
 import { EnumType } from 'json-to-graphql-query'
 
 export async function getExistingShapesForSpec(
+  context: BootstrapperContext,
   onUpdate: (t: AreaUpdate) => any
 ): Promise<Shape[]> {
-  const existingShapes = await getExistingShapes()
+  const existingShapes = await getExistingShapes(context)
 
   function handleComponent(cmp: any) {
     const base: Component = {
@@ -66,9 +67,11 @@ export async function getExistingShapesForSpec(
   })
 }
 
-async function getExistingShapes(): Promise<Shape[]> {
-  const tenantId = getTenantId()
-  const r = await callPIM({
+async function getExistingShapes(
+  context: BootstrapperContext
+): Promise<Shape[]> {
+  const tenantId = context.tenantId
+  const r = await context.callPIM({
     query: `
       query GET_TENANT_SHAPES($tenantId: ID!) {
         shape {
@@ -221,10 +224,11 @@ function buildComponentConfigInput(component: Component) {
 async function createOrUpdateShape(
   shape: Shape,
   existingShapes: Shape[],
-  onUpdate: (t: AreaUpdate) => {}
+  onUpdate: (t: AreaUpdate) => {},
+  context: BootstrapperContext
 ): Promise<string> {
   try {
-    const tenantId = getTenantId()
+    const tenantId = context.tenantId
     const existingShape = existingShapes.find(
       (s) => s.identifier === shape.identifier
     )
@@ -259,7 +263,7 @@ async function createOrUpdateShape(
         )
       }
 
-      const r = await callPIM({
+      const r = await context.callPIM({
         query: buildUpdateShapeMutation({
           id: identifier,
           identifier,
@@ -275,12 +279,12 @@ async function createOrUpdateShape(
         return 'updated'
       }
     } else {
-      const r = await callPIM({
+      const r = await context.callPIM({
         query: buildCreateShapeMutation({
           identifier: shape.identifier,
           type: getShapeType(shape.type),
           name: shape.name,
-          tenantId: getTenantId(),
+          tenantId: context.tenantId,
           components,
         }),
       })
@@ -298,11 +302,16 @@ async function createOrUpdateShape(
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
+  context: BootstrapperContext
 }
 
-export async function setShapes({ spec, onUpdate }: Props): Promise<Shape[]> {
+export async function setShapes({
+  spec,
+  onUpdate,
+  context,
+}: Props): Promise<Shape[]> {
   // Get all the shapes from the tenant
-  const existingShapes = await getExistingShapes()
+  const existingShapes = await getExistingShapes(context)
 
   if (!spec?.shapes) {
     return existingShapes
@@ -311,7 +320,12 @@ export async function setShapes({ spec, onUpdate }: Props): Promise<Shape[]> {
   let finished = 0
   for (let i = 0; i < spec.shapes.length; i++) {
     const shape = spec.shapes[i]
-    const result = await createOrUpdateShape(shape, existingShapes, onUpdate)
+    const result = await createOrUpdateShape(
+      shape,
+      existingShapes,
+      onUpdate,
+      context
+    )
     finished++
     onUpdate({
       progress: finished / spec.shapes.length,
@@ -323,5 +337,5 @@ export async function setShapes({ spec, onUpdate }: Props): Promise<Shape[]> {
     progress: 1,
   })
 
-  return await getExistingShapes()
+  return await getExistingShapes(context)
 }

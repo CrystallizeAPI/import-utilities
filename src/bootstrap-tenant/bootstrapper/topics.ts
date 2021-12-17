@@ -2,15 +2,7 @@ import { TopicInput } from '../../types'
 import { buildCreateTopicMutation } from '../../graphql'
 
 import { JsonSpec, JSONTopic } from '../json-spec'
-import {
-  callPIM,
-  getTenantId,
-  getTranslation,
-  AreaUpdate,
-  BootstrapperContext,
-  callCatalogue,
-  sleep,
-} from './utils'
+import { getTranslation, AreaUpdate, BootstrapperContext, sleep } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
 import { getTopicId } from './utils/get-topic-id'
@@ -24,9 +16,10 @@ export function removeTopicId(topic: JSONTopic): JSONTopic {
 }
 
 export async function getAllTopicsForSpec(
-  language: string
+  language: string,
+  context: BootstrapperContext
 ): Promise<JSONTopic[]> {
-  const tenantId = getTenantId()
+  const tenantId = context.tenantId
 
   async function getTopicChildren(
     id: string
@@ -37,7 +30,7 @@ export async function getAllTopicsForSpec(
       path: string
     }[]
   > {
-    const response = await callPIM({
+    const response = await context.callPIM({
       query: `
         query GET_TOPIC($id: ID!, $language: String!) {
           topic {
@@ -84,7 +77,7 @@ export async function getAllTopicsForSpec(
     return topic
   }
 
-  const responseForRootTopics = await callPIM({
+  const responseForRootTopics = await context.callPIM({
     query: `
       query GET_TENANT_ROOT_TOPICS($tenantId: ID!, $language: String!) {
         topic {
@@ -122,8 +115,12 @@ export async function getAllTopicsForSpec(
   return topicMaps
 }
 
-function prepareTopicForInput(topic: JSONTopic, language: string): TopicInput {
-  const tenantId = getTenantId()
+function prepareTopicForInput(
+  topic: JSONTopic,
+  language: string,
+  context: BootstrapperContext
+): TopicInput {
+  const tenantId = context.tenantId
   function translateChild(t: JSONTopic): TopicChildInput {
     return {
       name: getTranslation(t.name, language) || '',
@@ -164,7 +161,11 @@ async function createTopic(
    */
   const { children, ...topicWithoutChildren } = topic
 
-  const preparedTopic = prepareTopicForInput(topicWithoutChildren, language)
+  const preparedTopic = prepareTopicForInput(
+    topicWithoutChildren,
+    language,
+    context
+  )
   if (parentId) {
     preparedTopic.parentId = parentId
   } else if (topic.path) {
@@ -178,6 +179,7 @@ async function createTopic(
         path: parentPath,
       },
       language: context.defaultLanguage.code,
+      context,
       useCache: false,
     })
     if (id) {
@@ -186,7 +188,7 @@ async function createTopic(
   }
 
   // Create the topic
-  const response = await callPIM({
+  const response = await context.callPIM({
     query: buildCreateTopicMutation(preparedTopic, language, {
       name: true,
       id: true,
@@ -215,7 +217,7 @@ async function createTopic(
 
     if (level.id) {
       topicsToUpdate.push(
-        callPIM({
+        context.callPIM({
           query: buildUpdateTopicMutation({
             id: level.id,
             language,
@@ -270,6 +272,7 @@ export async function setTopics({
       const existingTopicId = await getTopicId({
         topic: level.path ? { path: level.path } : level.name,
         language,
+        context,
         useCache: false,
       })
 
@@ -283,11 +286,12 @@ export async function setTopics({
       } else {
         const preparedTopic = prepareTopicForInput(
           level,
-          context.defaultLanguage.code
+          context.defaultLanguage.code,
+          context
         )
 
         // Update topic
-        await callPIM({
+        await context.callPIM({
           query: `
             mutation UPDATE_TOPIC_NAME($id: ID!, $language: String!, $input: UpdateTopicInput!) {
               topic {

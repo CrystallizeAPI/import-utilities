@@ -36,3 +36,63 @@ export const buildUpdateItemMutation = (
 
   return jsonToGraphQLQuery(mutation)
 }
+
+export function buildUpdateItemQueryAndVariables(
+  id: string,
+  input: UpdateItemInput,
+  type: ItemType,
+  language: string
+): { query: string; variables: Record<string, any> } {
+  let inputType:
+    | 'UpdateDocumentInput'
+    | 'UpdateFolderInput'
+    | 'UpdateProductInput'
+  let topFieldName: 'document' | 'folder' | 'product'
+
+  switch (type) {
+    case ItemType.Document: {
+      inputType = 'UpdateDocumentInput'
+      topFieldName = 'document'
+      break
+    }
+    case ItemType.Folder: {
+      inputType = 'UpdateFolderInput'
+      topFieldName = 'folder'
+      break
+    }
+    case ItemType.Product: {
+      inputType = 'UpdateProductInput'
+      topFieldName = 'product'
+      break
+    }
+    default: {
+      throw new Error(`Update item failed. Type "${type}" is not supported`)
+    }
+  }
+
+  const components = input.components || {}
+  let variables = {
+    id,
+    language,
+    input: {
+      ...input,
+      components: Object.keys(components).map((componentId: string) => ({
+        ...components[componentId],
+        componentId,
+      })),
+    },
+  }
+
+  return {
+    query: `
+      mutation UPDATE_ITEM ($id: ID!, $language: String!, $input: ${inputType}!) {
+        ${topFieldName} {
+          update (id: $id, language: $language, input: $input) {
+            id
+          }
+        }
+      }
+    `,
+    variables,
+  }
+}

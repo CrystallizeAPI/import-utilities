@@ -1,8 +1,27 @@
 import test from 'ava'
-import { IcallAPI, IcallAPIResult } from '.'
+import {
+  BootstrapperContext,
+  FileUploadManager,
+  IcallAPI,
+  IcallAPIResult,
+} from '.'
 import { getTopicId, getTopicIds } from './get-topic-id'
 
-function apiFn(props: IcallAPI): Promise<IcallAPIResult> {
+const context: BootstrapperContext = {
+  defaultLanguage: { code: 'en', name: 'en' },
+  tenantId: '',
+  tenantIdentifier: '',
+  languages: [],
+  config: {},
+  useReferenceCache: false,
+  itemJSONCataloguePathToIDMap: new Map(),
+  fileUploader: new FileUploadManager(),
+  uploadFileFromUrl: () => Promise.resolve(null),
+  callCatalogue: () => Promise.resolve({ data: {} }),
+  callPIM: apiFn,
+}
+
+function apiFn(): Promise<IcallAPIResult> {
   return Promise.resolve({
     data: {
       search: {
@@ -24,6 +43,7 @@ test('get single topic id', async (t) => {
     topic: { path: '/my-topic' },
     language: 'en',
     useCache: false,
+    context,
     apiFn,
   })
   t.is(got, '123-my-topic', 'the topic id should match ')
@@ -34,6 +54,7 @@ test('get multiple topic ids', async (t) => {
     topics: [{ path: '/my-topic' }, { path: '/my-other-topic' }],
     language: 'en',
     useCache: false,
+    context,
     apiFn,
   })
   t.deepEqual(
@@ -48,6 +69,7 @@ test('get multiple topic ids and one 404', async (t) => {
     topics: [{ path: '/my-topic' }, { path: '/topic-that-does-not-exist' }],
     language: 'en',
     useCache: false,
+    context,
     apiFn,
   })
 
