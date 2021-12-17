@@ -26,11 +26,10 @@ import {
   VideosComponentContentInput,
 } from '../../types'
 import {
-  buildCreateItemMutation,
-  buildUpdateItemMutation,
   buildMoveItemMutation,
   buildUpdateItemComponentMutation,
   buildCreateItemQueryAndVariables,
+  buildUpdateItemQueryAndVariables,
 } from '../../graphql'
 
 import {
@@ -63,14 +62,10 @@ import {
   JSONProductVariantStockLocations,
 } from '../json-spec'
 import {
-  callPIM,
-  getTenantId,
   getTranslation,
   AreaUpdate,
   BootstrapperContext,
-  uploadFileFromUrl,
   validShapeIdentifier,
-  fileUploader,
   ItemVersionDescription,
   getItemVersionsForLanguages,
   getItemId,
@@ -98,9 +93,11 @@ export interface Props {
   context: BootstrapperContext
 }
 
-async function getTenantRootItemId(): Promise<string> {
-  const tenantId = getTenantId()
-  const r = await callPIM({
+async function getTenantRootItemId(
+  context: BootstrapperContext
+): Promise<string> {
+  const tenantId = context.tenantId
+  const r = await context.callPIM({
     query: `
       query GET_TENANT_ROOT_ITEM_ID($tenantId: ID!) {
         tenant {
@@ -118,12 +115,16 @@ async function getTenantRootItemId(): Promise<string> {
   return r.data?.tenant?.get?.rootItemId || ''
 }
 
-function publishItem(language: string, id: string) {
+function publishItem(
+  language: string,
+  id: string,
+  context: BootstrapperContext
+) {
   if (!id) {
     return Promise.resolve()
   }
 
-  return callPIM({
+  return context.callPIM({
     query: `
       mutation PUBLISH_ITEM($id: ID!, $language: String!) {
         item {
@@ -205,13 +206,14 @@ function createRichTextInput(content: JSONRichText, language: string) {
 interface ICreateImagesInput {
   images: JSONImages
   language: string
+  context: BootstrapperContext
   onUpdate(t: AreaUpdate): any
 }
 
 async function createImagesInput(
   props: ICreateImagesInput
 ): Promise<ImageComponentContentInput[]> {
-  const { images, language, onUpdate } = props
+  const { images, language, onUpdate, context } = props
   const imgs: ImageComponentContentInput[] = []
 
   for (let i = 0; i < images.length; i++) {
@@ -220,7 +222,7 @@ async function createImagesInput(
 
     if (!key) {
       try {
-        const uploadResult = await uploadFileFromUrl(image.src)
+        const uploadResult = await context.uploadFileFromUrl(image.src)
         if (uploadResult) {
           key = uploadResult.key
           mimeType = uploadResult.mimeType
@@ -257,13 +259,14 @@ async function createImagesInput(
 interface ICreateVideosInput {
   videos: JSONVideos
   language: string
+  context: BootstrapperContext
   onUpdate(t: AreaUpdate): any
 }
 
 async function createVideosInput(
   props: ICreateVideosInput
 ): Promise<VideoContentInput[]> {
-  const { videos, language, onUpdate } = props
+  const { videos, language, context, onUpdate } = props
 
   const vids: VideoContentInput[] = []
 
@@ -273,7 +276,7 @@ async function createVideosInput(
 
     if (!key) {
       try {
-        const uploadResult = await uploadFileFromUrl(video.src)
+        const uploadResult = await context.uploadFileFromUrl(video.src)
         if (uploadResult) {
           key = uploadResult.key
 
@@ -299,6 +302,7 @@ async function createVideosInput(
             images: video.thumbnails,
             language,
             onUpdate,
+            context,
           }),
         }),
       })
@@ -313,13 +317,14 @@ interface ICreateComponentsInput {
   shape: Shape
   language: string
   grids: JSONGrid[]
+  context: BootstrapperContext
   onUpdate(t: AreaUpdate): any
 }
 
 async function createComponentsInput(
   props: ICreateComponentsInput
 ): Promise<Record<string, ComponentContentInput> | null | undefined> {
-  const { item, shape, language, grids, onUpdate } = props
+  const { item, shape, language, grids, context, onUpdate } = props
 
   /**
    * If you pass null, then we assume you want to
@@ -342,7 +347,8 @@ async function createComponentsInput(
 
   async function createComponentInput(
     componentDefinition: Component,
-    component: JSONComponentContent
+    component: JSONComponentContent,
+    context: BootstrapperContext
   ) {
     switch (componentDefinition?.type) {
       case 'boolean': {
@@ -417,7 +423,12 @@ async function createComponentsInput(
         const images = component as JSONImage[]
 
         const inp: ImagesComponentContentInput = {
-          images: await createImagesInput({ images, language, onUpdate }),
+          images: await createImagesInput({
+            images,
+            language,
+            onUpdate,
+            context,
+          }),
         }
 
         return inp
@@ -426,7 +437,12 @@ async function createComponentsInput(
         const videos = component as JSONVideo[]
 
         const inp: VideosComponentContentInput = {
-          videos: await createVideosInput({ videos, language, onUpdate }),
+          videos: await createVideosInput({
+            videos,
+            language,
+            onUpdate,
+            context,
+          }),
         }
         return inp
       }
@@ -474,10 +490,20 @@ async function createComponentsInput(
             },
             ...(body && { body: createRichTextInput(body, language) }),
             ...(images && {
-              images: await createImagesInput({ images, language, onUpdate }),
+              images: await createImagesInput({
+                images,
+                language,
+                context,
+                onUpdate,
+              }),
             }),
             ...(videos && {
-              videos: await createVideosInput({ videos, language, onUpdate }),
+              videos: await createVideosInput({
+                videos,
+                language,
+                context,
+                onUpdate,
+              }),
             }),
           })
         }
@@ -533,7 +559,8 @@ async function createComponentsInput(
 
         const content = await createComponentInput(
           selectedComponentDefinition,
-          choice[selectedComponentId]
+          choice[selectedComponentId],
+          context
         )
 
         const inp: ComponentChoiceComponentContentInput = {
@@ -593,7 +620,8 @@ async function createComponentsInput(
             if (selectedComponentDefinition) {
               const content: any = await createComponentInput(
                 selectedComponentDefinition,
-                chunk[componentId]
+                chunk[componentId],
+                context
               )
               if (content) {
                 newChunk.push({
@@ -635,7 +663,8 @@ async function createComponentsInput(
         if (component) {
           const content = await createComponentInput(
             componentDefinition,
-            component
+            component,
+            context
           )
 
           if (typeof content !== 'undefined') {
@@ -685,9 +714,10 @@ function getAllMediaUrls(items: JSONItem[]): string[] {
 
 async function getExistingTopicIdsForItem(
   itemId: string,
-  language: string
+  language: string,
+  context: BootstrapperContext
 ): Promise<string[]> {
-  const result = await callPIM({
+  const result = await context.callPIM({
     query: `
       query GET_ITEM_TOPICS ($itemId: ID!, $language: String!) {
         item {
@@ -895,19 +925,19 @@ export async function setItems({
     })
   }
 
-  const rootItemId = await getTenantRootItemId()
-  const allGrids = await getAllGrids(context.defaultLanguage.code)
+  const rootItemId = await getTenantRootItemId(context)
+  const allGrids = await getAllGrids(context.defaultLanguage.code, context)
 
   /**
    * First off, let's start uploading all the images
    * in parallel with all the other PIM mutations
    */
   const allMediaUrls = getAllMediaUrls(spec.items)
-  allMediaUrls.forEach(uploadFileFromUrl)
+  allMediaUrls.forEach(context.uploadFileFromUrl)
 
   // Pull the status every second
   const getFileuploaderStatusInterval = setInterval(() => {
-    const doneUploads = fileUploader.workerQueue.filter(
+    const doneUploads = context.fileUploader.workerQueue.filter(
       (u) => u.status !== 'not-started'
     )
     const progress = doneUploads.length / allMediaUrls.length
@@ -942,8 +972,7 @@ export async function setItems({
 
   async function createOrUpdateItem(
     item: JSONItem,
-    parentId: string,
-    isInParentChildrenArray?: boolean
+    parentId: string
   ): Promise<string | null> {
     // Create the object to store the component data in
     item._componentsData = {}
@@ -977,6 +1006,7 @@ export async function setItems({
         shape,
         language,
         grids: allGrids,
+        context,
         onUpdate,
       })
       item._topicsData = {}
@@ -985,16 +1015,17 @@ export async function setItems({
           topicIds: await getTopicIds({
             topics: item.topics || [],
             language: context.defaultLanguage.code,
+            context,
           }),
         }
       }
 
-      return callPIM(
+      return context.callPIM(
         buildCreateItemQueryAndVariables(
           {
             name: getTranslation(item.name, language) || '',
             shapeIdentifier: item.shape,
-            tenantId: getTenantId(),
+            tenantId: context.tenantId,
             ...(item.externalReference && {
               externalReference: item.externalReference,
             }),
@@ -1034,6 +1065,7 @@ export async function setItems({
         shape,
         language,
         grids: allGrids,
+        context,
         onUpdate,
       })
 
@@ -1049,15 +1081,19 @@ export async function setItems({
        */
       let existingProductVariants: undefined | ProductVariant[]
       if (shape?.type === 'product') {
-        existingProductVariants = await getProductVariants(language, itemId)
+        existingProductVariants = await getProductVariants(
+          language,
+          itemId,
+          context
+        )
       }
 
       /**
        * Start with the basic item information
        */
       updates.push(
-        callPIM({
-          query: buildUpdateItemMutation(
+        context.callPIM(
+          buildUpdateItemQueryAndVariables(
             itemId,
             {
               name: getTranslation(item.name, language) || '',
@@ -1074,8 +1110,8 @@ export async function setItems({
             },
             shape.type as ItemType,
             language
-          ),
-        })
+          )
+        )
       )
 
       /**
@@ -1090,7 +1126,7 @@ export async function setItems({
               item._componentsData?.[language][componentId]
 
             updates.push(
-              callPIM({
+              context.callPIM({
                 query: buildUpdateItemComponentMutation({
                   itemId,
                   language,
@@ -1208,6 +1244,7 @@ export async function setItems({
         variant.images = await createImagesInput({
           images: jsonVariant.images,
           language,
+          context,
           onUpdate,
         })
       }
@@ -1250,10 +1287,17 @@ export async function setItems({
 
       for (let i = 0; i < product.variants.length; i++) {
         const vr = product.variants[i]
-        const existingProductVariant = existingProductVariants?.find(
+        let existingProductVariant = existingProductVariants?.find(
           (v) =>
-            v.sku === vr.sku || v.externalReference === vr.externalReference
+            v.sku === vr.sku ||
+            (v.externalReference &&
+              v.externalReference === vr.externalReference)
         )
+        if (!existingProductVariant && vr.externalReference) {
+          existingProductVariant = existingProductVariants?.find(
+            (v) => v.externalReference === vr.externalReference
+          )
+        }
         const variant = await createProductVariant(
           vr,
           language,
@@ -1291,6 +1335,7 @@ export async function setItems({
       topicIds: await getTopicIds({
         topics: item.topics || [],
         language: context.defaultLanguage.code,
+        context,
       }),
     }
 
@@ -1299,27 +1344,24 @@ export async function setItems({
         versionsInfo = await getItemVersionsForLanguages({
           itemId,
           languages: context.languages.map((l) => l.code),
+          context,
         })
       }
 
       if (item._options?.moveToRoot) {
         if (item._parentId !== rootItemId) {
-          await callPIM({
+          await context.callPIM({
             query: buildMoveItemMutation(itemId, {
               parentId: rootItemId,
             }),
           })
         }
-      } else if (
-        item._exists &&
-        // (item.parentExternalReference || isInParentChildrenArray) &&
-        item._parentId !== parentId
-      ) {
+      } else if (item._exists && item._parentId !== parentId) {
         /**
          * Move the item if it is a part of a children array,
          * or if item.parentExternalReference is passed
          */
-        await callPIM({
+        await context.callPIM({
           query: buildMoveItemMutation(itemId, {
             parentId,
           }),
@@ -1330,7 +1372,8 @@ export async function setItems({
       if (context.config.itemTopics === 'amend') {
         const existingTopicIds = await getExistingTopicIdsForItem(
           itemId,
-          context.defaultLanguage.code
+          context.defaultLanguage.code,
+          context
         )
 
         item._topicsData.topicIds = Array.from(
@@ -1392,7 +1435,7 @@ export async function setItems({
     const passedPublishConfig = item._options?.publish
     if (typeof passedPublishConfig === 'boolean') {
       if (passedPublishConfig) {
-        await publishItem(context.defaultLanguage.code, itemId)
+        await publishItem(context.defaultLanguage.code, itemId, context)
       }
     } else if (
       context.config.itemPublish === 'publish' ||
@@ -1400,7 +1443,7 @@ export async function setItems({
       versionsInfo[context.defaultLanguage.code] ===
         ItemVersionDescription.Published
     ) {
-      await publishItem(context.defaultLanguage.code, itemId)
+      await publishItem(context.defaultLanguage.code, itemId, context)
     }
 
     // Create for remaining languages
@@ -1414,25 +1457,21 @@ export async function setItems({
       const passedPublishConfig = item._options?.publish
       if (typeof passedPublishConfig === 'boolean') {
         if (passedPublishConfig) {
-          await publishItem(remainingLanguages[i], itemId)
+          await publishItem(remainingLanguages[i], itemId, context)
         }
       } else if (
         context.config.itemPublish === 'publish' ||
         !versionsInfo ||
         versionsInfo[remainingLanguages[i]] === ItemVersionDescription.Published
       ) {
-        await publishItem(remainingLanguages[i], itemId)
+        await publishItem(remainingLanguages[i], itemId, context)
       }
     }
 
     return itemId
   }
 
-  async function handleItem(
-    item: JSONItem,
-    parentId?: string,
-    isInParentChildrenArray?: boolean
-  ) {
+  async function handleItem(item: JSONItem, parentId?: string) {
     if (!item) {
       return
     }
@@ -1442,7 +1481,7 @@ export async function setItems({
       cataloguePath: item.cataloguePath,
       context,
       language: context.defaultLanguage.code,
-      tenantId: getTenantId(),
+      tenantId: context.tenantId,
       shapeIdentifier: item.shape,
     })
 
@@ -1454,7 +1493,7 @@ export async function setItems({
         externalReference: item.parentExternalReference,
         context,
         language: context.defaultLanguage.code,
-        tenantId: getTenantId(),
+        tenantId: context.tenantId,
       })
       parentId = parentItemAndParentId.itemId
     }
@@ -1462,11 +1501,7 @@ export async function setItems({
     // If the item exists in Crystallize already
     item._exists = Boolean(item.id)
 
-    item.id = (await createOrUpdateItem(
-      item,
-      parentId || rootItemId,
-      isInParentChildrenArray
-    )) as string
+    item.id = (await createOrUpdateItem(item, parentId || rootItemId)) as string
 
     finishedItems++
     onUpdate({
@@ -1493,7 +1528,7 @@ export async function setItems({
 
         if (itm.children) {
           await Promise.all(
-            itm.children.map((child) => handleItem(child, itm.id, true))
+            itm.children.map((child) => handleItem(child, itm.id))
           )
         }
       }
@@ -1533,7 +1568,7 @@ export async function setItems({
               cataloguePath: itemRelation.cataloguePath,
               context,
               language: context.defaultLanguage.code,
-              tenantId: getTenantId(),
+              tenantId: context.tenantId,
             })
 
             if (itemId) {
@@ -1553,6 +1588,7 @@ export async function setItems({
         versionsInfo = await getItemVersionsForLanguages({
           languages: context.languages.map((l) => l.code),
           itemId: item.id,
+          context,
         })
       }
 
@@ -1662,7 +1698,7 @@ export async function setItems({
 
             // Update the component
             if (mutationInput) {
-              const r = await callPIM({
+              const r = await context.callPIM({
                 query: `
                   mutation UPDATE_RELATIONS_COMPONENT($itemId: ID!, $language: String!, $input: ComponentInput!) {
                     item {
@@ -1694,7 +1730,7 @@ export async function setItems({
           versionsInfo &&
           versionsInfo[language] === ItemVersionDescription.Published
         ) {
-          await publishItem(language, item.id as string)
+          await publishItem(language, item.id as string, context)
         }
       }
     }
@@ -1717,7 +1753,7 @@ export async function setItems({
 
   for (let i = 0; i < spec.items.length; i++) {
     try {
-      await handleItem(spec.items[i], rootItemId, false)
+      await handleItem(spec.items[i], rootItemId)
     } catch (e) {
       console.log(e)
       onUpdate({

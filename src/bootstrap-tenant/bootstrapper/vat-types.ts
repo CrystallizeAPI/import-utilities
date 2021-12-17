@@ -2,11 +2,13 @@ import { VatType } from '../../types'
 import { buildCreateVatTypeMutation } from '../../graphql'
 
 import { JsonSpec } from '../json-spec'
-import { callPIM, getTenantId, AreaUpdate } from './utils'
+import { AreaUpdate, BootstrapperContext } from './utils'
 
-export async function getExistingVatTypes(): Promise<VatType[]> {
-  const tenantId = getTenantId()
-  const r = await callPIM({
+export async function getExistingVatTypes(
+  context: BootstrapperContext
+): Promise<VatType[]> {
+  const tenantId = context.tenantId
+  const r = await context.callPIM({
     query: `
       query GET_TENANT_VAT_TYPES($tenantId: ID!) {
         tenant {
@@ -32,14 +34,16 @@ export async function getExistingVatTypes(): Promise<VatType[]> {
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
+  context: BootstrapperContext
 }
 
 export async function setVatTypes({
   spec,
+  context,
   onUpdate,
 }: Props): Promise<VatType[]> {
   // Get all the vat types from the tenant
-  const existingVatTypes = await getExistingVatTypes()
+  const existingVatTypes = await getExistingVatTypes(context)
 
   if (!spec?.vatTypes) {
     onUpdate({
@@ -58,13 +62,13 @@ export async function setVatTypes({
       message: `Adding ${missingVatTypes.length} vatType(s)...`,
     })
 
-    const tenantId = getTenantId()
+    const tenantId = context.tenantId
 
     let finished = 0
 
     await Promise.all(
       missingVatTypes.map(async (vatType) => {
-        const result = await callPIM({
+        const result = await context.callPIM({
           query: buildCreateVatTypeMutation({
             input: {
               tenantId,
@@ -87,5 +91,5 @@ export async function setVatTypes({
     progress: 1,
   })
 
-  return await getExistingVatTypes()
+  return getExistingVatTypes(context)
 }

@@ -9,8 +9,8 @@ import { v4 as uuid } from 'uuid'
 // @ts-ignore
 import m3u8ToMp4 from 'm3u8-to-mp4'
 
-import { callPIM } from './api'
 import execa from 'execa'
+import { BootstrapperContext } from '.'
 
 export const ffmpegAvailable = new Promise(async (resolve) => {
   try {
@@ -106,15 +106,15 @@ export interface RemoteFileUploadResult {
 
 export async function remoteFileUpload(
   fileUrl: string,
-  tenantId: string
+  context: BootstrapperContext
 ): Promise<RemoteFileUploadResult | null> {
   try {
     const { file, contentType, filename } = await downloadFile(fileUrl)
 
     // Create the signature required to do an upload
-    const signedUploadResponse = await callPIM({
+    const signedUploadResponse = await context.callPIM({
       variables: {
-        tenantId,
+        tenantId: context.tenantId,
         filename,
         contentType,
       },
@@ -168,7 +168,7 @@ export async function remoteFileUpload(
       mimeType: contentType as string,
       key: attrs.find((a: any) => a.name === 'Key').value,
     }
-  } catch {
+  } catch (e) {
     return null
   }
 }

@@ -2,30 +2,6 @@ import fetch from 'node-fetch'
 import { v4 as uuid } from 'uuid'
 import { LogLevel } from './types'
 
-let CRYSTALLIZE_ACCESS_TOKEN_ID = ''
-let CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
-let CRYSTALLIZE_STATIC_AUTH_TOKEN = ''
-let CRYSTALLIZE_TENANT_IDENTIFIER = ''
-
-export function setTenantIdentifier(identifier: string) {
-  CRYSTALLIZE_TENANT_IDENTIFIER = identifier
-}
-
-export function setAccessTokens(id?: string, secret?: string) {
-  if (!id) {
-    throw new Error('Missing CRYSTALLIZE_ACCESS_TOKEN_ID')
-  }
-  if (!secret) {
-    throw new Error('Missing CRYSTALLIZE_ACCESS_TOKEN_SECRET')
-  }
-  CRYSTALLIZE_ACCESS_TOKEN_ID = id
-  CRYSTALLIZE_ACCESS_TOKEN_SECRET = secret
-}
-
-export function setStaticToken(token: string) {
-  CRYSTALLIZE_STATIC_AUTH_TOKEN = token
-}
-
 export interface IcallAPI {
   query: string
   variables?: any
@@ -50,12 +26,15 @@ interface QueuedRequest {
 
 type errorNotifierFn = (args: { error: string }) => void
 
-class ApiManager {
+export class ApiManager {
   queue: QueuedRequest[] = []
   url: string = ''
   maxWorkers: number = 5
   errorNotifier: errorNotifierFn
   logLevel: LogLevel = 'silent'
+  CRYSTALLIZE_ACCESS_TOKEN_ID = ''
+  CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
+  CRYSTALLIZE_STATIC_AUTH_TOKEN = ''
 
   constructor(url: string) {
     this.url = url
@@ -72,8 +51,8 @@ class ApiManager {
     this.logLevel = level
   }
 
-  push(props: IcallAPI): Promise<IcallAPIResult> {
-    return new Promise((resolve) => {
+  push = (props: IcallAPI) => {
+    return new Promise<IcallAPIResult>((resolve) => {
       this.queue.push({
         id: uuid(),
         resolve,
@@ -123,9 +102,10 @@ class ApiManager {
         method: 'post',
         headers: {
           'content-type': 'application/json',
-          'X-Crystallize-Access-Token-Id': CRYSTALLIZE_ACCESS_TOKEN_ID,
-          'X-Crystallize-Access-Token-Secret': CRYSTALLIZE_ACCESS_TOKEN_SECRET,
-          'X-Crystallize-Static-Auth-Token': CRYSTALLIZE_STATIC_AUTH_TOKEN,
+          'X-Crystallize-Access-Token-Id': this.CRYSTALLIZE_ACCESS_TOKEN_ID,
+          'X-Crystallize-Access-Token-Secret': this
+            .CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+          'X-Crystallize-Static-Auth-Token': this.CRYSTALLIZE_STATIC_AUTH_TOKEN,
         },
         body: JSON.stringify(item.props),
       })
@@ -194,51 +174,20 @@ class ApiManager {
   }
 }
 
-const urls = {
-  catalogue:
-    process.env.CRYSTALLIZE_ENV === 'dev'
-      ? 'api-dev.crystallize.digital'
-      : 'api.crystallize.com',
-  pim:
-    process.env.CRYSTALLIZE_ENV === 'dev'
-      ? 'pim-dev.crystallize.digital'
-      : 'pim.crystallize.com',
-}
-
-const MyPIMApiManager = new ApiManager(`https://${urls.pim}/graphql`)
-
-export function callPIM(props: IcallAPI) {
-  return MyPIMApiManager.push(props)
-}
-
-export function setErrorNotifier(fn: errorNotifierFn) {
-  MyPIMApiManager.setErrorNotifier(fn)
-}
-export function setLogLevel(level?: LogLevel) {
-  if (level) {
-    MyPIMApiManager.setLogLevel(level)
-  }
-}
-
-let MyCatalogueApiManager: ApiManager
-let MyCatalogueApiManagerTenantIdentifier = ''
-export function callCatalogue(props: IcallAPI) {
-  if (
-    !MyCatalogueApiManager ||
-    MyCatalogueApiManagerTenantIdentifier !== CRYSTALLIZE_TENANT_IDENTIFIER
-  ) {
-    MyCatalogueApiManagerTenantIdentifier = CRYSTALLIZE_TENANT_IDENTIFIER
-    MyCatalogueApiManager = new ApiManager(
-      `https://${urls.catalogue}/${CRYSTALLIZE_TENANT_IDENTIFIER}/catalogue`
-    )
+export function createAPICaller({
+  uri,
+  errorNotifier,
+  logLevel,
+}: {
+  uri: string
+  errorNotifier: errorNotifierFn
+  logLevel?: LogLevel
+}) {
+  const manager = new ApiManager(uri)
+  manager.errorNotifier = errorNotifier
+  if (logLevel) {
+    manager.logLevel = logLevel
   }
 
-  if (MyCatalogueApiManager.errorNotifier !== MyPIMApiManager.errorNotifier) {
-    MyCatalogueApiManager.errorNotifier = MyPIMApiManager.errorNotifier
-  }
-  if (MyCatalogueApiManager.logLevel !== MyPIMApiManager.logLevel) {
-    MyCatalogueApiManager.setLogLevel(MyPIMApiManager.logLevel)
-  }
-
-  return MyCatalogueApiManager.push(props)
+  return manager
 }

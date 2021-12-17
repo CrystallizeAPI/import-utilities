@@ -7,18 +7,14 @@ import { JsonSpec } from '../json-spec'
 
 export * from './utils'
 import {
-  callPIM,
   EVENT_NAMES,
-  setAccessTokens,
-  setTenantId,
-  setTenantIdentifier,
-  setStaticToken,
   AreaUpdate,
   BootstrapperContext,
   AreaWarning,
   Config,
-  setErrorNotifier,
-  setLogLevel,
+  ApiManager,
+  sleep,
+  FileUploadManager,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -39,7 +35,7 @@ import {
   getExistingSubscriptionPlans,
   setSubscriptionPlans,
 } from './subscription-plans'
-import { SubscriptionPeriodUnit } from '../../generated/graphql'
+import { createAPICaller, IcallAPI, IcallAPIResult } from './utils/api'
 
 export interface ICreateSpec {
   shapes: boolean
@@ -93,11 +89,12 @@ function defaultAreaStatus(): AreaStatus {
 }
 
 export class Bootstrapper extends EventEmitter {
-  CRYSTALLIZE_ACCESS_TOKEN_ID: string = ''
-  CRYSTALLIZE_ACCESS_TOKEN_SECRET: string = ''
   SPEC: JsonSpec | null = null
-  // tenantId: string = ''
-  tenantIdentifier: string = ''
+
+  #tenantBasics: Promise<boolean> | null = null
+
+  PIMAPIManager: ApiManager | null = null
+  catalogueAPIManager: ApiManager | null = null
 
   context: BootstrapperContext = {
     defaultLanguage: { code: 'en', name: 'English' },
@@ -115,6 +112,15 @@ export class Bootstrapper extends EventEmitter {
      * the current spec and their (possible) item id
      */
     itemJSONCataloguePathToIDMap: new Map(),
+
+    tenantId: '',
+    tenantIdentifier: '',
+
+    fileUploader: new FileUploadManager(),
+    uploadFileFromUrl: (url: string) =>
+      this.context.fileUploader.uploadFromUrl(url),
+    callPIM: () => Promise.resolve({ data: {} }),
+    callCatalogue: () => Promise.resolve({ data: {} }),
   }
 
   config: Config = {
@@ -138,60 +144,104 @@ export class Bootstrapper extends EventEmitter {
 
   getStatus = () => this.status
 
-  setAccessToken = setAccessTokens
+  setAccessToken = (ACCESS_TOKEN_ID: string, ACCESS_TOKEN_SECRET: string) => {
+    this.PIMAPIManager = createAPICaller({
+      uri: `https://${
+        process.env.CRYSTALLIZE_ENV === 'dev'
+          ? 'pim-dev.crystallize.digital'
+          : 'pim.crystallize.com'
+      }/graphql`,
+      errorNotifier: ({ error }) => {
+        this.emit(EVENT_NAMES.ERROR, { error })
+      },
+    })
+
+    this.PIMAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = ACCESS_TOKEN_ID
+    this.PIMAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET
+
+    this.context.callPIM = this.PIMAPIManager.push
+  }
 
   setSpec(spec: JsonSpec) {
     this.SPEC = spec
   }
 
-  setTenantIdentifier(tenantIdentifier: string) {
-    this.tenantIdentifier = tenantIdentifier
-    setTenantIdentifier(this.tenantIdentifier)
+  setTenantIdentifier = async (tenantIdentifier: string) => {
+    this.context.tenantIdentifier = tenantIdentifier
+    return this.getTenantBasics()
   }
 
   constructor() {
     super()
     clearTopicCache()
     clearItemCache()
-
-    setErrorNotifier(({ error }) => {
-      this.emit(EVENT_NAMES.ERROR, { error })
-    })
   }
 
-  async getTenantBasics() {
-    const r = await callPIM({
-      query: `
-        {
-          me {
-            tenants {
-              tenant {
+  getTenantBasics = async () => {
+    if (this.#tenantBasics) {
+      return this.#tenantBasics
+    }
+
+    this.#tenantBasics = new Promise(async (resolve, reject) => {
+      /**
+       * Allow for access tokens to be set synchronosly after the
+       * the setTenantIdentifier is set
+       */
+      await sleep(5)
+
+      const r = await this.context.callPIM({
+        query: `
+          {
+            tenant {
+              get(identifier: "${this.context.tenantIdentifier}") {
                 id
                 identifier
                 staticAuthToken
               }
             }
           }
+        `,
+      })
+
+      const tenant = r?.data?.tenant?.get
+
+      if (!tenant) {
+        const error = `⛔️ You do not have access to tenant "${this.context.tenantIdentifier}" ⛔️`
+        this.emit(EVENT_NAMES.ERROR, { error })
+        reject(`
+
+${error}
+`)
+      } else {
+        this.context.tenantId = tenant.id
+        this.context.fileUploader.context = this.context
+
+        this.catalogueAPIManager = createAPICaller({
+          uri: `https://${
+            process.env.CRYSTALLIZE_ENV === 'dev'
+              ? 'api-dev.crystallize.digital'
+              : 'api.crystallize.com'
+          }/${this.context.tenantIdentifier}/catalogue`,
+          errorNotifier: ({ error }) => {
+            this.emit(EVENT_NAMES.ERROR, { error })
+          },
+          logLevel: this.config.logLevel,
+        })
+        this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
+          tenant.staticAuthToken
+        this.context.callCatalogue = this.catalogueAPIManager.push
+
+        // Set log level late so that we'll catch late changes to the config
+        if (this.PIMAPIManager && this.config.logLevel) {
+          this.PIMAPIManager.logLevel = this.config.logLevel
         }
-      `,
+
+        resolve(true)
+      }
     })
-
-    const tenant = r?.data?.me?.tenants?.find(
-      (t: { tenant: { identifier: string } }) =>
-        t.tenant.identifier === this.tenantIdentifier
-    )?.tenant
-
-    if (!tenant) {
-      throw new Error(`No access to tenant "${this.tenantIdentifier}"`)
-    }
-
-    setTenantId(tenant.id)
-    setStaticToken(tenant.staticAuthToken)
   }
 
   async createSpec(props: ICreateSpec = createSpecDefaults): Promise<JsonSpec> {
-    setLogLevel(this.config.logLevel)
-
     function removeIds(o: any) {
       if (o && typeof o === 'object') {
         delete o.id
@@ -203,129 +253,146 @@ export class Bootstrapper extends EventEmitter {
       return o
     }
 
-    await this.getTenantBasics()
-
     const spec: JsonSpec = {}
 
-    const tenantLanguageSettings = await getTenantSettings()
+    try {
+      await this.getTenantBasics()
 
-    // Languages
-    const availableLanguages = tenantLanguageSettings.availableLanguages.map(
-      (l) => ({
-        code: l.code,
-        name: l.name,
-        isDefault: l.code === tenantLanguageSettings.defaultLanguage,
-      })
-    )
-    if (!availableLanguages.some((l) => l.isDefault)) {
-      availableLanguages[0].isDefault = true
-    }
-    const defaultLanguage =
-      availableLanguages.find((s) => s.isDefault)?.code || 'en'
+      const tenantLanguageSettings = await getTenantSettings(this.context)
 
-    if (props.languages) {
-      spec.languages = availableLanguages
-    }
+      // Languages
+      const availableLanguages = tenantLanguageSettings.availableLanguages.map(
+        (l) => ({
+          code: l.code,
+          name: l.name,
+          isDefault: l.code === tenantLanguageSettings.defaultLanguage,
+        })
+      )
+      if (!availableLanguages.some((l) => l.isDefault)) {
+        availableLanguages[0].isDefault = true
+      }
+      const defaultLanguage =
+        availableLanguages.find((s) => s.isDefault)?.code || 'en'
 
-    // VAT types
-    if (props.vatTypes) {
-      spec.vatTypes = await getExistingVatTypes()
-      spec.vatTypes.forEach((v) => {
-        delete v.id
-        // @ts-ignore
-        delete v.tenantId
-      })
-    }
-
-    // Subscription plans
-    if (props.subscriptionPlans) {
-      const subscriptionPlans = await getExistingSubscriptionPlans()
-
-      // @ts-ignore
-      spec.subscriptionPlans = subscriptionPlans.map((s) => ({
-        identifier: s.identifier,
-        name: s.name || '',
-        meteredVariables:
-          s.meteredVariables?.map((m) => ({
-            identifier: m.identifier,
-            name: m.name || '',
-            unit: m.unit,
-          })) || [],
-        periods:
-          s.periods?.map((p) => ({
-            name: p.name || '',
-            initial: removeIds(p.initial),
-            recurring: removeIds(p.recurring),
-          })) || [],
-      }))
-    }
-
-    // Price variants
-    const priceVariants = await getExistingPriceVariants()
-    if (props.priceVariants) {
-      spec.priceVariants = priceVariants
-    }
-
-    // Topic maps (in just 1 language right now)
-    const allTopicsWithIds = await getAllTopicsForSpec(defaultLanguage)
-    if (props.topicMaps) {
-      spec.topicMaps = allTopicsWithIds.map(removeTopicId)
-    }
-
-    // Shapes
-    if (props.shapes) {
-      spec.shapes = await getExistingShapesForSpec(props.onUpdate)
-    }
-
-    // Grids
-    if (props.grids) {
-      spec.grids = await getAllGrids(defaultLanguage)
-    }
-
-    // Items
-    if (props.items) {
-      const options: ItemsCreateSpecOptions = { basePath: '/' }
-
-      if (typeof props.items !== 'boolean') {
-        const optionsOverride = props.items
-        Object.assign(options, optionsOverride)
+      if (props.languages) {
+        spec.languages = availableLanguages
       }
 
-      spec.items = await getAllCatalogueItems(defaultLanguage, options)
-      spec.items.forEach((i: any) => {
-        function handleLevel(a: any) {
-          if (a && typeof a === 'object') {
-            if ('subscriptionPlans' in a && 'sku' in a) {
-              removeIds(a.subscriptionPlans)
-            } else {
-              Object.values(a).forEach(handleLevel)
-            }
-          } else if (Array.isArray(a)) {
-            a.forEach(handleLevel)
-          }
+      // VAT types
+      if (props.vatTypes) {
+        spec.vatTypes = await getExistingVatTypes(this.context)
+        spec.vatTypes.forEach((v) => {
+          delete v.id
+          // @ts-ignore
+          delete v.tenantId
+        })
+      }
+
+      // Subscription plans
+      if (props.subscriptionPlans) {
+        const subscriptionPlans = await getExistingSubscriptionPlans(
+          this.context
+        )
+
+        // @ts-ignore
+        spec.subscriptionPlans = subscriptionPlans.map((s) => ({
+          identifier: s.identifier,
+          name: s.name || '',
+          meteredVariables:
+            s.meteredVariables?.map((m) => ({
+              identifier: m.identifier,
+              name: m.name || '',
+              unit: m.unit,
+            })) || [],
+          periods:
+            s.periods?.map((p) => ({
+              name: p.name || '',
+              initial: removeIds(p.initial),
+              recurring: removeIds(p.recurring),
+            })) || [],
+        }))
+      }
+
+      // Price variants
+      const priceVariants = await getExistingPriceVariants(this.context)
+      if (props.priceVariants) {
+        spec.priceVariants = priceVariants
+      }
+
+      // Topic maps (in just 1 language right now)
+      const allTopicsWithIds = await getAllTopicsForSpec(
+        defaultLanguage,
+        this.context
+      )
+      if (props.topicMaps) {
+        spec.topicMaps = allTopicsWithIds.map(removeTopicId)
+      }
+
+      // Shapes
+      if (props.shapes) {
+        spec.shapes = await getExistingShapesForSpec(
+          this.context,
+          props.onUpdate
+        )
+      }
+
+      // Grids
+      if (props.grids) {
+        spec.grids = await getAllGrids(defaultLanguage, this.context)
+      }
+
+      // Items
+      if (props.items) {
+        const options: ItemsCreateSpecOptions = { basePath: '/' }
+
+        if (typeof props.items !== 'boolean') {
+          const optionsOverride = props.items
+          Object.assign(options, optionsOverride)
         }
 
-        handleLevel(i)
+        spec.items = await getAllCatalogueItems(
+          defaultLanguage,
+          this.context,
+          options
+        )
+        spec.items.forEach((i: any) => {
+          function handleLevel(a: any) {
+            if (a && typeof a === 'object') {
+              if ('subscriptionPlans' in a && 'sku' in a) {
+                removeIds(a.subscriptionPlans)
+              } else {
+                Object.values(a).forEach(handleLevel)
+              }
+            } else if (Array.isArray(a)) {
+              a.forEach(handleLevel)
+            }
+          }
+
+          handleLevel(i)
+        })
+      }
+
+      // Stock locations
+      if (props.stockLocations) {
+        spec.stockLocations = await getExistingStockLocations(this.context)
+      }
+    } catch (e) {
+      this.emit(EVENT_NAMES.ERROR, {
+        error: JSON.stringify(e, null, 1),
       })
     }
 
-    // Stock locations
-    if (props.stockLocations) {
-      spec.stockLocations = await getExistingStockLocations()
-    }
     return spec
   }
 
   async start() {
     try {
-      setLogLevel(this.config.logLevel)
+      await this.getTenantBasics()
 
       // Store the config in the context for easy access
       this.context.config = this.config
 
       const start = new Date()
-
-      await this.getTenantBasics()
 
       await this.setLanguages()
       await this.setPriceVariants()
@@ -346,7 +413,11 @@ export class Bootstrapper extends EventEmitter {
         end,
         duration: new Duration(start, end).toString(1),
       })
-    } catch (e) {}
+    } catch (e) {
+      this.emit(EVENT_NAMES.ERROR, {
+        error: JSON.stringify(e, null, 1),
+      })
+    }
   }
   private areaUpdate(
     statusArea:
@@ -386,6 +457,7 @@ export class Bootstrapper extends EventEmitter {
   async setLanguages() {
     const languages = await setLanguages({
       spec: this.SPEC,
+      context: this.context,
       onUpdate: (stepStatus: AreaUpdate) => {
         this.emit(EVENT_NAMES.LANGUAGES_UPDATE, stepStatus)
         this.areaUpdate('languages', stepStatus)
@@ -415,6 +487,7 @@ export class Bootstrapper extends EventEmitter {
   async setShapes() {
     this.context.shapes = await setShapes({
       spec: this.SPEC,
+      context: this.context,
       onUpdate: (areaUpdate: AreaUpdate) => {
         this.emit(EVENT_NAMES.SHAPES_UPDATE, areaUpdate)
         this.areaUpdate('shapes', areaUpdate)
@@ -426,6 +499,7 @@ export class Bootstrapper extends EventEmitter {
   async setPriceVariants() {
     this.context.priceVariants = await setPriceVariants({
       spec: this.SPEC,
+      context: this.context,
       onUpdate: (areaUpdate: AreaUpdate) => {
         this.emit(EVENT_NAMES.PRICE_VARIANTS_UPDATE, areaUpdate)
         this.areaUpdate('priceVariants', areaUpdate)
@@ -436,6 +510,7 @@ export class Bootstrapper extends EventEmitter {
   async setSubscriptionPlans() {
     this.context.subscriptionPlans = await setSubscriptionPlans({
       spec: this.SPEC,
+      context: this.context,
       onUpdate: (areaUpdate: AreaUpdate) => {
         this.emit(EVENT_NAMES.SUBSCRIPTION_PLANS_UPDATE, areaUpdate)
         this.areaUpdate('subscriptionPlans', areaUpdate)
@@ -446,6 +521,7 @@ export class Bootstrapper extends EventEmitter {
   async setVatTypes() {
     this.context.vatTypes = await setVatTypes({
       spec: this.SPEC,
+      context: this.context,
       onUpdate: (areaUpdate: AreaUpdate) => {
         this.emit(EVENT_NAMES.VAT_TYPES_UPDATE, areaUpdate)
         this.areaUpdate('vatTypes', areaUpdate)
@@ -498,6 +574,7 @@ export class Bootstrapper extends EventEmitter {
   async setStockLocations() {
     this.context.stockLocations = await setStockLocations({
       spec: this.SPEC,
+      context: this.context,
       onUpdate: (areaUpdate: AreaUpdate) => {
         this.emit(EVENT_NAMES.STOCK_LOCATIONS_UPDATE, areaUpdate)
         this.areaUpdate('stockLocations', areaUpdate)

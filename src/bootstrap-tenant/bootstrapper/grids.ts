@@ -3,9 +3,7 @@ import { buildUpdateGridMutation } from '../../graphql/build-update-grid-mutatio
 import { GridRow } from '../../types'
 import { JSONGrid, JsonSpec } from '../json-spec'
 import {
-  callPIM,
   getItemId,
-  getTenantId,
   getTranslation,
   AreaUpdate,
   BootstrapperContext,
@@ -34,7 +32,7 @@ async function setItemIds(
             cataloguePath: column.item?.cataloguePath,
             context,
             language: context.defaultLanguage.code,
-            tenantId: getTenantId(),
+            tenantId: context.tenantId,
           })
           if (itemId) {
             column.itemId = itemId
@@ -53,11 +51,11 @@ async function createGrid(
 ): Promise<string | null> {
   await setItemIds(grid, language, context)
 
-  const r = await callPIM({
+  const r = await context.callPIM({
     query: buildCreateGridMutation({
       language,
       input: {
-        tenantId: getTenantId(),
+        tenantId: context.tenantId,
         name: getTranslation(grid.name, language),
         rows: grid.rows as GridRow[],
       },
@@ -77,7 +75,7 @@ async function updateGrid(
   }
 
   await setItemIds(grid, language, context)
-  const r = await callPIM({
+  const r = await context.callPIM({
     query: buildUpdateGridMutation({
       id: grid.id,
       language,
@@ -91,8 +89,12 @@ async function updateGrid(
   return r.data?.grid?.update?.id || null
 }
 
-async function publishGrid(id: string, language: string) {
-  return callPIM({
+async function publishGrid(
+  id: string,
+  language: string,
+  context: BootstrapperContext
+) {
+  return context.callPIM({
     query: `
       mutation ($id: ID!, $language: String!) {
         grid {
@@ -118,7 +120,7 @@ export async function setGrids(props: ISetGrids) {
 
   const language = context.defaultLanguage.code
 
-  const existingGrids = await getAllGrids(language)
+  const existingGrids = await getAllGrids(language, context)
   const missingGrids: JSONGrid[] = []
 
   // Determine missing grids by matching the name
@@ -138,7 +140,7 @@ export async function setGrids(props: ISetGrids) {
       if (id) {
         grid.id = id
 
-        await publishGrid(id, language)
+        await publishGrid(id, language, context)
         finishedGrids++
         onUpdate({
           progress: finishedGrids / missingGrids.length,
@@ -159,7 +161,7 @@ export async function setGrids(props: ISetGrids) {
           jsonGrid.id = existingGrid.id
           if (jsonGrid.id) {
             await updateGrid(jsonGrid, language, context)
-            await publishGrid(jsonGrid.id, language)
+            await publishGrid(jsonGrid.id, language, context)
           }
         }
       })

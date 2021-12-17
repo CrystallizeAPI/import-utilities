@@ -1,16 +1,18 @@
 import { buildCreateLanguageMutation } from '../../graphql'
 
 import { JsonSpec, JSONLanguage } from '../json-spec'
-import { callPIM, getTenantId, AreaUpdate } from './utils'
+import { AreaUpdate, BootstrapperContext } from './utils'
 
 interface TenantSettings {
   availableLanguages: JSONLanguage[]
   defaultLanguage?: string
 }
 
-export async function getTenantSettings(): Promise<TenantSettings> {
-  const tenantId = getTenantId()
-  const r = await callPIM({
+export async function getTenantSettings(
+  context: BootstrapperContext
+): Promise<TenantSettings> {
+  const tenantId = context.tenantId
+  const r = await context.callPIM({
     query: `
       query GET_TENANT_LANGUAGES($tenantId: ID!) {
         tenant {
@@ -51,13 +53,15 @@ export async function getTenantSettings(): Promise<TenantSettings> {
 export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
+  context: BootstrapperContext
 }
 
 export async function setLanguages({
   spec,
   onUpdate,
+  context,
 }: Props): Promise<JSONLanguage[]> {
-  const tenantSettings = await getTenantSettings()
+  const tenantSettings = await getTenantSettings(context)
 
   const existingLanguages = tenantSettings.availableLanguages
 
@@ -76,11 +80,11 @@ export async function setLanguages({
       progress: 0,
     })
 
-    const tenantId = getTenantId()
+    const tenantId = context.tenantId
 
     await Promise.all(
       missingLanguages.map(async (language) => {
-        const result = await callPIM({
+        const result = await context.callPIM({
           query: buildCreateLanguageMutation({
             tenantId,
             input: {
@@ -112,12 +116,12 @@ export async function setLanguages({
   }
 
   if (defaultLanguage !== tenantSettings.defaultLanguage) {
-    const result = await callPIM({
+    const result = await context.callPIM({
       query: `
         mutation {
           tenant {
             update(
-              id: "${getTenantId()}"
+              id: "${context.tenantId}"
               input: {
                 defaults: {
                   language: "${defaultLanguage}"

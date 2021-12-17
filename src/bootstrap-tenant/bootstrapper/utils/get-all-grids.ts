@@ -1,6 +1,5 @@
-import { getTenantId } from '.'
+import { BootstrapperContext } from '.'
 import { JSONGrid } from '../../json-spec'
-import { callPIM } from './api'
 
 const QUERY = `
 query GET_GRIDS($tenantId: ID!, $language: String!) {
@@ -30,12 +29,15 @@ query GET_GRIDS($tenantId: ID!, $language: String!) {
 }
 `
 
-export async function getAllGrids(language: string): Promise<JSONGrid[]> {
-  const response = await callPIM({
+export async function getAllGrids(
+  language: string,
+  context: BootstrapperContext
+): Promise<JSONGrid[]> {
+  const response = await context.callPIM({
     query: QUERY,
     variables: {
       language,
-      tenantId: getTenantId(),
+      tenantId: context.tenantId,
     },
   })
 

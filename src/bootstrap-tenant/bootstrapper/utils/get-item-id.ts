@@ -1,5 +1,4 @@
 import { BootstrapperContext } from '.'
-import { callCatalogue, callPIM } from './api'
 
 const cache = new Map()
 
@@ -32,21 +31,23 @@ export async function getItemId(props: {
   let idAndParent: ItemAndParentId = {}
 
   if (externalReference) {
-    idAndParent = await getItemIdFromExternalReference(
+    idAndParent = await getItemIdFromExternalReference({
       externalReference,
       language,
       tenantId,
-      context.useReferenceCache,
-      shapeIdentifier
-    )
+      useCache: context.useReferenceCache,
+      shapeIdentifier,
+      context,
+    })
   }
 
   if (!idAndParent.itemId && cataloguePath) {
-    idAndParent = await getItemIdFromCataloguePath(
-      cataloguePath,
+    idAndParent = await getItemIdFromCataloguePath({
+      path: cataloguePath,
       language,
-      context.useReferenceCache
-    )
+      useCache: context.useReferenceCache,
+      context,
+    })
 
     if (!idAndParent.itemId) {
       idAndParent =
@@ -57,13 +58,21 @@ export async function getItemId(props: {
   return idAndParent
 }
 
-async function getItemIdFromExternalReference(
-  externalReference: string,
-  language: string,
-  tenantId: string,
-  useCache: boolean,
+async function getItemIdFromExternalReference({
+  externalReference,
+  language,
+  tenantId,
+  useCache,
+  shapeIdentifier,
+  context,
+}: {
+  externalReference: string
+  language: string
+  tenantId: string
+  useCache: boolean
+  context: BootstrapperContext
   shapeIdentifier?: string
-): Promise<ItemAndParentId> {
+}): Promise<ItemAndParentId> {
   if (useCache) {
     const cacheItem = cache.get(`externalReference:${externalReference}`)
     if (cacheItem) {
@@ -71,7 +80,7 @@ async function getItemIdFromExternalReference(
     }
   }
 
-  const response = await callPIM({
+  const response = await context.callPIM({
     query: `
       query GET_ID_FROM_EXTERNAL_REFERENCE(
         $externalReferences: [String!]
@@ -120,11 +129,17 @@ async function getItemIdFromExternalReference(
   return idAndParent
 }
 
-async function getItemIdFromCataloguePath(
-  path: string,
-  language: string,
+async function getItemIdFromCataloguePath({
+  path,
+  language,
+  useCache,
+  context,
+}: {
+  path: string
+  language: string
   useCache: boolean
-): Promise<ItemAndParentId> {
+  context: BootstrapperContext
+}): Promise<ItemAndParentId> {
   if (useCache) {
     const cacheItem = cache.get(`path:${path}`)
     if (cacheItem) {
@@ -132,7 +147,7 @@ async function getItemIdFromCataloguePath(
     }
   }
 
-  const response = await callCatalogue({
+  const response = await context.callCatalogue({
     query: `
       query GET_ID_FROM_PATH ($path: String, $language: String) {
         catalogue(path: $path, language: $language) {

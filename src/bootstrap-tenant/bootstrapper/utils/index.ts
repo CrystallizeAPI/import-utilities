@@ -6,7 +6,7 @@ import {
   JSONVatType,
   JSONStockLocation,
 } from '../../json-spec'
-import { callPIM } from './api'
+import { IcallAPI, IcallAPIResult } from './api'
 import { ItemAndParentId } from './get-item-id'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
 import { LogLevel } from './types'
@@ -62,6 +62,8 @@ export interface Config {
 }
 
 export interface BootstrapperContext {
+  tenantId: string
+  tenantIdentifier: string
   defaultLanguage: JSONLanguage
   languages: JSONLanguage[]
   shapes?: Shape[]
@@ -72,15 +74,10 @@ export interface BootstrapperContext {
   useReferenceCache: boolean
   stockLocations?: JSONStockLocation[]
   itemJSONCataloguePathToIDMap: Map<string, ItemAndParentId>
-}
-
-let tenantId = ''
-export function setTenantId(id: string) {
-  tenantId = id
-}
-
-export function getTenantId() {
-  return tenantId
+  fileUploader: FileUploadManager
+  uploadFileFromUrl: (url: string) => Promise<RemoteFileUploadResult | null>
+  callPIM: (props: IcallAPI) => Promise<IcallAPIResult>
+  callCatalogue: (props: IcallAPI) => Promise<IcallAPIResult>
 }
 
 export function getTranslation(translation?: any, language?: string): string {
@@ -107,16 +104,21 @@ type fileUploadQueueItem = {
   reject: (r: any) => void
 }
 
-class FileUploadManager {
+export class FileUploadManager {
   uploads: uploadFileRecord[] = []
   maxWorkers: number = 2
   workerQueue: fileUploadQueueItem[] = []
+  context?: BootstrapperContext
 
   constructor() {
     setInterval(() => this.work(), 5)
   }
 
   async work() {
+    if (!this.context) {
+      return
+    }
+
     const currentWorkers = this.workerQueue.filter(
       (q) => q.status === 'working'
     ).length
@@ -137,7 +139,7 @@ class FileUploadManager {
     item.status = 'working'
 
     try {
-      const result = await remoteFileUpload(item.url, getTenantId())
+      const result = await remoteFileUpload(item.url, this.context)
       item.resolve(result)
       removeWorker(item)
     } catch (e) {
@@ -183,14 +185,6 @@ class FileUploadManager {
   }
 }
 
-export const fileUploader = new FileUploadManager()
-
-export function uploadFileFromUrl(
-  url: string
-): Promise<RemoteFileUploadResult | null> {
-  return fileUploader.uploadFromUrl(url)
-}
-
 export function validShapeIdentifier(
   str: string,
   onUpdate: (t: AreaUpdate) => any
@@ -211,6 +205,7 @@ export function validShapeIdentifier(
 interface IgetItemVersionInfo {
   language: string
   itemId: string
+  context: BootstrapperContext
 }
 
 export enum ItemVersionDescription {
@@ -222,8 +217,9 @@ export enum ItemVersionDescription {
 async function getItemVersionInfo({
   language,
   itemId,
+  context,
 }: IgetItemVersionInfo): Promise<ItemVersionDescription> {
-  const result = await callPIM({
+  const result = await context.callPIM({
     query: `
       query GET_ITEM_VERSION_INFO ($itemId: ID!, $language: String!) {
         item {
@@ -274,11 +270,13 @@ async function getItemVersionInfo({
 interface IgetItemVersionsForLanguages {
   languages: string[]
   itemId: string
+  context: BootstrapperContext
 }
 
 export async function getItemVersionsForLanguages({
   languages,
   itemId,
+  context,
 }: IgetItemVersionsForLanguages): Promise<
   Record<string, ItemVersionDescription>
 > {
@@ -289,6 +287,7 @@ export async function getItemVersionsForLanguages({
       itemVersionsForLanguages[language] = await getItemVersionInfo({
         language,
         itemId,
+        context,
       })
     })
   )
