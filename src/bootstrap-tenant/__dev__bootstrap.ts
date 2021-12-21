@@ -10,12 +10,12 @@ import { Bootstrapper, EVENT_NAMES, Status } from './bootstrapper'
 async function bootstrap() {
   try {
     const tenantIdentifier = 'photo-hkn'
-    const jsonSpec = JSON.parse(
-      await readFile(
-        resolve(__dirname, '../../json-spec/photofinder.json'),
-        'utf-8'
-      )
-    )
+    // const jsonSpec = JSON.parse(
+    //   await readFile(
+    //     resolve(__dirname, '../../json-spec/photofinder.json'),
+    //     'utf-8'
+    //   )
+    // )
 
     if (
       !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -37,7 +37,14 @@ async function bootstrap() {
       process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
     )
 
-    bootstrapper.setSpec(jsonSpec)
+    bootstrapper.setSpec({
+      topicMaps: [
+        {
+          name: 'Homy',
+          path: '/type/home',
+        },
+      ],
+    })
 
     // const ProgressBar = new Progress.MultiBar({
     //   clearOnComplete: false,

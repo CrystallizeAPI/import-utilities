@@ -345,10 +345,6 @@ export async function setTopics({
 
   for (let i = 0; i < spec.topicMaps.length; i++) {
     await handleLevel(spec.topicMaps[i])
-
-    // Sleep for 5 seconds between each top level map
-    // We can remove this once we can get topics using path/language in PIM
-    await sleep(5000)
   }
 
   onUpdate({
