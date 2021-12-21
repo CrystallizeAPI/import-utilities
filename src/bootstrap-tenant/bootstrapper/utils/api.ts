@@ -110,12 +110,19 @@ export class ApiManager {
         body: JSON.stringify(item.props),
       })
 
-      json = await response.json()
-
-      // When failing, try again
       if (!response.ok) {
-        errorString = JSON.stringify(json, null, 1)
+        if (response.status === 403) {
+          this.errorNotifier({
+            error: await response.text(),
+          })
+          resolveWith({
+            data: null,
+            errors: [{ error: response.statusText }],
+          })
+        }
       }
+
+      json = await response.json()
     } catch (e) {
       errorString = JSON.stringify(e, null, 1)
     }

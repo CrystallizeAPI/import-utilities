@@ -210,10 +210,7 @@ export class Bootstrapper extends EventEmitter {
       if (!tenant) {
         const error = `⛔️ You do not have access to tenant "${this.context.tenantIdentifier}" ⛔️`
         this.emit(EVENT_NAMES.ERROR, { error })
-        reject(`
-
-${error}
-`)
+        reject()
       } else {
         this.context.tenantId = tenant.id
         this.context.fileUploader.context = this.context
