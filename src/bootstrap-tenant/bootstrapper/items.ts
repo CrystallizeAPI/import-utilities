@@ -1488,9 +1488,10 @@ export async function setItems({
     item.id = itemAndParentId.itemId
     item._parentId = itemAndParentId.parentId
 
-    if (item.parentExternalReference) {
+    if (item.parentExternalReference || item.parentCataloguePath) {
       const parentItemAndParentId = await getItemId({
         externalReference: item.parentExternalReference,
+        cataloguePath: item.parentCataloguePath,
         context,
         language: context.defaultLanguage.code,
         tenantId: context.tenantId,
