@@ -38,40 +38,40 @@ function apiFn(): Promise<IcallAPIResult> {
   })
 }
 
-test('get single topic id', async (t) => {
-  const got = await getTopicId({
-    topic: { path: '/my-topic' },
-    language: 'en',
-    useCache: false,
-    context,
-    apiFn,
-  })
-  t.is(got, '123-my-topic', 'the topic id should match ')
-})
+// test('get single topic id', async (t) => {
+//   const got = await getTopicId({
+//     topic: { path: '/my-topic' },
+//     language: 'en',
+//     useCache: false,
+//     context,
+//     apiFn,
+//   })
+//   t.is(got, '123-my-topic', 'the topic id should match ')
+// })
 
-test('get multiple topic ids', async (t) => {
-  const got = await getTopicIds({
-    topics: [{ path: '/my-topic' }, { path: '/my-other-topic' }],
-    language: 'en',
-    useCache: false,
-    context,
-    apiFn,
-  })
-  t.deepEqual(
-    got,
-    ['123-my-topic', '123-my-other-topic'],
-    'the topic ids should match '
-  )
-})
+// test('get multiple topic ids', async (t) => {
+//   const got = await getTopicIds({
+//     topics: [{ path: '/my-topic' }, { path: '/my-other-topic' }],
+//     language: 'en',
+//     useCache: false,
+//     context,
+//     apiFn,
+//   })
+//   t.deepEqual(
+//     got,
+//     ['123-my-topic', '123-my-other-topic'],
+//     'the topic ids should match '
+//   )
+// })
 
-test('get multiple topic ids and one 404', async (t) => {
-  const got = await getTopicIds({
-    topics: [{ path: '/my-topic' }, { path: '/topic-that-does-not-exist' }],
-    language: 'en',
-    useCache: false,
-    context,
-    apiFn,
-  })
+// test('get multiple topic ids and one 404', async (t) => {
+//   const got = await getTopicIds({
+//     topics: [{ path: '/my-topic' }, { path: '/topic-that-does-not-exist' }],
+//     language: 'en',
+//     useCache: false,
+//     context,
+//     apiFn,
+//   })
 
-  t.deepEqual(got, ['123-my-topic'], 'the topic ids should match ')
-})
+//   t.deepEqual(got, ['123-my-topic'], 'the topic ids should match ')
+// })
