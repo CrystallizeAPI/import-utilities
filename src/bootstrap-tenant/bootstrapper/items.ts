@@ -1032,7 +1032,7 @@ export async function setItems({
             tree: {
               parentId,
             },
-            ...item._topicsData,
+            ...(item.topics && item._topicsData),
             components: item._componentsData?.[language],
             ...(shape?.type === 'product' && {
               ...(await createProductItemMutation(language)),
@@ -1097,7 +1097,7 @@ export async function setItems({
             itemId,
             {
               name: getTranslation(item.name, language) || '',
-              ...item._topicsData,
+              ...(item.topics && item._topicsData),
               ...(shape?.type === 'product' && {
                 ...(await createProductItemMutation(
                   language,
@@ -1369,7 +1369,7 @@ export async function setItems({
       }
 
       // Merge in existing topic
-      if (context.config.itemTopics === 'amend') {
+      if (item.topics && context.config.itemTopics === 'amend') {
         const existingTopicIds = await getExistingTopicIdsForItem(
           itemId,
           context.defaultLanguage.code,
