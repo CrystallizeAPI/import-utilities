@@ -77,9 +77,6 @@ export class ApiManager {
 
     let json: IcallAPIResult | undefined
 
-    // Always sleep for some time between requests
-    await sleep(10)
-
     let errorString: string = ''
 
     const resolveWith = (response: IcallAPIResult) => {
