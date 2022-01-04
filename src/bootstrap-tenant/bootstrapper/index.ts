@@ -100,7 +100,9 @@ export class Bootstrapper extends EventEmitter {
   context: BootstrapperContext = {
     defaultLanguage: { code: 'en', name: 'English' },
     languages: [],
-    config: {},
+    config: {
+      experimental: {},
+    },
     /**
      * If it should allow for using cache when resolving
      * externalReference to item id, or topic paths to
@@ -128,6 +130,7 @@ export class Bootstrapper extends EventEmitter {
     itemTopics: 'amend',
     itemPublish: 'auto',
     logLevel: 'silent',
+    experimental: {},
   }
 
   status: Status = {

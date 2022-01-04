@@ -69,6 +69,7 @@ import {
   ItemVersionDescription,
   getItemVersionsForLanguages,
   getItemId,
+  chunkArray,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
@@ -1752,21 +1753,30 @@ export async function setItems({
     }
   }
 
-  for (let i = 0; i < spec.items.length; i++) {
-    try {
-      await handleItem(spec.items[i], rootItemId)
-    } catch (e) {
-      console.log(e)
-      onUpdate({
-        warning: {
-          code: 'CANNOT_HANDLE_ITEM',
-          message: `Skipping "${getTranslation(
-            spec.items[i].name,
-            context.defaultLanguage.code
-          )}"`,
-        },
+  const chunks = chunkArray({
+    array: spec.items,
+    chunkSize: context.config.experimental?.parallelize ? 5 : 1,
+  })
+
+  for (let i = 0; i < chunks.length; i++) {
+    await Promise.all(
+      chunks[i].map(async (c) => {
+        try {
+          await handleItem(c, rootItemId)
+        } catch (e) {
+          console.log(e)
+          onUpdate({
+            warning: {
+              code: 'CANNOT_HANDLE_ITEM',
+              message: `Skipping "${getTranslation(
+                c.name,
+                context.defaultLanguage.code
+              )}"`,
+            },
+          })
+        }
       })
-    }
+    )
   }
 
   /**

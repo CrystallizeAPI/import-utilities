@@ -59,6 +59,9 @@ export interface Config {
   itemTopics?: 'amend' | 'replace'
   itemPublish?: 'publish' | 'auto'
   logLevel?: LogLevel
+  experimental: {
+    parallelize?: boolean
+  }
 }
 
 export interface BootstrapperContext {
@@ -293,4 +296,27 @@ export async function getItemVersionsForLanguages({
   )
 
   return itemVersionsForLanguages
+}
+
+export function chunkArray<T>({
+  array,
+  chunkSize,
+}: {
+  array: T[]
+  chunkSize: number
+}): [T[]] {
+  return array.reduce(
+    (resultArray: [T[]], item, index) => {
+      const chunkIndex = Math.floor(index / chunkSize)
+
+      if (!resultArray[chunkIndex]) {
+        resultArray.push([])
+      }
+
+      resultArray[chunkIndex].push(item)
+
+      return resultArray
+    },
+    [[]]
+  )
 }
