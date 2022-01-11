@@ -59,6 +59,7 @@ export interface Config {
   itemTopics?: 'amend' | 'replace'
   itemPublish?: 'publish' | 'auto'
   logLevel?: LogLevel
+  multilingual?: boolean,
   experimental: {
     parallelize?: boolean
   }

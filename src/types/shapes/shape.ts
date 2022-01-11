@@ -4,6 +4,6 @@ export interface Shape {
   id?: string
   identifier: string
   name: string
-  type: string
+  type: 'document' | 'folder' | 'product'
   components?: Component[]
 }

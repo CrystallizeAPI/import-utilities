@@ -5,11 +5,10 @@ import {
   TierType,
 } from '../../generated/graphql'
 
-export type JSONTranslation =
-  | Record<string, string>
-  | Record<string, JSONRichTextStructured>
-  | string
+export type JSONStringTranslated = Record<string, string> | string
 
+// Deprecated. Keep export to not break existing usage
+export type JSONTranslation = JSONStringTranslated
 export interface JSONPriceVariant {
   identifier: string
   name: string
@@ -48,7 +47,7 @@ export interface JSONVatType {
 
 export interface JSONTopic {
   id?: string
-  name: JSONTranslation
+  name: JSONStringTranslated
   children?: JSONTopic[]
   parentId?: string
   path?: string
@@ -106,7 +105,9 @@ export interface JSONRichTextStructured {
   html?: string
   json?: RichTextNode | RichTextNode[]
 }
-export type JSONRichText = JSONRichTextStructured | string | null
+
+export type JSONRichText = JSONRichTextStructured | null
+export type JSONRichTextTranslated = JSONRichText | Record<string, JSONRichText>
 
 export interface JSONMedia {
   src: string
@@ -115,20 +116,21 @@ export interface JSONMedia {
 
 export interface JSONImage extends JSONMedia {
   mimeType?: string
-  altText?: string
-  caption?: JSONRichText
+  altText?: JSONStringTranslated
+  caption?: JSONRichTextTranslated
 }
 
 export interface JSONVideo extends JSONMedia {
-  title?: string
+  title?: JSONStringTranslated
   thumbnails?: JSONImage[]
 }
 
 export type JSONSingleLine = string
+export type JSONSingleLineTranslated = JSONStringTranslated
 
 export interface JSONParagraphCollection {
-  title?: string
-  body: JSONRichText
+  title?: JSONStringTranslated
+  body: JSONRichTextTranslated
   images?: JSONImages
   videos?: JSONVideos
 }
@@ -166,8 +168,8 @@ export type JSONSelection = string[] | string
 export type ComponentId = string
 
 export type JSONComponentContent =
-  | JSONSingleLine
-  | JSONRichText
+  | JSONSingleLineTranslated
+  | JSONRichTextTranslated
   | JSONParagraphCollection[]
   | JSONImages
   | JSONVideos
@@ -181,6 +183,7 @@ export type JSONComponentContent =
   | JSONContentChunk
   | JSONNumeric
   | null
+
 export type JSONComponents = Record<ComponentId, JSONComponentContent>
 export type JSONContentChunk = JSONComponents[]
 export type JSONComponentChoice = Record<string, JSONComponentContent>
@@ -195,7 +198,7 @@ export interface JSONItemBase {
   cataloguePath?: string
   externalReference?: string
   id?: string
-  name: JSONTranslation
+  name: JSONStringTranslated
   shape: string
   components?: Record<string, JSONComponentContent | JSONComponentChoice> | null
   topics?: JSONItemTopic[]
@@ -255,7 +258,7 @@ export interface JSONProductSubscriptionPlan {
 
 export interface JSONProductVariant {
   isDefault?: boolean
-  name: JSONTranslation
+  name: JSONStringTranslated
   sku: string
   price?: JSONProductVariantPriceVariants | number
   images?: JSONImage[]
@@ -285,14 +288,14 @@ export interface JSONGridRow {
 
 export interface JSONGrid {
   id?: string
-  name: JSONTranslation
+  name: JSONStringTranslated
   rows: JSONGridRow[]
 }
 
 export interface JSONShape {
   identifier: string
   name: string
-  type: string
+  type: 'document' | 'folder' | 'product'
   components?: JSONShapeComponent[]
 }
 
