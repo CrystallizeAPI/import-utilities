@@ -12,7 +12,8 @@ to:
 ---
 
 ```typescript
-const myBurgerShop = shapes: [
+const myBurgerShop = {
+  shapes: [
     {
       name: 'Ingredient',
       identifier: 'ingredient',
