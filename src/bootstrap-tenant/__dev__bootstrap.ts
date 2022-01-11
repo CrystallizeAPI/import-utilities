@@ -39,142 +39,75 @@ async function bootstrap() {
     )
 
     bootstrapper.setSpec({
-      languages: [
-        {
-          name: 'English',
-          code: 'en',
-          isDefault: true,
-        },
-        {
-          name: 'French',
-          code: 'fr',
-          isDefault: false,
-        },
-      ],
       shapes: [
         {
-          name: 'Example multilingual',
-          identifier: 'multilingual',
+          name: 'Ingredient',
+          identifier: 'ingredient',
           type: 'product',
-          components: [
-            {
-              name: 'single-line',
-              id: 'single-line',
-              type: 'singleLine',
-            },
-            {
-              name: 'rich-text',
-              id: 'rich-text',
-              type: 'richText',
-            },
-            {
-              name: 'images',
-              id: 'images',
-              type: 'images',
-            },
-            {
-              name: 'paragraph-collection',
-              id: 'paragraph-collection',
-              type: 'paragraphCollection',
-            },
-          ],
-        },
-      ],
-      vatTypes: [
-        {
-          name: 'No Tax',
-          percent: 0,
         },
       ],
       items: [
         {
-          name: {
-            en: 'Multilingual',
-            fr: 'Multilingue',
-          },
-          shape: 'multilingual',
-          externalReference: 'multilingual', // Overwrite existing item
+          name: 'Burger Bun',
+          shape: 'ingredient',
           vatType: 'No Tax',
           variants: [
             {
-              sku: 'multilingual-product',
-              name: {
-                en: 'Multilingual',
-                fr: 'Multilingue',
+              name: 'Regular burger bun',
+              sku: 'burger-bun-regular',
+              attributes: {
+                size: 'medium',
               },
               isDefault: true,
             },
           ],
-          components: {
-            'single-line': {
-              en: 'I am a single line',
-              fr: 'Je suis une seule ligne',
+        },
+        {
+          name: 'Burger patty',
+          shape: 'ingredient',
+          vatType: 'No Tax',
+          variants: [
+            {
+              name: 'Beef burger patty',
+              sku: 'burger-patty-beef',
+              isDefault: true,
+              price: {
+                eur: 5,
+              },
             },
-            'rich-text': {
-              en: {
-                html: '<p>Look at this <strong>rich</strong> text</p>',
-              },
-              fr: {
-                html: '<p>Regardez ce texte <strong>riche</strong></p>',
+            {
+              name: 'Vegan burger patty',
+              sku: 'burger-patty-vegan',
+              isDefault: false,
+              price: {
+                eur: 6,
               },
             },
-            images: [
-              {
-                src:
-                  'https://media.crystallize.com/crystallize_marketing/21/10/29/3/@500/headless_commerce_for_product_storytellers_crystallize.png',
-                altText: {
-                  en: 'Headless ecommerce in space',
-                  fr: "E-commerce sans tête dans l'espace",
-                },
-                caption: {
-                  en: {
-                    plainText: 'Illustration by Gina Kirlew',
-                  },
-                  fr: {
-                    plainText: 'Illustration par Gina Kirlew',
-                  },
-                },
+          ],
+        },
+        {
+          name: 'Cheddar cheese',
+          shape: 'ingredient',
+          vatType: 'No Tax',
+          variants: [
+            {
+              name: 'Standard cheddar cheese',
+              sku: 'cheddar-cheese-standard',
+              isDefault: true,
+              price: {
+                eur: 1,
               },
-            ] as JSONImages,
-            'paragraph-collection': [
-              {
-                title: {
-                  en: 'The first paragraph title',
-                  fr: 'Le titre du premier paragraphe',
-                },
-                body: {
-                  en: {
-                    html: '<p>The first paragraph body</p>',
-                  },
-                  fr: {
-                    html: '<p>Le corps du premier paragraphe</p>',
-                  },
-                },
-                images: [
-                  {
-                    src:
-                      'https://media.crystallize.com/crystallize_marketing/21/10/29/6/@500/semantic_pim_api.jpeg',
-                    altText: {
-                      en: 'Delivering pizza on a scooter',
-                      fr: 'Livrer des pizzas en scooter',
-                    },
-                    caption: {
-                      en: {
-                        plainText: 'Illustration by Gina Kirlew',
-                      },
-                      fr: {
-                        plainText: 'Illustration par Gina Kirlew',
-                      },
-                    },
-                  },
-                ],
+            },
+            {
+              name: 'Vegan cheddar cheese',
+              sku: 'cheddar-cheese-vegan',
+              isDefault: false,
+              price: {
+                eur: 1.5,
               },
-            ] as JSONParagraphCollection[],
-          },
-          _options: {
-            publish: true,
-          },
-        } as JSONProduct,
+            },
+          ],
+        },
       ],
     })
 

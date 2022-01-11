@@ -11,6 +11,80 @@ to:
 
 ---
 
+```typescript
+const myBurgerShop = shapes: [
+    {
+      name: 'Ingredient',
+      identifier: 'ingredient',
+      type: 'product',
+    },
+  ],
+  items: [
+    {
+      name: 'Burger Bun',
+      shape: 'ingredient',
+      vatType: 'No Tax',
+      variants: [
+        {
+          name: 'Regular burger bun',
+          sku: 'burger-bun-regular',
+          attributes: {
+            size: 'medium',
+          },
+          isDefault: true,
+        },
+      ],
+    },
+    {
+      name: 'Burger patty',
+      shape: 'ingredient',
+      vatType: 'No Tax',
+      variants: [
+        {
+          name: 'Beef burger patty',
+          sku: 'burger-patty-beef',
+          isDefault: true,
+          price: {
+            eur: 5,
+          },
+        },
+        {
+          name: 'Vegan burger patty',
+          sku: 'burger-patty-vegan',
+          isDefault: false,
+          price: {
+            eur: 6,
+          },
+        },
+      ],
+    },
+    {
+      name: 'Cheddar cheese',
+      shape: 'ingredient',
+      vatType: 'No Tax',
+      variants: [
+        {
+          name: 'Standard cheddar cheese',
+          sku: 'cheddar-cheese-standard',
+          isDefault: true,
+          price: {
+            eur: 1,
+          },
+        },
+        {
+          name: 'Vegan cheddar cheese',
+          sku: 'cheddar-cheese-vegan',
+          isDefault: false,
+          price: {
+            eur: 1.5,
+          },
+        },
+      ],
+    },
+  ],
+}
+```
+
 ## Creating a tenant specification
 
 The tenant specification describes how the tenant is configured, and can contain
