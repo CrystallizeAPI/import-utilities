@@ -6,10 +6,11 @@ import { resolve } from 'path'
 // import Progress from 'cli-progress'
 
 import { Bootstrapper, EVENT_NAMES, Status } from './bootstrapper'
+import { JSONImages, JSONParagraphCollection, JSONProduct } from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'photo-hkn'
+    const tenantIdentifier = 'hkn-examples'
     // const jsonSpec = JSON.parse(
     //   await readFile(
     //     resolve(__dirname, '../../json-spec/photofinder.json'),
@@ -38,11 +39,142 @@ async function bootstrap() {
     )
 
     bootstrapper.setSpec({
-      topicMaps: [
+      languages: [
         {
-          name: 'Homy',
-          path: '/type/home',
+          name: 'English',
+          code: 'en',
+          isDefault: true,
         },
+        {
+          name: 'French',
+          code: 'fr',
+          isDefault: false,
+        },
+      ],
+      shapes: [
+        {
+          name: 'Example multilingual',
+          identifier: 'multilingual',
+          type: 'product',
+          components: [
+            {
+              name: 'single-line',
+              id: 'single-line',
+              type: 'singleLine',
+            },
+            {
+              name: 'rich-text',
+              id: 'rich-text',
+              type: 'richText',
+            },
+            {
+              name: 'images',
+              id: 'images',
+              type: 'images',
+            },
+            {
+              name: 'paragraph-collection',
+              id: 'paragraph-collection',
+              type: 'paragraphCollection',
+            },
+          ],
+        },
+      ],
+      vatTypes: [
+        {
+          name: 'No Tax',
+          percent: 0,
+        },
+      ],
+      items: [
+        {
+          name: {
+            en: 'Multilingual',
+            fr: 'Multilingue',
+          },
+          shape: 'multilingual',
+          externalReference: 'multilingual', // Overwrite existing item
+          vatType: 'No Tax',
+          variants: [
+            {
+              sku: 'multilingual-product',
+              name: {
+                en: 'Multilingual',
+                fr: 'Multilingue',
+              },
+              isDefault: true,
+            },
+          ],
+          components: {
+            'single-line': {
+              en: 'I am a single line',
+              fr: 'Je suis une seule ligne',
+            },
+            'rich-text': {
+              en: {
+                html: '<p>Look at this <strong>rich</strong> text</p>',
+              },
+              fr: {
+                html: '<p>Regardez ce texte <strong>riche</strong></p>',
+              },
+            },
+            images: [
+              {
+                src:
+                  'https://media.crystallize.com/crystallize_marketing/21/10/29/3/@500/headless_commerce_for_product_storytellers_crystallize.png',
+                altText: {
+                  en: 'Headless ecommerce in space',
+                  fr: "E-commerce sans tête dans l'espace",
+                },
+                caption: {
+                  en: {
+                    plainText: 'Illustration by Gina Kirlew',
+                  },
+                  fr: {
+                    plainText: 'Illustration par Gina Kirlew',
+                  },
+                },
+              },
+            ] as JSONImages,
+            'paragraph-collection': [
+              {
+                title: {
+                  en: 'The first paragraph title',
+                  fr: 'Le titre du premier paragraphe',
+                },
+                body: {
+                  en: {
+                    html: '<p>The first paragraph body</p>',
+                  },
+                  fr: {
+                    html: '<p>Le corps du premier paragraphe</p>',
+                  },
+                },
+                images: [
+                  {
+                    src:
+                      'https://media.crystallize.com/crystallize_marketing/21/10/29/6/@500/semantic_pim_api.jpeg',
+                    altText: {
+                      en: 'Delivering pizza on a scooter',
+                      fr: 'Livrer des pizzas en scooter',
+                    },
+                    caption: {
+                      en: {
+                        plainText: 'Illustration by Gina Kirlew',
+                      },
+                      fr: {
+                        plainText: 'Illustration par Gina Kirlew',
+                      },
+                    },
+                  },
+                ],
+              },
+            ] as JSONParagraphCollection[],
+          },
+          _options: {
+            publish: true,
+          },
+        } as JSONProduct,
       ],
     })
 
@@ -102,6 +234,7 @@ async function bootstrap() {
 
     // bootstrapper.config.itemTopics = 'amend'
     bootstrapper.config.logLevel = 'verbose'
+    bootstrapper.config.multilingual = true
 
     bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
       // ProgressBar.stop()

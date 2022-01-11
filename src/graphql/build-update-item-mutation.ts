@@ -70,17 +70,22 @@ export function buildUpdateItemQueryAndVariables(
     }
   }
 
-  const components = input.components || {}
-  let variables = {
+  const variables = {
     id,
     language,
     input: {
       ...input,
-      components: Object.keys(components).map((componentId: string) => ({
-        ...components[componentId],
+    } as Record<string, any>,
+  }
+
+  if (input.components) {
+    const components = input.components as Record<string, any>
+    variables.input.components = Object.keys(components).map(
+      (componentId: string) => ({
         componentId,
-      })),
-    },
+        ...components[componentId],
+      })
+    )
   }
 
   return {

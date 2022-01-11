@@ -194,6 +194,15 @@ export class Bootstrapper extends EventEmitter {
        */
       await sleep(5)
 
+      if (this.PIMAPIManager && this.config.multilingual) {
+        /**
+         * Due to a potential race condition when operating on
+         * multiple languages on the same time, we need to limit
+         * the amount of workers to 1 for now
+         */
+        this.PIMAPIManager.maxWorkers = 1
+      }
+
       const r = await this.context.callPIM({
         query: `
           {
@@ -477,11 +486,9 @@ export class Bootstrapper extends EventEmitter {
 
     this.context.defaultLanguage = defaultLanguage
 
-    /**
-     * Only do the default languge as of now. Waiting for a
-     * good multilingual use case
-     */
-    this.context.languages = [defaultLanguage]
+    if (!this.config.multilingual) {
+      this.context.languages = [defaultLanguage]
+    }
 
     this.emit(EVENT_NAMES.LANGUAGES_DONE)
   }

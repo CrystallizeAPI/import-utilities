@@ -27,16 +27,15 @@ import {
 } from '../../types'
 import {
   buildMoveItemMutation,
-  buildUpdateItemComponentMutation,
   buildCreateItemQueryAndVariables,
   buildUpdateItemQueryAndVariables,
+  buildUpdateItemComponentQueryAndVariables,
 } from '../../graphql'
 
 import {
   JSONItem,
   JSONParagraphCollection,
   JsonSpec,
-  JSONRichText,
   JSONImages,
   JSONFolder,
   JSONProduct,
@@ -50,7 +49,6 @@ import {
   JSONContentChunk,
   JSONItemRelations,
   JSONItemRelation,
-  JSONItemTopic,
   JSONSelection,
   JSONVideos,
   JSONVideo,
@@ -60,6 +58,7 @@ import {
   JSONProductVariantPriceVariants,
   JSONProductVariantSubscriptionPlanMeteredVariable,
   JSONProductVariantStockLocations,
+  JSONRichTextTranslated,
 } from '../json-spec'
 import {
   getTranslation,
@@ -142,14 +141,23 @@ function publishItem(
   })
 }
 
-function createRichTextInput(content: JSONRichText, language: string) {
+function createRichTextInput(
+  content: JSONRichTextTranslated,
+  language: string
+) {
   function stringToJson(str: string) {
     return [
       JSON.parse(
         JSON.stringify({
           kind: 'block',
           type: 'paragraph',
-          textContent: str,
+          children: [
+            {
+              kind: 'inline',
+              type: 'span',
+              textContent: str,
+            },
+          ],
         })
       ),
     ]
@@ -179,14 +187,12 @@ function createRichTextInput(content: JSONRichText, language: string) {
 
     const keys = Object.keys(content || {})
 
-    if (keys[0] === 'html') {
-      inp.json = fromHTML(content?.html)
-    } else {
-      const isNotTranslated = keys.length > 0 && typeof c[keys[0]] !== 'string'
-      const translatedContent = isNotTranslated
-        ? c
-        : getTranslation(c, language)
+    const isNotTranslated = ['json', 'html', 'plainText'].includes(keys[0])
+    const translatedContent = isNotTranslated ? c : getTranslation(c, language)
 
+    if (translatedContent?.html) {
+      inp.json = fromHTML(translatedContent?.html)
+    } else {
       if (typeof translatedContent === 'string') {
         inp.json = stringToJson(translatedContent)
       } else {
@@ -449,7 +455,7 @@ async function createComponentsInput(
       }
       case 'richText': {
         const inp: RichTextContentInput = createRichTextInput(
-          component as JSONRichText,
+          component as JSONRichTextTranslated,
           language
         )
 
@@ -1127,16 +1133,16 @@ export async function setItems({
               item._componentsData?.[language][componentId]
 
             updates.push(
-              context.callPIM({
-                query: buildUpdateItemComponentMutation({
+              context.callPIM(
+                buildUpdateItemComponentQueryAndVariables({
                   itemId,
                   language,
                   input: {
                     componentId,
                     ...componentContent,
                   },
-                }),
-              })
+                })
+              )
             )
           }
         )
