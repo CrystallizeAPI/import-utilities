@@ -667,7 +667,11 @@ async function createComponentsInput(
     if (componentDefinition && item.components) {
       if (componentId in item.components) {
         const component = item.components?.[componentId]
-        if (component) {
+        /**
+         * Make sure we don't just do a truthy check here,
+         * because true & "" & 0 are all valid content
+         */
+        if (typeof component !== 'undefined') {
           const content = await createComponentInput(
             componentDefinition,
             component,
