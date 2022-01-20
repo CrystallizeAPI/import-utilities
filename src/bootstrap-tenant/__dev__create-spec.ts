@@ -7,7 +7,7 @@ import { resolve } from 'path'
 import { Bootstrapper } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'furniture'
+  const tenantIdentifier = 'photo-hkn'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -30,6 +30,7 @@ async function createSpec() {
   bootstrapper.setTenantIdentifier(tenantIdentifier)
 
   const spec = await bootstrapper.createSpec({
+    language: 'fr',
     shapes: true,
     grids: true,
     items: true,
@@ -48,7 +49,7 @@ async function createSpec() {
     'utf-8'
   )
 
-  console.log(`✨ Spec created ✨`)
+  console.log(`✨ Spec created (${tenantIdentifier}.json) ✨`)
 }
 
 createSpec()

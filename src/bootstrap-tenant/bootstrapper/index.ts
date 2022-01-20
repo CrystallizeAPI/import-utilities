@@ -38,6 +38,7 @@ import {
 import { createAPICaller, IcallAPI, IcallAPIResult } from './utils/api'
 
 export interface ICreateSpec {
+  language?: string
   shapes: boolean
   grids: boolean
   items: boolean | ItemsCreateSpecOptions
@@ -289,6 +290,8 @@ export class Bootstrapper extends EventEmitter {
         spec.languages = availableLanguages
       }
 
+      const languageToUse = props.language || defaultLanguage
+
       // VAT types
       if (props.vatTypes) {
         spec.vatTypes = await getExistingVatTypes(this.context)
@@ -332,7 +335,7 @@ export class Bootstrapper extends EventEmitter {
 
       // Topic maps (in just 1 language right now)
       const allTopicsWithIds = await getAllTopicsForSpec(
-        defaultLanguage,
+        languageToUse,
         this.context
       )
       if (props.topicMaps) {
@@ -349,7 +352,7 @@ export class Bootstrapper extends EventEmitter {
 
       // Grids
       if (props.grids) {
-        spec.grids = await getAllGrids(defaultLanguage, this.context)
+        spec.grids = await getAllGrids(languageToUse, this.context)
       }
 
       // Items
@@ -362,7 +365,7 @@ export class Bootstrapper extends EventEmitter {
         }
 
         spec.items = await getAllCatalogueItems(
-          defaultLanguage,
+          languageToUse,
           this.context,
           options
         )
