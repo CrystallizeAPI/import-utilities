@@ -97,7 +97,7 @@ export async function getTopicId(props: {
       edge = edges[0]
     }
 
-    id = edge?.id || null
+    id = edge?.node?.id || null
   }
 
   if (id) {
