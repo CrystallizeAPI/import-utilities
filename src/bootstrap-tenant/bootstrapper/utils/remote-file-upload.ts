@@ -32,6 +32,15 @@ function getUrlSafeFileName(fileName: string) {
   })
 }
 
+async function downloadRemoteOrLocal(fileURL: string) {
+  try {
+    await fs.promises.access(fileURL)
+    return fs.promises.readFile(fileURL)
+  } catch (e) {
+    return download(fileURL)
+  }
+}
+
 async function downloadFile(fileURL: string) {
   const urlSafeFilename = getUrlSafeFileName(
     fileURL.split('/')[fileURL.split('/').length - 1].split('.')[0]
@@ -60,7 +69,7 @@ async function downloadFile(fileURL: string) {
     }
   }
 
-  const fileBuffer = await download(fileURL)
+  const fileBuffer = await downloadRemoteOrLocal(fileURL)
 
   const fType = await fileType.fromBuffer(fileBuffer)
   let contentType: MimeType | undefined | string = fType?.mime
