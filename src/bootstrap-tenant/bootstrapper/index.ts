@@ -117,6 +117,12 @@ export class Bootstrapper extends EventEmitter {
      */
     itemJSONCataloguePathToIDMap: new Map(),
 
+    /**
+     * A map keeping a reference of all of the items in
+     * the current spec and their (possible) item versions
+     */
+    itemVersions: new Map(),
+
     tenantId: '',
     tenantIdentifier: '',
 

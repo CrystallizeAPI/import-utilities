@@ -51,6 +51,7 @@ async function bootstrap() {
           name: 'Burger Bun',
           shape: 'ingredient',
           vatType: 'No Tax',
+          externalReference: 'burger-bun',
           variants: [
             {
               name: 'Regular burger bun',
@@ -58,53 +59,8 @@ async function bootstrap() {
               attributes: {
                 size: 'medium',
               },
+              price: 1,
               isDefault: true,
-            },
-          ],
-        },
-        {
-          name: 'Burger patty',
-          shape: 'ingredient',
-          vatType: 'No Tax',
-          variants: [
-            {
-              name: 'Beef burger patty',
-              sku: 'burger-patty-beef',
-              isDefault: true,
-              price: {
-                eur: 5,
-              },
-            },
-            {
-              name: 'Vegan burger patty',
-              sku: 'burger-patty-vegan',
-              isDefault: false,
-              price: {
-                eur: 6,
-              },
-            },
-          ],
-        },
-        {
-          name: 'Cheddar cheese',
-          shape: 'ingredient',
-          vatType: 'No Tax',
-          variants: [
-            {
-              name: 'Standard cheddar cheese',
-              sku: 'cheddar-cheese-standard',
-              isDefault: true,
-              price: {
-                eur: 1,
-              },
-            },
-            {
-              name: 'Vegan cheddar cheese',
-              sku: 'cheddar-cheese-vegan',
-              isDefault: false,
-              price: {
-                eur: 1.5,
-              },
             },
           ],
         },

@@ -59,7 +59,7 @@ export interface Config {
   itemTopics?: 'amend' | 'replace'
   itemPublish?: 'publish' | 'auto'
   logLevel?: LogLevel
-  multilingual?: boolean,
+  multilingual?: boolean
   experimental: {
     parallelize?: boolean
   }
@@ -78,6 +78,7 @@ export interface BootstrapperContext {
   useReferenceCache: boolean
   stockLocations?: JSONStockLocation[]
   itemJSONCataloguePathToIDMap: Map<string, ItemAndParentId>
+  itemVersions: Map<string, ItemVersionsForLanguages>
   fileUploader: FileUploadManager
   uploadFileFromUrl: (url: string) => Promise<RemoteFileUploadResult | null>
   callPIM: (props: IcallAPI) => Promise<IcallAPIResult>
@@ -277,14 +278,19 @@ interface IgetItemVersionsForLanguages {
   context: BootstrapperContext
 }
 
+export type ItemVersionsForLanguages = Record<string, ItemVersionDescription>
+
 export async function getItemVersionsForLanguages({
   languages,
   itemId,
   context,
-}: IgetItemVersionsForLanguages): Promise<
-  Record<string, ItemVersionDescription>
-> {
-  const itemVersionsForLanguages: Record<string, ItemVersionDescription> = {}
+}: IgetItemVersionsForLanguages): Promise<ItemVersionsForLanguages> {
+  const existing = context.itemVersions.get(itemId)
+  if (existing) {
+    return existing
+  }
+
+  const itemVersionsForLanguages: ItemVersionsForLanguages = {}
 
   await Promise.all(
     languages.map(async (language) => {
@@ -295,6 +301,8 @@ export async function getItemVersionsForLanguages({
       })
     })
   )
+
+  context.itemVersions.set(itemId, itemVersionsForLanguages)
 
   return itemVersionsForLanguages
 }

@@ -1351,6 +1351,12 @@ export async function setItems({
     }
 
     if (itemId) {
+      /**
+       * Get the item version info now and store it in the
+       * context cace before any changes are made to it.
+       * The version info will be read later before a
+       * potential publishing of an item
+       */
       if (context.config.itemPublish === 'auto') {
         versionsInfo = await getItemVersionsForLanguages({
           itemId,
@@ -1443,40 +1449,13 @@ export async function setItems({
       return null
     }
 
-    const passedPublishConfig = item._options?.publish
-    if (typeof passedPublishConfig === 'boolean') {
-      if (passedPublishConfig) {
-        await publishItem(context.defaultLanguage.code, itemId, context)
-      }
-    } else if (
-      context.config.itemPublish === 'publish' ||
-      !versionsInfo ||
-      versionsInfo[context.defaultLanguage.code] ===
-        ItemVersionDescription.Published
-    ) {
-      await publishItem(context.defaultLanguage.code, itemId, context)
-    }
-
-    // Create for remaining languages
+    // Handle remaining languages
     const remainingLanguages = context.languages
       .filter((l) => !l.isDefault)
       .map((l) => l.code)
 
     for (let i = 0; i < remainingLanguages.length; i++) {
       await updateForLanguage(remainingLanguages[i], itemId)
-
-      const passedPublishConfig = item._options?.publish
-      if (typeof passedPublishConfig === 'boolean') {
-        if (passedPublishConfig) {
-          await publishItem(remainingLanguages[i], itemId, context)
-        }
-      } else if (
-        context.config.itemPublish === 'publish' ||
-        !versionsInfo ||
-        versionsInfo[remainingLanguages[i]] === ItemVersionDescription.Published
-      ) {
-        await publishItem(remainingLanguages[i], itemId, context)
-      }
     }
 
     return itemId
@@ -1547,7 +1526,7 @@ export async function setItems({
     }
   }
 
-  async function handleItemRelations(item: JSONItem) {
+  async function handleItemRelationsAndPublish(item: JSONItem) {
     if (!item) {
       return
     }
@@ -1593,156 +1572,160 @@ export async function setItems({
       return ids
     }
 
-    if (item.components && item.id) {
-      let versionsInfo
+    if (item.id) {
+      // Pull the item info from the cache
+      const versionsInfo = context.itemVersions.get(item.id)
 
-      if (context.config.itemPublish === 'auto') {
-        versionsInfo = await getItemVersionsForLanguages({
-          languages: context.languages.map((l) => l.code),
-          itemId: item.id,
-          context,
-        })
-      }
+      if (item.components && item.id) {
+        await Promise.all(
+          Object.keys(item.components).map(async (componentId) => {
+            const jsonItem = item.components?.[
+              componentId
+            ] as JSONComponentContent
 
-      await Promise.all(
-        Object.keys(item.components).map(async (componentId) => {
-          const jsonItem = item.components?.[
-            componentId
-          ] as JSONComponentContent
+            if (jsonItem) {
+              const shape = context.shapes?.find(
+                (s) => s.identifier === item.shape
+              )
+              const def = shape?.components?.find(
+                (c: any) => c.id === componentId
+              )
 
-          if (jsonItem) {
-            const shape = context.shapes?.find(
-              (s) => s.identifier === item.shape
-            )
-            const def = shape?.components?.find(
-              (c: any) => c.id === componentId
-            )
+              let mutationInput = null
 
-            let mutationInput = null
-
-            switch (def?.type) {
-              case 'itemRelations': {
-                mutationInput = {
-                  componentId,
-                  itemRelations: {
-                    itemIds: await getItemIdsForItemRelation(
-                      jsonItem as JSONItemRelations
-                    ),
-                  },
+              switch (def?.type) {
+                case 'itemRelations': {
+                  mutationInput = {
+                    componentId,
+                    itemRelations: {
+                      itemIds: await getItemIdsForItemRelation(
+                        jsonItem as JSONItemRelations
+                      ),
+                    },
+                  }
+                  break
                 }
-                break
-              }
-              case 'componentChoice':
-              case 'contentChunk': {
-                const itemRelationIds = (
-                  def.config.choices || def.config.components
-                )
-                  .filter((s: any) => s.type === 'itemRelations')
-                  .map((s: any) => s.id)
+                case 'componentChoice':
+                case 'contentChunk': {
+                  const itemRelationIds = (
+                    def.config.choices || def.config.components
+                  )
+                    .filter((s: any) => s.type === 'itemRelations')
+                    .map((s: any) => s.id)
 
-                // Get existing data for component
-                if (itemRelationIds.length > 0) {
-                  const existingComponentsData =
-                    item._componentsData?.[context.defaultLanguage.code]
-                  const componentData = existingComponentsData[componentId]
+                  // Get existing data for component
+                  if (itemRelationIds.length > 0) {
+                    const existingComponentsData =
+                      item._componentsData?.[context.defaultLanguage.code]
+                    const componentData = existingComponentsData[componentId]
 
-                  if (componentData) {
-                    if (def.type === 'componentChoice') {
-                      const selectedDef = def.config.choices.find(
-                        (c: any) =>
-                          c.id === componentData.componentChoice.componentId
-                      )
-                      if (selectedDef?.type === 'itemRelations') {
+                    if (componentData) {
+                      if (def.type === 'componentChoice') {
+                        const selectedDef = def.config.choices.find(
+                          (c: any) =>
+                            c.id === componentData.componentChoice.componentId
+                        )
+                        if (selectedDef?.type === 'itemRelations') {
+                          mutationInput = {
+                            componentId,
+                            componentChoice: {
+                              componentId:
+                                componentData.componentChoice.componentId,
+                              itemRelations: {
+                                itemIds: await getItemIdsForItemRelation(
+                                  jsonItem as JSONItemRelations
+                                ),
+                              },
+                            },
+                          }
+                        }
+                      } else if (def.type === 'contentChunk') {
                         mutationInput = {
                           componentId,
-                          componentChoice: {
-                            componentId:
-                              componentData.componentChoice.componentId,
-                            itemRelations: {
-                              itemIds: await getItemIdsForItemRelation(
-                                jsonItem as JSONItemRelations
-                              ),
-                            },
-                          },
+                          ...componentData,
+                        }
+                        await Promise.all(
+                          mutationInput.contentChunk.chunks.map(
+                            async (chunk: any, chunkIndex: number) => {
+                              const jsonChunk = (jsonItem as JSONContentChunk)[
+                                chunkIndex
+                              ]
+
+                              // Update all potential itemRelation components
+                              await Promise.all(
+                                itemRelationIds.map(
+                                  async (itemRelationId: string) => {
+                                    const itemRelationComponentIndex = chunk.findIndex(
+                                      (c: any) =>
+                                        c.componentId === itemRelationId
+                                    )
+
+                                    if (itemRelationComponentIndex !== -1) {
+                                      chunk[
+                                        itemRelationComponentIndex
+                                      ].itemRelations.itemIds = await getItemIdsForItemRelation(
+                                        jsonChunk[
+                                          itemRelationId
+                                        ] as JSONItemRelation[]
+                                      )
+                                    }
+                                  }
+                                )
+                              )
+                            }
+                          )
+                        )
+                      }
+                    }
+                  }
+                  break
+                }
+              }
+
+              // Update the component
+              if (mutationInput) {
+                const r = await context.callPIM({
+                  query: `
+                    mutation UPDATE_RELATIONS_COMPONENT($itemId: ID!, $language: String!, $input: ComponentInput!) {
+                      item {
+                        updateComponent(
+                          itemId: $itemId
+                          language: $language
+                          input: $input
+                        ) {
+                          id
                         }
                       }
-                    } else if (def.type === 'contentChunk') {
-                      mutationInput = {
-                        componentId,
-                        ...componentData,
-                      }
-                      await Promise.all(
-                        mutationInput.contentChunk.chunks.map(
-                          async (chunk: any, chunkIndex: number) => {
-                            const jsonChunk = (jsonItem as JSONContentChunk)[
-                              chunkIndex
-                            ]
-
-                            // Update all potential itemRelation components
-                            await Promise.all(
-                              itemRelationIds.map(
-                                async (itemRelationId: string) => {
-                                  const itemRelationComponentIndex = chunk.findIndex(
-                                    (c: any) => c.componentId === itemRelationId
-                                  )
-
-                                  if (itemRelationComponentIndex !== -1) {
-                                    chunk[
-                                      itemRelationComponentIndex
-                                    ].itemRelations.itemIds = await getItemIdsForItemRelation(
-                                      jsonChunk[
-                                        itemRelationId
-                                      ] as JSONItemRelation[]
-                                    )
-                                  }
-                                }
-                              )
-                            )
-                          }
-                        )
-                      )
                     }
-                  }
-                }
-                break
+                  `,
+                  variables: {
+                    itemId: item.id,
+                    language: context.defaultLanguage.code,
+                    input: mutationInput,
+                  },
+                })
               }
             }
+          })
+        )
+      }
 
-            // Update the component
-            if (mutationInput) {
-              const r = await context.callPIM({
-                query: `
-                  mutation UPDATE_RELATIONS_COMPONENT($itemId: ID!, $language: String!, $input: ComponentInput!) {
-                    item {
-                      updateComponent(
-                        itemId: $itemId
-                        language: $language
-                        input: $input
-                      ) {
-                        id
-                      }
-                    }
-                  }
-                `,
-                variables: {
-                  itemId: item.id,
-                  language: context.defaultLanguage.code,
-                  input: mutationInput,
-                },
-              })
+      // Publish if needed
+      if (item.id) {
+        for (let i = 0; i < context.languages.length; i++) {
+          const passedPublishConfig = item._options?.publish
+          if (typeof passedPublishConfig === 'boolean') {
+            if (passedPublishConfig) {
+              await publishItem(context.languages[i].code, item.id, context)
             }
+          } else if (
+            context.config.itemPublish === 'publish' ||
+            !versionsInfo ||
+            versionsInfo[context.languages[i].code] ===
+              ItemVersionDescription.Published
+          ) {
+            await publishItem(context.languages[i].code, item.id, context)
           }
-        })
-      )
-
-      // Ensure publishing of items
-      for (let i = 0; i < context.languages.length; i++) {
-        const language = context.languages[i].code
-        if (
-          versionsInfo &&
-          versionsInfo[language] === ItemVersionDescription.Published
-        ) {
-          await publishItem(language, item.id as string, context)
         }
       }
     }
@@ -1757,7 +1740,7 @@ export async function setItems({
 
       if (itm.children) {
         for (let i = 0; i < itm.children.length; i++) {
-          await handleItemRelations(itm.children[i])
+          await handleItemRelationsAndPublish(itm.children[i])
         }
       }
     }
@@ -1804,7 +1787,7 @@ export async function setItems({
   context.useReferenceCache = true
 
   for (let i = 0; i < spec.items.length; i++) {
-    await handleItemRelations(spec.items[i])
+    await handleItemRelationsAndPublish(spec.items[i])
   }
 
   clearInterval(getFileuploaderStatusInterval)
