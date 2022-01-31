@@ -1,9 +1,10 @@
+import { DocumentNode } from 'graphql'
 import fetch from 'node-fetch'
 import { v4 as uuid } from 'uuid'
 import { LogLevel } from './types'
 
 export interface IcallAPI {
-  query: string
+  query: DocumentNode | string
   variables?: any
 }
 

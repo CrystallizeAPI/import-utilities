@@ -364,15 +364,3 @@ export interface JSONShapeComponentPropertiesTableConfig {
     keys: string[]
   }[]
 }
-
-export interface JsonSpec {
-  shapes?: JSONShape[]
-  priceVariants?: JSONPriceVariant[]
-  stockLocations?: JSONStockLocation[]
-  subscriptionPlans?: JSONSubscriptionPlan[]
-  languages?: JSONLanguage[]
-  vatTypes?: JSONVatType[]
-  topicMaps?: JSONTopic[]
-  items?: JSONItem[]
-  grids?: JSONGrid[]
-}

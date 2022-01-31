@@ -1,4 +1,4 @@
-export interface JSONAddress {
+interface AddressInput {
   type: 'delivery' | 'billing' | 'other'
   firstName?: string
   middleName?: string
@@ -14,42 +14,41 @@ export interface JSONAddress {
   email?: string
 }
 
-export interface JSONCustomer {
+interface CustomerInput {
   identifier?: string
   firstName?: string
   middleName?: string
   lastName?: string
   birthDate?: string
-  addresses?: JSONAddress[]
+  addresses?: AddressInput[]
   companyName?: string
   taxNumber?: string
 }
 
-export interface JSONPrice {
-  currency: string
-  gross?: number
-  net?: number
-  // discounts
-  // tax
+interface TaxInput {
+  name?: string
+  percent?: number
 }
 
-export interface JSONOrderItem {
+interface PriceInput {
+  gross?: number
+  net?: number
+  currency: string
+  tax?: TaxInput
+}
+
+interface OrderItemInput {
   name: string
   sku?: string
   productId?: string
   productVariantId?: string
-  imageUrl?: string
-  quantity: number
-  price?: JSONPrice
-  subTotal?: JSONPrice
-  meta?: Record<string, unknown>
-  // subscription: JSONOrderItemSubscription
-  // subscriptionContractId?: string
+  price?: PriceInput
 }
 
-export interface JSONOrder {
-  customer: JSONCustomer
-  cart: JSONOrderItem[]
-  // payment?: JSONPayment
-  total?: JSONPrice
+export interface CreateOrderInput {
+  customer: CustomerInput
+  cart: OrderItemInput[]
+  payment?: any
+  total?: any
+  additionalInformation?: string
 }
