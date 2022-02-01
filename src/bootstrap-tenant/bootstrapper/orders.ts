@@ -12,17 +12,15 @@ const createOrder = async (
   context: BootstrapperContext,
   { customer, cart, total }: JSONOrder
 ): Promise<IcallAPIResult> => {
-  return context.callPIM(
+  return context.callOrders(
     buildCreateOrderQuery({
       customer: {
+        identifier: customer.identifier,
+        firstName: customer.firstName,
+        lastName: customer.lastName,
         companyName: customer.companyName,
         addresses: customer.addresses?.map((address) => ({
           type: address.type,
-          firstName: address.firstName,
-          middleName: address.middleName,
-          lastName: address.lastName,
-          email: address.email,
-          phone: address.phone,
           street: address.street,
           street2: address.street2,
           streetNumber: address.streetNumber,
@@ -32,18 +30,21 @@ const createOrder = async (
           postalCode: address.postalCode,
         })),
       },
-      cart: cart.map(({ name, price, productId, productVariantId, sku }) => ({
-        name,
-        productId,
-        productVariantId,
-        sku,
-        price: price && {
-          currency: price.currency,
-          gross: price.gross,
-          net: price.net,
-          // tax: { }
-        },
-      })),
+      cart: cart.map(
+        ({ name, price, productId, productVariantId, sku, quantity }) => ({
+          name,
+          productId,
+          productVariantId,
+          sku,
+          quantity,
+          price: price && {
+            currency: price.currency,
+            gross: price.gross,
+            net: price.net,
+            // tax: { }
+          },
+        })
+      ),
       total,
     })
   )
@@ -55,31 +56,21 @@ export const setOrders = async ({
   context,
 }: Props): Promise<void> => {
   if (!spec?.orders) {
+    onUpdate({
+      progress: 1,
+    })
     return
   }
+  let finished = 0
+  const orders = spec.orders
 
   await Promise.all(
     spec.orders.map(async (order) => {
-      try {
-        const res = await createOrder(context, order)
-        if (res.errors) {
-          console.error(res.errors)
-          onUpdate({
-            warning: {
-              code: 'OTHER',
-              message: 'Cannot create order',
-            },
-          })
-        }
-      } catch (err) {
-        console.error(err)
-        onUpdate({
-          warning: {
-            code: 'OTHER',
-            message: 'Cannot create order',
-          },
-        })
-      }
+      const res = await createOrder(context, order)
+      onUpdate({
+        progress: finished / orders.length,
+        message: `order: ${res?.errors ? 'error' : 'added'}`,
+      })
     })
   )
 }

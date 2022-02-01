@@ -1,8 +1,5 @@
 export interface JSONAddress {
   type: 'delivery' | 'billing' | 'other'
-  firstName?: string
-  middleName?: string
-  lastName?: string
   street?: string
   street2?: string
   streetNumber?: string
@@ -10,8 +7,6 @@ export interface JSONAddress {
   city?: string
   state?: string
   country?: string
-  phone?: string
-  email?: string
 }
 
 export interface JSONCustomer {
@@ -23,6 +18,8 @@ export interface JSONCustomer {
   addresses?: JSONAddress[]
   companyName?: string
   taxNumber?: string
+  email?: string
+  phone?: string
 }
 
 export interface JSONPrice {

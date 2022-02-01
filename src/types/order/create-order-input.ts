@@ -1,8 +1,5 @@
 interface AddressInput {
   type: 'delivery' | 'billing' | 'other'
-  firstName?: string
-  middleName?: string
-  lastName?: string
   street?: string
   street2?: string
   streetNumber?: string
@@ -10,11 +7,9 @@ interface AddressInput {
   city?: string
   state?: string
   country?: string
-  phone?: string
-  email?: string
 }
 
-interface CustomerInput {
+export interface CustomerInput {
   identifier?: string
   firstName?: string
   middleName?: string
@@ -23,6 +18,8 @@ interface CustomerInput {
   addresses?: AddressInput[]
   companyName?: string
   taxNumber?: string
+  email?: string
+  phone?: string
 }
 
 interface TaxInput {

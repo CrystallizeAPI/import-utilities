@@ -9,7 +9,7 @@ import {
   JSONTopic,
   JSONVatType,
 } from './core'
-import { JSONOrder } from './orders'
+import { JSONOrder, JSONCustomer } from './orders'
 
 export interface JsonSpec {
   shapes?: JSONShape[]
@@ -21,5 +21,6 @@ export interface JsonSpec {
   topicMaps?: JSONTopic[]
   items?: JSONItem[]
   grids?: JSONGrid[]
+  customers?: JSONCustomer[]
   orders?: JSONOrder[]
 }

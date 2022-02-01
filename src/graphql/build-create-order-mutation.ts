@@ -7,7 +7,7 @@ export function buildCreateOrderQuery(
 ): { query: DocumentNode; variables: Record<string, any> } {
   return {
     query: gql`
-      mutation CREATE_ORDER($language: String!, $input: CreateOrderInput!) {
+      mutation CREATE_ORDER($input: CreateOrderInput!) {
         orders {
           create(input: $input) {
             id

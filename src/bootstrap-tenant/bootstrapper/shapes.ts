@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { Shape, shapeTypes, componentTypes, Component } from '../../types'
 import {
   buildCreateShapeMutation,
@@ -72,7 +73,7 @@ async function getExistingShapes(
 ): Promise<Shape[]> {
   const tenantId = context.tenantId
   const r = await context.callPIM({
-    query: `
+    query: gql`
       query GET_TENANT_SHAPES($tenantId: ID!) {
         shape {
           getMany(tenantId: $tenantId) {
@@ -106,14 +107,14 @@ async function getExistingShapes(
           }
         }
       }
-      
+
       fragment componentBase on ShapeComponent {
         id
         name
         type
         description
       }
-      
+
       fragment primitiveComponentConfig on ComponentConfig {
         ... on NumericComponentConfig {
           decimalPlaces

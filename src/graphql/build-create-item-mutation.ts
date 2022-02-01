@@ -1,3 +1,5 @@
+import { DocumentNode } from 'graphql'
+import gql from 'graphql-tag'
 import { jsonToGraphQLQuery } from 'json-to-graphql-query'
 import { CreateItemInput, ItemType } from '../types'
 
@@ -36,7 +38,7 @@ export function buildCreateItemQueryAndVariables(
   input: CreateItemInput,
   type: ItemType,
   language: string
-): { query: string; variables: Record<string, any> } {
+): { query: DocumentNode; variables: Record<string, any> } {
   let inputType:
     | 'CreateDocumentInput'
     | 'CreateFolderInput'
@@ -77,7 +79,7 @@ export function buildCreateItemQueryAndVariables(
   }
 
   return {
-    query: `
+    query: gql`
       mutation CREATE_ITEM ($language: String!, $input: ${inputType}!) {
         ${topFieldName} {
           create (language: $language, input: $input) {

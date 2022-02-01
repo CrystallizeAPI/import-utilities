@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { VatType } from '../../types'
 import { buildCreateVatTypeMutation } from '../../graphql'
 
@@ -9,7 +10,7 @@ export async function getExistingVatTypes(
 ): Promise<VatType[]> {
   const tenantId = context.tenantId
   const r = await context.callPIM({
-    query: `
+    query: gql`
       query GET_TENANT_VAT_TYPES($tenantId: ID!) {
         tenant {
           get(id: $tenantId) {

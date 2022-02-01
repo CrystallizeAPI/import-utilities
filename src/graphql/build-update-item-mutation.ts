@@ -1,3 +1,5 @@
+import { DocumentNode } from 'graphql'
+import gql from 'graphql-tag'
 import { jsonToGraphQLQuery } from 'json-to-graphql-query'
 import { ItemType, UpdateItemInput } from '../types'
 
@@ -42,7 +44,7 @@ export function buildUpdateItemQueryAndVariables(
   input: UpdateItemInput,
   type: ItemType,
   language: string
-): { query: string; variables: Record<string, any> } {
+): { query: DocumentNode; variables: Record<string, any> } {
   let inputType:
     | 'UpdateDocumentInput'
     | 'UpdateFolderInput'
@@ -89,7 +91,7 @@ export function buildUpdateItemQueryAndVariables(
   }
 
   return {
-    query: `
+    query: gql`
       mutation UPDATE_ITEM ($id: ID!, $language: String!, $input: ${inputType}!) {
         ${topFieldName} {
           update (id: $id, language: $language, input: $input) {

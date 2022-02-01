@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { buildCreateGridMutation } from '../../graphql/build-create-grid-mutation'
 import { buildUpdateGridMutation } from '../../graphql/build-update-grid-mutation'
 import { GridRow } from '../../types'
@@ -95,10 +96,10 @@ async function publishGrid(
   context: BootstrapperContext
 ) {
   return context.callPIM({
-    query: `
-      mutation ($id: ID!, $language: String!) {
+    query: gql`
+      mutation($id: ID!, $language: String!) {
         grid {
-          publish (id: $id, language: $language) {
+          publish(id: $id, language: $language) {
             id
           }
         }

@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { buildCreateLanguageMutation } from '../../graphql'
 
 import { JsonSpec, JSONLanguage } from '../json-spec'
@@ -13,7 +14,7 @@ export async function getTenantSettings(
 ): Promise<TenantSettings> {
   const tenantId = context.tenantId
   const r = await context.callPIM({
-    query: `
+    query: gql`
       query GET_TENANT_LANGUAGES($tenantId: ID!) {
         tenant {
           get(id: $tenantId) {
@@ -117,7 +118,7 @@ export async function setLanguages({
 
   if (defaultLanguage !== tenantSettings.defaultLanguage) {
     const result = await context.callPIM({
-      query: `
+      query: gql`
         mutation {
           tenant {
             update(
