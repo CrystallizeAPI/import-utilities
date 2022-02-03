@@ -16,6 +16,7 @@ export const componentTypes = {
   singleLine: new EnumType('singleLine'),
   videos: new EnumType('videos'),
   selection: new EnumType('selection'),
+  files: new EnumType('files'),
 }
 
 export interface ComponentConfigInput {}

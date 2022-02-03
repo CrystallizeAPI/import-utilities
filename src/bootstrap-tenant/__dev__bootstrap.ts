@@ -41,16 +41,23 @@ async function bootstrap() {
     bootstrapper.setSpec({
       shapes: [
         {
-          name: 'Ingredient',
-          identifier: 'ingredient',
-          type: 'product',
+          identifier: 'example-files',
+          name: 'Example files',
+          type: 'document',
+          components: [
+            {
+              id: 'some-files',
+              name: 'Some files',
+              type: 'files',
+            },
+          ],
         },
       ],
       items: [
         {
           name: 'files',
           cataloguePath: '/files',
-          shape: 'default-document',
+          shape: 'example-files',
           components: {
             files: [
               {
