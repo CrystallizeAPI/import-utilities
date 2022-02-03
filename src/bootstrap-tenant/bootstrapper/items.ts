@@ -59,6 +59,7 @@ import {
   JSONProductVariantSubscriptionPlanMeteredVariable,
   JSONProductVariantStockLocations,
   JSONRichTextTranslated,
+  JSONFiles,
 } from '../json-spec'
 import {
   getTranslation,
@@ -74,6 +75,8 @@ import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
 import {
   CreateProductVariantInput,
+  FileContentInput,
+  FileInput,
   PriceVariantReferenceInput,
   ProductPriceVariant,
   ProductStockLocation,
@@ -210,11 +213,14 @@ function createRichTextInput(
   return inp
 }
 
-interface ICreateImagesInput {
-  images: JSONImages
+interface ICreateMediaInput {
   language: string
   context: BootstrapperContext
   onUpdate(t: AreaUpdate): any
+}
+
+interface ICreateImagesInput extends ICreateMediaInput {
+  images: JSONImages
 }
 
 async function createImagesInput(
@@ -263,11 +269,8 @@ async function createImagesInput(
   return imgs
 }
 
-interface ICreateVideosInput {
+interface ICreateVideosInput extends ICreateMediaInput {
   videos: JSONVideos
-  language: string
-  context: BootstrapperContext
-  onUpdate(t: AreaUpdate): any
 }
 
 async function createVideosInput(
@@ -317,6 +320,50 @@ async function createVideosInput(
   }
 
   return vids
+}
+
+interface ICreateFilesInput extends ICreateMediaInput {
+  files: JSONFiles
+}
+async function createFilesInput(
+  props: ICreateFilesInput
+): Promise<FileInput[]> {
+  const { files, language, context, onUpdate } = props
+
+  const fs: FileInput[] = []
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i]
+    let { key } = file
+
+    if (!key) {
+      try {
+        const uploadResult = await context.uploadFileFromUrl(file.src)
+        if (uploadResult) {
+          key = uploadResult.key
+
+          // Store the values so that we don't re-upload again during import
+          file.key = uploadResult.key
+        }
+      } catch (e) {
+        onUpdate({
+          warning: {
+            code: 'UPLOAD_FAILED',
+            message: `Could not upload "${key}"`,
+          },
+        })
+      }
+    }
+
+    if (key) {
+      fs.push({
+        key,
+        title: getTranslation(file.title, language),
+      })
+    }
+  }
+
+  return fs
 }
 
 interface ICreateComponentsInput {
@@ -427,7 +474,7 @@ async function createComponentsInput(
         return inp
       }
       case 'images': {
-        const images = component as JSONImage[]
+        const images = component as JSONImages
 
         const inp: ImagesComponentContentInput = {
           images: await createImagesInput({
@@ -441,11 +488,24 @@ async function createComponentsInput(
         return inp
       }
       case 'videos': {
-        const videos = component as JSONVideo[]
+        const videos = component as JSONVideos
 
         const inp: VideosComponentContentInput = {
           videos: await createVideosInput({
             videos,
+            language,
+            onUpdate,
+            context,
+          }),
+        }
+        return inp
+      }
+      case 'files': {
+        const files = component as JSONFiles
+
+        const inp: FileContentInput = {
+          files: await createFilesInput({
+            files,
             language,
             onUpdate,
             context,

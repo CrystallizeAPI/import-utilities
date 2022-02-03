@@ -7,7 +7,7 @@ import { resolve } from 'path'
 import { Bootstrapper } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'photo-hkn'
+  const tenantIdentifier = 'hkn-files-demo'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -30,7 +30,7 @@ async function createSpec() {
   bootstrapper.setTenantIdentifier(tenantIdentifier)
 
   const spec = await bootstrapper.createSpec({
-    language: 'fr',
+    language: 'en',
     shapes: true,
     grids: true,
     items: true,

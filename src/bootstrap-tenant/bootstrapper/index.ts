@@ -131,6 +131,9 @@ export class Bootstrapper extends EventEmitter {
       this.context.fileUploader.uploadFromUrl(url),
     callPIM: () => Promise.resolve({ data: {} }),
     callCatalogue: () => Promise.resolve({ data: {} }),
+    emitError: (error) => {
+      this.emit(EVENT_NAMES.ERROR, { error })
+    },
   }
 
   config: Config = {

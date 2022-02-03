@@ -125,6 +125,10 @@ export interface JSONVideo extends JSONMedia {
   thumbnails?: JSONImage[]
 }
 
+export interface JSONFile extends JSONMedia {
+  title?: JSONStringTranslated
+}
+
 export type JSONSingleLine = string
 export type JSONSingleLineTranslated = JSONStringTranslated
 
@@ -136,6 +140,7 @@ export interface JSONParagraphCollection {
 }
 export type JSONImages = JSONImage[]
 export type JSONVideos = JSONVideo[]
+export type JSONFiles = JSONFile[]
 export type JSONBoolean = boolean
 export type JSONDateTime = string
 
@@ -173,6 +178,7 @@ export type JSONComponentContent =
   | JSONParagraphCollection[]
   | JSONImages
   | JSONVideos
+  | JSONFiles
   | JSONBoolean
   | JSONDateTime
   | JSONLocation
@@ -318,6 +324,7 @@ export interface JSONShapeComponent {
     | 'selection'
     | 'singleLine'
     | 'videos'
+    | 'files'
   description?: string
   config?: JSONShapeComponentConfig
 }

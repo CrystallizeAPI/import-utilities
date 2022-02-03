@@ -10,7 +10,7 @@ import { JSONImages, JSONParagraphCollection, JSONProduct } from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'hkn-examples'
+    const tenantIdentifier = 'hkn-files-demo'
     // const jsonSpec = JSON.parse(
     //   await readFile(
     //     resolve(__dirname, '../../json-spec/photofinder.json'),
@@ -48,21 +48,18 @@ async function bootstrap() {
       ],
       items: [
         {
-          name: 'Burger Bun',
-          shape: 'ingredient',
-          vatType: 'No Tax',
-          externalReference: 'burger-bun',
-          variants: [
-            {
-              name: 'Regular burger bun',
-              sku: 'burger-bun-regular',
-              attributes: {
-                size: 'medium',
+          name: 'files',
+          cataloguePath: '/files',
+          shape: 'default-document',
+          components: {
+            files: [
+              {
+                src:
+                  'https://media.crystallize.com/hkn-files-demo/22/2/3/1/efaktura.pdf',
+                title: '',
               },
-              price: 1,
-              isDefault: true,
-            },
-          ],
+            ],
+          },
         },
       ],
     })
@@ -122,8 +119,8 @@ async function bootstrap() {
     })
 
     // bootstrapper.config.itemTopics = 'amend'
-    bootstrapper.config.logLevel = 'verbose'
-    bootstrapper.config.multilingual = true
+    // bootstrapper.config.logLevel = 'verbose'
+    // bootstrapper.config.multilingual = true
 
     bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
       // ProgressBar.stop()

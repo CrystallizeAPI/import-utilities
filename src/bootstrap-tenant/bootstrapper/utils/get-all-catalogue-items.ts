@@ -89,6 +89,13 @@ function handleVideo(video: any) {
   }
 }
 
+function handleFile(file: any) {
+  return {
+    src: file.url,
+    title: file.title,
+  }
+}
+
 function handleParagraph(paragraph: any) {
   return {
     title: paragraph?.title?.text,
@@ -252,6 +259,9 @@ export async function getAllCatalogueItems(
         case 'videos': {
           return c.content?.videos?.map(handleVideo)
         }
+        case 'files': {
+          return c.content?.files?.map(handleFile)
+        }
         case 'datetime': {
           return c.content?.datetime
         }
@@ -393,6 +403,7 @@ fragment primitiveComponentContent on ComponentContent {
   ...richTextContent
   ...imageContent
   ...videoContent
+  ...fileContent
   ...paragraphCollectionContent
   ...itemRelationsContent
   ...gridRelationsContent
@@ -446,7 +457,6 @@ fragment product on Product {
         recurring {
           ...subscriptionPlanPricing
         }
-
       }
     }
   }
@@ -467,6 +477,11 @@ fragment video on Video {
   thumbnails {
     ...image
   }
+}
+
+fragment file on File {
+  url
+  title
 }
 
 fragment dateTimeContent on DatetimeContent {
@@ -508,6 +523,12 @@ fragment imageContent on ImageContent {
 fragment videoContent on VideoContent {
   videos {
     ...video
+  }
+}
+
+fragment fileContent on FileContent {
+  files {
+    ...file
   }
 }
 

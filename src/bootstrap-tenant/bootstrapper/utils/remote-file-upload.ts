@@ -85,7 +85,7 @@ async function downloadFile(fileURL: string) {
     throw new Error(`Cannot determine filetype for "${fileURL}"`)
   }
 
-  if (!contentType || !(contentType in mimeArray)) {
+  if (!contentType) {
     throw new Error(`Unsupported mime type "${contentType}"`)
   }
 
@@ -178,6 +178,7 @@ export async function remoteFileUpload(
       key: attrs.find((a: any) => a.name === 'Key').value,
     }
   } catch (e) {
+    context.emitError(`Could not upload ${fileUrl}`)
     return null
   }
 }

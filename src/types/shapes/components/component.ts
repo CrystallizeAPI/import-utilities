@@ -17,6 +17,7 @@ export interface Component {
     | 'selection'
     | 'singleLine'
     | 'videos'
+    | 'files'
   description?: string
   config?: any
 }

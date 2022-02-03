@@ -83,6 +83,7 @@ export interface BootstrapperContext {
   uploadFileFromUrl: (url: string) => Promise<RemoteFileUploadResult | null>
   callPIM: (props: IcallAPI) => Promise<IcallAPIResult>
   callCatalogue: (props: IcallAPI) => Promise<IcallAPIResult>
+  emitError: (error: string) => void
 }
 
 export function getTranslation(translation?: any, language?: string): string {

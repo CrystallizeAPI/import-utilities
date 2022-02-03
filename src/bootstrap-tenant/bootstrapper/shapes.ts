@@ -134,6 +134,18 @@ async function getExistingShapes(
             isPreselected
           }
         }
+        ... on FilesComponentConfig {
+          acceptedContentTypes {
+            contentType
+            extensionLabel
+          }
+          min
+          max
+          maxFileSize {
+            size
+            unit
+          }
+        }
       }
     `,
     variables: {
@@ -170,6 +182,16 @@ function buildComponentConfigInput(component: Component) {
         },
       }
     }
+    case 'files': {
+      if (component.config) {
+        return {
+          config: {
+            numeric: component.config,
+          },
+        }
+      }
+      return {}
+    }
     case 'selection': {
       return {
         config: {
@@ -184,9 +206,8 @@ function buildComponentConfigInput(component: Component) {
             itemRelations: component.config,
           },
         }
-      } else {
-        return {}
       }
+      return {}
     }
     case 'componentChoice': {
       return {
