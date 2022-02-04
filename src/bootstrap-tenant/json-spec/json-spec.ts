@@ -8,8 +8,9 @@ import {
   JSONSubscriptionPlan,
   JSONTopic,
   JSONVatType,
+  JSONCustomer,
 } from './core'
-import { JSONOrder, JSONCustomer } from './orders'
+import { JSONOrder } from './orders'
 
 export interface JsonSpec {
   shapes?: JSONShape[]

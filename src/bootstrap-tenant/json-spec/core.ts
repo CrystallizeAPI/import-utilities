@@ -364,3 +364,27 @@ export interface JSONShapeComponentPropertiesTableConfig {
     keys: string[]
   }[]
 }
+
+export interface JSONAddress {
+  type: 'delivery' | 'billing' | 'other'
+  street?: string
+  street2?: string
+  streetNumber?: string
+  postalCode?: string
+  city?: string
+  state?: string
+  country?: string
+}
+
+export interface JSONCustomer {
+  identifier?: string
+  firstName?: string
+  middleName?: string
+  lastName?: string
+  birthDate?: string
+  addresses?: JSONAddress[]
+  companyName?: string
+  taxNumber?: string
+  email?: string
+  phone?: string
+}

@@ -1,4 +1,4 @@
-interface AddressInput {
+interface OrderCustomerAddressInput {
   type: 'delivery' | 'billing' | 'other'
   street?: string
   street2?: string
@@ -7,31 +7,31 @@ interface AddressInput {
   city?: string
   state?: string
   country?: string
+  email?: string
+  phone?: string
 }
 
-export interface CustomerInput {
+export interface OrderCustomerInput {
   identifier?: string
   firstName?: string
   middleName?: string
   lastName?: string
   birthDate?: string
-  addresses?: AddressInput[]
+  addresses?: OrderCustomerAddressInput[]
   companyName?: string
   taxNumber?: string
-  email?: string
-  phone?: string
 }
 
-interface TaxInput {
+interface OrderTaxInput {
   name?: string
   percent?: number
 }
 
-interface PriceInput {
+interface OrderPriceInput {
   gross?: number
   net?: number
   currency: string
-  tax?: TaxInput
+  tax?: OrderTaxInput
 }
 
 interface OrderItemInput {
@@ -39,11 +39,11 @@ interface OrderItemInput {
   sku?: string
   productId?: string
   productVariantId?: string
-  price?: PriceInput
+  price?: OrderPriceInput
 }
 
 export interface CreateOrderInput {
-  customer: CustomerInput
+  customer: OrderCustomerInput
   cart: OrderItemInput[]
   payment?: any
   total?: any
