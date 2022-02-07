@@ -138,6 +138,9 @@ export class Bootstrapper extends EventEmitter {
     callPIM: () => Promise.resolve({ data: {} }),
     callCatalogue: () => Promise.resolve({ data: {} }),
     callOrders: () => Promise.resolve({ data: {} }),
+    emitError: (error) => {
+      this.emit(EVENT_NAMES.ERROR, { error })
+    },
   }
 
   config: Config = {

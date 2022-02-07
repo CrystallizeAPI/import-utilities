@@ -38,6 +38,17 @@ export type Scalars = {
   PositiveInt: any
 }
 
+export type AcceptedContentType = {
+  __typename?: 'AcceptedContentType'
+  contentType: Scalars['String']
+  extensionLabel?: Maybe<Scalars['String']>
+}
+
+export type AcceptedContentTypeInput = {
+  contentType: Scalars['String']
+  extensionLabel?: Maybe<Scalars['String']>
+}
+
 export type AccessToken = {
   __typename?: 'AccessToken'
   createdAt: Scalars['DateTime']
@@ -267,6 +278,7 @@ export type ComponentChoiceContent = {
 export type ComponentConfig =
   | ComponentChoiceComponentConfig
   | ContentChunkComponentConfig
+  | FilesComponentConfig
   | ItemRelationsComponentConfig
   | NumericComponentConfig
   | PropertiesTableComponentConfig
@@ -275,6 +287,7 @@ export type ComponentConfig =
 export type ComponentConfigInput = {
   componentChoice?: Maybe<ComponentChoiceComponentConfigInput>
   contentChunk?: Maybe<ContentChunkComponentConfigInput>
+  files?: Maybe<FilesComponentConfigInput>
   itemRelations?: Maybe<ItemRelationsComponentConfigInput>
   numeric?: Maybe<NumericComponentConfigInput>
   propertiesTable?: Maybe<PropertiesTableComponentConfigInput>
@@ -286,6 +299,7 @@ export type ComponentContent =
   | ComponentChoiceContent
   | ContentChunkContent
   | DatetimeContent
+  | FileContent
   | GridRelationsContent
   | ImageContent
   | ItemRelationsContent
@@ -304,6 +318,7 @@ export type ComponentInput = {
   componentId: Scalars['String']
   contentChunk?: Maybe<ContentChunkContentInput>
   datetime?: Maybe<DatetimeContentInput>
+  files?: Maybe<Array<FileInput>>
   gridRelations?: Maybe<GridRelationsContentInput>
   images?: Maybe<Array<ImageInput>>
   itemRelations?: Maybe<ItemRelationsContentInput>
@@ -322,6 +337,7 @@ export enum ComponentType {
   ComponentChoice = 'componentChoice',
   ContentChunk = 'contentChunk',
   Datetime = 'datetime',
+  Files = 'files',
   GridRelations = 'gridRelations',
   Images = 'images',
   ItemRelations = 'itemRelations',
@@ -396,6 +412,7 @@ export type CreateCustomerInput = {
   tenantId: Scalars['ID']
 }
 
+/** Creates a new document. Note that the shapeId input has been deprecated and will be removed in a future release. */
 export type CreateDocumentInput = {
   components?: Maybe<Array<ComponentInput>>
   createdAt?: Maybe<Scalars['DateTime']>
@@ -413,7 +430,6 @@ export type CreateFolderInput = {
   createdAt?: Maybe<Scalars['DateTime']>
   externalReference?: Maybe<Scalars['String']>
   name: Scalars['String']
-  shapeId?: Maybe<Scalars['ID']>
   shapeIdentifier?: Maybe<Scalars['String']>
   tenantId: Scalars['ID']
   topicIds?: Maybe<Array<Scalars['ID']>>
@@ -452,7 +468,6 @@ export type CreateProductInput = {
   isSubscriptionOnly?: Maybe<Scalars['Boolean']>
   isVirtual?: Maybe<Scalars['Boolean']>
   name: Scalars['String']
-  shapeId?: Maybe<Scalars['ID']>
   shapeIdentifier?: Maybe<Scalars['String']>
   tenantId: Scalars['ID']
   topicIds?: Maybe<Array<Scalars['ID']>>
@@ -628,6 +643,7 @@ export type CreateTenantInput = {
   isActive?: Maybe<Scalars['Boolean']>
   isTrial?: Maybe<Scalars['Boolean']>
   logo?: Maybe<ImageInput>
+  meta?: Maybe<Array<KeyValuePairInput>>
   name: Scalars['String']
   shapes?: Maybe<Array<BulkCreateShapeInput>>
   vatTypes?: Maybe<Array<BulkCreateVatTypeInput>>
@@ -773,10 +789,12 @@ export type CustomerExternalReferenceInput = {
 export type CustomerInput = {
   addresses?: Maybe<Array<AddressInput>>
   birthDate?: Maybe<Scalars['DateTime']>
+  companyName?: Maybe<Scalars['String']>
   firstName?: Maybe<Scalars['String']>
   identifier?: Maybe<Scalars['String']>
   lastName?: Maybe<Scalars['String']>
   middleName?: Maybe<Scalars['String']>
+  taxNumber?: Maybe<Scalars['String']>
 }
 
 export type CustomerMutations = {
@@ -800,7 +818,6 @@ export type CustomerMutationsCreateAddressArgs = {
 }
 
 export type CustomerMutationsDeleteArgs = {
-  deleteProductSubscriptions?: Maybe<Scalars['Boolean']>
   deleteSubscriptionContracts?: Maybe<Scalars['Boolean']>
   identifier: Scalars['String']
   tenantId: Scalars['ID']
@@ -934,6 +951,58 @@ export type DocumentQueriesGetArgs = {
   versionLabel?: VersionLabel
 }
 
+export type File = {
+  __typename?: 'File'
+  contentType?: Maybe<Scalars['String']>
+  key: Scalars['String']
+  meta?: Maybe<Array<KeyValuePair>>
+  metaProperty?: Maybe<Scalars['String']>
+  size?: Maybe<Scalars['Float']>
+  title?: Maybe<Scalars['String']>
+  url: Scalars['String']
+}
+
+export type FileMetaPropertyArgs = {
+  key: Scalars['String']
+}
+
+export type FileContent = {
+  __typename?: 'FileContent'
+  files?: Maybe<Array<File>>
+}
+
+export type FileContentInput = {
+  files?: Maybe<Array<FileInput>>
+}
+
+export type FileInput = {
+  key: Scalars['String']
+  meta?: Maybe<Array<KeyValuePairInput>>
+  title?: Maybe<Scalars['String']>
+}
+
+export type FileQueries = {
+  __typename?: 'FileQueries'
+  get?: Maybe<File>
+}
+
+export type FileQueriesGetArgs = {
+  key: Scalars['String']
+}
+
+export type FileSize = {
+  __typename?: 'FileSize'
+  size: Scalars['Float']
+  unit: FileSizeUnit
+}
+
+export enum FileSizeUnit {
+  Bytes = 'Bytes',
+  GiB = 'GiB',
+  KiB = 'KiB',
+  MiB = 'MiB',
+}
+
 export type FileUploadMutations = {
   __typename?: 'FileUploadMutations'
   generatePresignedRequest: PresignedUploadRequest
@@ -943,6 +1012,27 @@ export type FileUploadMutationsGeneratePresignedRequestArgs = {
   contentType: Scalars['String']
   filename: Scalars['String']
   tenantId: Scalars['ID']
+  type?: FileUploadType
+}
+
+export enum FileUploadType {
+  Media = 'MEDIA',
+  Static = 'STATIC',
+}
+
+export type FilesComponentConfig = {
+  __typename?: 'FilesComponentConfig'
+  acceptedContentTypes?: Maybe<Array<AcceptedContentType>>
+  max?: Maybe<Scalars['Int']>
+  maxFileSize?: Maybe<FileSize>
+  min?: Maybe<Scalars['Int']>
+}
+
+export type FilesComponentConfigInput = {
+  acceptedContentTypes?: Maybe<Array<AcceptedContentTypeInput>>
+  max?: Maybe<Scalars['Int']>
+  maxFileSize?: Maybe<MaxFileSizeInput>
+  min?: Maybe<Scalars['Int']>
 }
 
 export type Folder = Item & {
@@ -1024,6 +1114,11 @@ export type FullTreeNodeInput = {
 export type GenericPublishInput = {
   id: Scalars['ID']
   type: ShapeType
+}
+
+export type GetTopicByPathArguments = {
+  path: Scalars['String']
+  tenantId: Scalars['ID']
 }
 
 export type Grid = {
@@ -1505,6 +1600,11 @@ export type LocationContent = {
 export type LocationContentInput = {
   lat?: Maybe<Scalars['Float']>
   long?: Maybe<Scalars['Float']>
+}
+
+export type MaxFileSizeInput = {
+  size: Scalars['Float']
+  unit: FileSizeUnit
 }
 
 export type MeMutations = {
@@ -2097,6 +2197,7 @@ export type ProductMutations = {
   setDefaultVariant: Product
   unpublish?: Maybe<PublishInfo>
   update: Product
+  updateStock: ProductStockLocation
   updateVariant: Product
 }
 
@@ -2131,6 +2232,13 @@ export type ProductMutationsUpdateArgs = {
   id: Scalars['ID']
   input: UpdateProductInput
   language: Scalars['String']
+}
+
+export type ProductMutationsUpdateStockArgs = {
+  productId: Scalars['ID']
+  sku: Scalars['String']
+  stock: Scalars['Int']
+  stockLocationIdentifier?: Scalars['String']
 }
 
 export type ProductMutationsUpdateVariantArgs = {
@@ -2473,6 +2581,7 @@ export type Query = {
   currencySummary?: Maybe<CurrencySummaryReport>
   customer: CustomerQueries
   document: DocumentQueries
+  file: FileQueries
   folder: FolderQueries
   grid: GridQueries
   image: ImageQueries
@@ -2561,8 +2670,8 @@ export type SalesReportTotalArgs = {
 
 export type SearchQueries = {
   __typename?: 'SearchQueries'
-  suggest?: Maybe<SearchSuggestConnection>
-  topics?: Maybe<SearchTopicsConnection>
+  suggest?: Maybe<SuggestSearchConnection>
+  topics?: Maybe<TopicSearchConnection>
 }
 
 export type SearchQueriesSuggestArgs = {
@@ -2571,83 +2680,12 @@ export type SearchQueriesSuggestArgs = {
   language: Scalars['String']
   searchTerm?: Maybe<Scalars['String']>
   tenantId: Scalars['ID']
-  types?: Maybe<Array<SearchSuggestItemType>>
+  types?: Maybe<Array<SuggestSearchItemType>>
 }
 
 export type SearchQueriesTopicsArgs = {
   language: Scalars['String']
   searchTerm?: Maybe<Scalars['String']>
-  tenantId: Scalars['ID']
-}
-
-export type SearchSuggestAggregations = {
-  __typename?: 'SearchSuggestAggregations'
-  totalResults: Scalars['Int']
-  typesAggregation: Array<SearchSuggestTypesAggregation>
-}
-
-export type SearchSuggestConnection = {
-  __typename?: 'SearchSuggestConnection'
-  aggregations: SearchSuggestAggregations
-  edges?: Maybe<Array<SearchSuggestConnectionEdge>>
-  pageInfo: PageInfo
-}
-
-export type SearchSuggestConnectionEdge = {
-  __typename?: 'SearchSuggestConnectionEdge'
-  cursor: Scalars['String']
-  node: SearchSuggestResult
-}
-
-export enum SearchSuggestItemType {
-  Document = 'DOCUMENT',
-  Folder = 'FOLDER',
-  Grid = 'GRID',
-  Pipeline = 'PIPELINE',
-  Product = 'PRODUCT',
-  Shape = 'SHAPE',
-  Topic = 'TOPIC',
-  Webhook = 'WEBHOOK',
-}
-
-export type SearchSuggestResult = {
-  __typename?: 'SearchSuggestResult'
-  id: Scalars['ID']
-  name: Scalars['String']
-  path: Scalars['String']
-  tenantId: Scalars['ID']
-  type: Scalars['String']
-}
-
-export type SearchSuggestTypesAggregation = {
-  __typename?: 'SearchSuggestTypesAggregation'
-  count: Scalars['Int']
-  type: Scalars['String']
-}
-
-export type SearchTopicsAggregations = {
-  __typename?: 'SearchTopicsAggregations'
-  totalResults: Scalars['Int']
-}
-
-export type SearchTopicsConnection = {
-  __typename?: 'SearchTopicsConnection'
-  aggregations: SearchTopicsAggregations
-  edges?: Maybe<Array<SearchTopicsConnectionEdge>>
-}
-
-export type SearchTopicsConnectionEdge = {
-  __typename?: 'SearchTopicsConnectionEdge'
-  node: SearchTopicsResult
-}
-
-export type SearchTopicsResult = {
-  __typename?: 'SearchTopicsResult'
-  display: Scalars['String']
-  id: Scalars['ID']
-  language: Scalars['String']
-  name: Scalars['String']
-  path: Scalars['String']
   tenantId: Scalars['ID']
 }
 
@@ -2752,7 +2790,6 @@ export type ShapeMutationsCreateArgs = {
 }
 
 export type ShapeMutationsDeleteArgs = {
-  id?: Maybe<Scalars['ID']>
   identifier?: Maybe<Scalars['String']>
   tenantId?: Maybe<Scalars['ID']>
 }
@@ -2764,7 +2801,6 @@ export type ShapeMutationsMigrateLegacyIdArgs = {
 }
 
 export type ShapeMutationsUpdateArgs = {
-  id?: Maybe<Scalars['ID']>
   identifier?: Maybe<Scalars['String']>
   input: UpdateShapeInput
   tenantId?: Maybe<Scalars['ID']>
@@ -2777,7 +2813,6 @@ export type ShapeQueries = {
 }
 
 export type ShapeQueriesGetArgs = {
-  id?: Maybe<Scalars['ID']>
   identifier?: Maybe<Scalars['String']>
   tenantId?: Maybe<Scalars['ID']>
 }
@@ -2894,6 +2929,7 @@ export type StripePaymentInput = {
 
 export type SubscriptionContract = {
   __typename?: 'SubscriptionContract'
+  addresses?: Maybe<Array<SubscriptionContractAddress>>
   customer?: Maybe<Customer>
   customerIdentifier: Scalars['String']
   id: Scalars['ID']
@@ -2905,12 +2941,31 @@ export type SubscriptionContract = {
   subscriptionPlan?: Maybe<SubscriptionPlan>
   tenant: Tenant
   tenantId: Scalars['ID']
+  updatedAt?: Maybe<Scalars['DateTime']>
   usage?: Maybe<Array<SubscriptionContractUsage>>
 }
 
 export type SubscriptionContractUsageArgs = {
   end: Scalars['DateTime']
   start: Scalars['DateTime']
+}
+
+export type SubscriptionContractAddress = {
+  __typename?: 'SubscriptionContractAddress'
+  city?: Maybe<Scalars['String']>
+  country?: Maybe<Scalars['String']>
+  email?: Maybe<Scalars['EmailAddress']>
+  firstName?: Maybe<Scalars['String']>
+  id?: Maybe<Scalars['String']>
+  lastName?: Maybe<Scalars['String']>
+  middleName?: Maybe<Scalars['String']>
+  phone?: Maybe<Scalars['String']>
+  postalCode?: Maybe<Scalars['String']>
+  state?: Maybe<Scalars['String']>
+  street?: Maybe<Scalars['String']>
+  street2?: Maybe<Scalars['String']>
+  streetNumber?: Maybe<Scalars['String']>
+  type: AddressType
 }
 
 export type SubscriptionContractCancelledEvent = SubscriptionContractEvent & {
@@ -2972,6 +3027,7 @@ export enum SubscriptionContractEventSortField {
 
 export enum SubscriptionContractEventType {
   Cancelled = 'cancelled',
+  RenewalDueBroadcast = 'renewalDueBroadcast',
   Renewed = 'renewed',
   UsageTracked = 'usageTracked',
 }
@@ -3063,6 +3119,20 @@ export type SubscriptionContractQueriesGetManyArgs = {
   sort?: Maybe<SortDirection>
   sortField?: Maybe<SubscriptionContractSortField>
   tenantId: Scalars['ID']
+}
+
+export type SubscriptionContractRenewalDueBroadcastEvent = SubscriptionContractEvent & {
+  __typename?: 'SubscriptionContractRenewalDueBroadcastEvent'
+  createdAt: Scalars['DateTime']
+  data: SubscriptionContractRenewalDueBroadcastEventData
+  id: Scalars['ID']
+  type: SubscriptionContractEventType
+}
+
+export type SubscriptionContractRenewalDueBroadcastEventData = {
+  __typename?: 'SubscriptionContractRenewalDueBroadcastEventData'
+  broadcastAt: Scalars['DateTime']
+  renewAt: Scalars['DateTime']
 }
 
 export type SubscriptionContractRenewedEvent = SubscriptionContractEvent & {
@@ -3224,6 +3294,51 @@ export type SubscriptionPlanReferenceInput = {
   periods: Array<SubscriptionPlanPeriodReferenceInput>
 }
 
+export type SuggestSearchAggregations = {
+  __typename?: 'SuggestSearchAggregations'
+  totalResults: Scalars['Int']
+  typesAggregation: Array<SuggestSearchTypesAggregation>
+}
+
+export type SuggestSearchConnection = {
+  __typename?: 'SuggestSearchConnection'
+  aggregations: SuggestSearchAggregations
+  edges?: Maybe<Array<SuggestSearchConnectionEdge>>
+  pageInfo: PageInfo
+}
+
+export type SuggestSearchConnectionEdge = {
+  __typename?: 'SuggestSearchConnectionEdge'
+  cursor: Scalars['String']
+  node: SuggestSearchResult
+}
+
+export enum SuggestSearchItemType {
+  Document = 'DOCUMENT',
+  Folder = 'FOLDER',
+  Grid = 'GRID',
+  Pipeline = 'PIPELINE',
+  Product = 'PRODUCT',
+  Shape = 'SHAPE',
+  Topic = 'TOPIC',
+  Webhook = 'WEBHOOK',
+}
+
+export type SuggestSearchResult = {
+  __typename?: 'SuggestSearchResult'
+  id: Scalars['ID']
+  name: Scalars['String']
+  path: Scalars['String']
+  tenantId: Scalars['ID']
+  type: Scalars['String']
+}
+
+export type SuggestSearchTypesAggregation = {
+  __typename?: 'SuggestSearchTypesAggregation'
+  count: Scalars['Int']
+  type: Scalars['String']
+}
+
 export type Tax = {
   __typename?: 'Tax'
   name?: Maybe<Scalars['String']>
@@ -3247,6 +3362,8 @@ export type Tenant = {
   isActive: Scalars['Boolean']
   isTrial: Scalars['Boolean']
   logo?: Maybe<Image>
+  meta?: Maybe<Array<KeyValuePair>>
+  metaProperty?: Maybe<Scalars['String']>
   metrics?: Maybe<TenantMetrics>
   name: Scalars['String']
   rootItemId: Scalars['ID']
@@ -3263,6 +3380,10 @@ export type Tenant = {
 export type TenantGridsArgs = {
   language: Scalars['String']
   versionLabel?: VersionLabel
+}
+
+export type TenantMetaPropertyArgs = {
+  key: Scalars['String']
 }
 
 export type TenantTopicsArgs = {
@@ -3476,17 +3597,45 @@ export type TopicMutationsUpdateArgs = {
 
 export type TopicQueries = {
   __typename?: 'TopicQueries'
+  /** Returns a specific topic. Topics can be queried either by ID or by path. */
   get?: Maybe<Topic>
   getRootTopics?: Maybe<Array<Maybe<Topic>>>
 }
 
 export type TopicQueriesGetArgs = {
-  id: Scalars['ID']
+  id?: Maybe<Scalars['ID']>
   language: Scalars['String']
+  path?: Maybe<GetTopicByPathArguments>
 }
 
 export type TopicQueriesGetRootTopicsArgs = {
   language: Scalars['String']
+  tenantId: Scalars['ID']
+}
+
+export type TopicSearchAggregations = {
+  __typename?: 'TopicSearchAggregations'
+  totalResults: Scalars['Int']
+}
+
+export type TopicSearchConnection = {
+  __typename?: 'TopicSearchConnection'
+  aggregations: TopicSearchAggregations
+  edges?: Maybe<Array<TopicSearchConnectionEdge>>
+}
+
+export type TopicSearchConnectionEdge = {
+  __typename?: 'TopicSearchConnectionEdge'
+  node: TopicSearchResult
+}
+
+export type TopicSearchResult = {
+  __typename?: 'TopicSearchResult'
+  display: Scalars['String']
+  id: Scalars['ID']
+  language: Scalars['String']
+  name: Scalars['String']
+  path: Scalars['String']
   tenantId: Scalars['ID']
 }
 
@@ -3686,11 +3835,11 @@ export type UpdateProductVariantInput = {
   externalReference?: Maybe<Scalars['String']>
   id?: Maybe<Scalars['String']>
   images?: Maybe<Array<ImageInput>>
-  isDefault: Scalars['Boolean']
+  isDefault?: Maybe<Scalars['Boolean']>
   name?: Maybe<Scalars['String']>
   price?: Maybe<Scalars['Float']>
   priceVariants?: Maybe<Array<PriceVariantReferenceInput>>
-  sku: Scalars['String']
+  sku?: Maybe<Scalars['String']>
   stock?: Maybe<Scalars['Int']>
   stockLocations?: Maybe<Array<StockLocationReferenceInput>>
   subscriptionPlans?: Maybe<Array<SubscriptionPlanReferenceInput>>
@@ -4222,6 +4371,8 @@ export type DirectiveResolverFn<
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  AcceptedContentType: ResolverTypeWrapper<AcceptedContentType>
+  AcceptedContentTypeInput: AcceptedContentTypeInput
   AccessToken: ResolverTypeWrapper<AccessToken>
   AccessTokenMutations: ResolverTypeWrapper<AccessTokenMutations>
   AddLanguageInput: AddLanguageInput
@@ -4257,6 +4408,7 @@ export type ResolversTypes = {
   ComponentConfig:
     | ResolversTypes['ComponentChoiceComponentConfig']
     | ResolversTypes['ContentChunkComponentConfig']
+    | ResolversTypes['FilesComponentConfig']
     | ResolversTypes['ItemRelationsComponentConfig']
     | ResolversTypes['NumericComponentConfig']
     | ResolversTypes['PropertiesTableComponentConfig']
@@ -4267,6 +4419,7 @@ export type ResolversTypes = {
     | ResolversTypes['ComponentChoiceContent']
     | ResolversTypes['ContentChunkContent']
     | ResolversTypes['DatetimeContent']
+    | ResolversTypes['FileContent']
     | ResolversTypes['GridRelationsContent']
     | ResolversTypes['ImageContent']
     | ResolversTypes['ItemRelationsContent']
@@ -4343,13 +4496,24 @@ export type ResolversTypes = {
   DocumentMutations: ResolverTypeWrapper<DocumentMutations>
   DocumentQueries: ResolverTypeWrapper<DocumentQueries>
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']>
+  File: ResolverTypeWrapper<File>
+  FileContent: ResolverTypeWrapper<FileContent>
+  FileContentInput: FileContentInput
+  FileInput: FileInput
+  FileQueries: ResolverTypeWrapper<FileQueries>
+  FileSize: ResolverTypeWrapper<FileSize>
+  FileSizeUnit: FileSizeUnit
   FileUploadMutations: ResolverTypeWrapper<FileUploadMutations>
+  FileUploadType: FileUploadType
+  FilesComponentConfig: ResolverTypeWrapper<FilesComponentConfig>
+  FilesComponentConfigInput: FilesComponentConfigInput
   Float: ResolverTypeWrapper<Scalars['Float']>
   Folder: ResolverTypeWrapper<Folder>
   FolderMutations: ResolverTypeWrapper<FolderMutations>
   FolderQueries: ResolverTypeWrapper<FolderQueries>
   FullTreeNodeInput: FullTreeNodeInput
   GenericPublishInput: GenericPublishInput
+  GetTopicByPathArguments: GetTopicByPathArguments
   Grid: ResolverTypeWrapper<Grid>
   GridColumn: ResolverTypeWrapper<GridColumn>
   GridColumnInput: GridColumnInput
@@ -4404,6 +4568,7 @@ export type ResolversTypes = {
   LanguageMutations: ResolverTypeWrapper<LanguageMutations>
   LocationContent: ResolverTypeWrapper<LocationContent>
   LocationContentInput: LocationContentInput
+  MaxFileSizeInput: MaxFileSizeInput
   MeMutations: ResolverTypeWrapper<MeMutations>
   Mutation: ResolverTypeWrapper<{}>
   NonNegativeFloat: ResolverTypeWrapper<Scalars['NonNegativeFloat']>
@@ -4520,16 +4685,6 @@ export type ResolversTypes = {
   RichTextContentInput: RichTextContentInput
   SalesReport: ResolverTypeWrapper<SalesReport>
   SearchQueries: ResolverTypeWrapper<SearchQueries>
-  SearchSuggestAggregations: ResolverTypeWrapper<SearchSuggestAggregations>
-  SearchSuggestConnection: ResolverTypeWrapper<SearchSuggestConnection>
-  SearchSuggestConnectionEdge: ResolverTypeWrapper<SearchSuggestConnectionEdge>
-  SearchSuggestItemType: SearchSuggestItemType
-  SearchSuggestResult: ResolverTypeWrapper<SearchSuggestResult>
-  SearchSuggestTypesAggregation: ResolverTypeWrapper<SearchSuggestTypesAggregation>
-  SearchTopicsAggregations: ResolverTypeWrapper<SearchTopicsAggregations>
-  SearchTopicsConnection: ResolverTypeWrapper<SearchTopicsConnection>
-  SearchTopicsConnectionEdge: ResolverTypeWrapper<SearchTopicsConnectionEdge>
-  SearchTopicsResult: ResolverTypeWrapper<SearchTopicsResult>
   SelectionComponentConfig: ResolverTypeWrapper<SelectionComponentConfig>
   SelectionComponentConfigInput: SelectionComponentConfigInput
   SelectionComponentContentInput: SelectionComponentContentInput
@@ -4564,11 +4719,13 @@ export type ResolversTypes = {
       payment?: Maybe<ResolversTypes['Payment']>
     }
   >
+  SubscriptionContractAddress: ResolverTypeWrapper<SubscriptionContractAddress>
   SubscriptionContractCancelledEvent: ResolverTypeWrapper<SubscriptionContractCancelledEvent>
   SubscriptionContractConnection: ResolverTypeWrapper<SubscriptionContractConnection>
   SubscriptionContractConnectionEdge: ResolverTypeWrapper<SubscriptionContractConnectionEdge>
   SubscriptionContractEvent:
     | ResolversTypes['SubscriptionContractCancelledEvent']
+    | ResolversTypes['SubscriptionContractRenewalDueBroadcastEvent']
     | ResolversTypes['SubscriptionContractRenewedEvent']
     | ResolversTypes['SubscriptionContractUsageTrackedEvent']
   SubscriptionContractEventConnection: ResolverTypeWrapper<SubscriptionContractEventConnection>
@@ -4582,6 +4739,8 @@ export type ResolversTypes = {
   SubscriptionContractMutations: ResolverTypeWrapper<SubscriptionContractMutations>
   SubscriptionContractPhase: ResolverTypeWrapper<SubscriptionContractPhase>
   SubscriptionContractQueries: ResolverTypeWrapper<SubscriptionContractQueries>
+  SubscriptionContractRenewalDueBroadcastEvent: ResolverTypeWrapper<SubscriptionContractRenewalDueBroadcastEvent>
+  SubscriptionContractRenewalDueBroadcastEventData: ResolverTypeWrapper<SubscriptionContractRenewalDueBroadcastEventData>
   SubscriptionContractRenewedEvent: ResolverTypeWrapper<SubscriptionContractRenewedEvent>
   SubscriptionContractSortField: SubscriptionContractSortField
   SubscriptionContractStatus: ResolverTypeWrapper<SubscriptionContractStatus>
@@ -4602,6 +4761,12 @@ export type ResolversTypes = {
   SubscriptionPlanPriceInput: SubscriptionPlanPriceInput
   SubscriptionPlanQueries: ResolverTypeWrapper<SubscriptionPlanQueries>
   SubscriptionPlanReferenceInput: SubscriptionPlanReferenceInput
+  SuggestSearchAggregations: ResolverTypeWrapper<SuggestSearchAggregations>
+  SuggestSearchConnection: ResolverTypeWrapper<SuggestSearchConnection>
+  SuggestSearchConnectionEdge: ResolverTypeWrapper<SuggestSearchConnectionEdge>
+  SuggestSearchItemType: SuggestSearchItemType
+  SuggestSearchResult: ResolverTypeWrapper<SuggestSearchResult>
+  SuggestSearchTypesAggregation: ResolverTypeWrapper<SuggestSearchTypesAggregation>
   Tax: ResolverTypeWrapper<Tax>
   TaxInput: TaxInput
   Tenant: ResolverTypeWrapper<Tenant>
@@ -4619,6 +4784,10 @@ export type ResolversTypes = {
   TopicItemsModified: ResolverTypeWrapper<TopicItemsModified>
   TopicMutations: ResolverTypeWrapper<TopicMutations>
   TopicQueries: ResolverTypeWrapper<TopicQueries>
+  TopicSearchAggregations: ResolverTypeWrapper<TopicSearchAggregations>
+  TopicSearchConnection: ResolverTypeWrapper<TopicSearchConnection>
+  TopicSearchConnectionEdge: ResolverTypeWrapper<TopicSearchConnectionEdge>
+  TopicSearchResult: ResolverTypeWrapper<TopicSearchResult>
   TrackUsageInput: TrackUsageInput
   TreeMutations: ResolverTypeWrapper<TreeMutations>
   TreeNode: ResolverTypeWrapper<TreeNode>
@@ -4686,6 +4855,8 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  AcceptedContentType: AcceptedContentType
+  AcceptedContentTypeInput: AcceptedContentTypeInput
   AccessToken: AccessToken
   AccessTokenMutations: AccessTokenMutations
   AddLanguageInput: AddLanguageInput
@@ -4715,6 +4886,7 @@ export type ResolversParentTypes = {
   ComponentConfig:
     | ResolversParentTypes['ComponentChoiceComponentConfig']
     | ResolversParentTypes['ContentChunkComponentConfig']
+    | ResolversParentTypes['FilesComponentConfig']
     | ResolversParentTypes['ItemRelationsComponentConfig']
     | ResolversParentTypes['NumericComponentConfig']
     | ResolversParentTypes['PropertiesTableComponentConfig']
@@ -4725,6 +4897,7 @@ export type ResolversParentTypes = {
     | ResolversParentTypes['ComponentChoiceContent']
     | ResolversParentTypes['ContentChunkContent']
     | ResolversParentTypes['DatetimeContent']
+    | ResolversParentTypes['FileContent']
     | ResolversParentTypes['GridRelationsContent']
     | ResolversParentTypes['ImageContent']
     | ResolversParentTypes['ItemRelationsContent']
@@ -4800,13 +4973,22 @@ export type ResolversParentTypes = {
   DocumentMutations: DocumentMutations
   DocumentQueries: DocumentQueries
   EmailAddress: Scalars['EmailAddress']
+  File: File
+  FileContent: FileContent
+  FileContentInput: FileContentInput
+  FileInput: FileInput
+  FileQueries: FileQueries
+  FileSize: FileSize
   FileUploadMutations: FileUploadMutations
+  FilesComponentConfig: FilesComponentConfig
+  FilesComponentConfigInput: FilesComponentConfigInput
   Float: Scalars['Float']
   Folder: Folder
   FolderMutations: FolderMutations
   FolderQueries: FolderQueries
   FullTreeNodeInput: FullTreeNodeInput
   GenericPublishInput: GenericPublishInput
+  GetTopicByPathArguments: GetTopicByPathArguments
   Grid: Grid
   GridColumn: GridColumn
   GridColumnInput: GridColumnInput
@@ -4858,6 +5040,7 @@ export type ResolversParentTypes = {
   LanguageMutations: LanguageMutations
   LocationContent: LocationContent
   LocationContentInput: LocationContentInput
+  MaxFileSizeInput: MaxFileSizeInput
   MeMutations: MeMutations
   Mutation: {}
   NonNegativeFloat: Scalars['NonNegativeFloat']
@@ -4962,15 +5145,6 @@ export type ResolversParentTypes = {
   RichTextContentInput: RichTextContentInput
   SalesReport: SalesReport
   SearchQueries: SearchQueries
-  SearchSuggestAggregations: SearchSuggestAggregations
-  SearchSuggestConnection: SearchSuggestConnection
-  SearchSuggestConnectionEdge: SearchSuggestConnectionEdge
-  SearchSuggestResult: SearchSuggestResult
-  SearchSuggestTypesAggregation: SearchSuggestTypesAggregation
-  SearchTopicsAggregations: SearchTopicsAggregations
-  SearchTopicsConnection: SearchTopicsConnection
-  SearchTopicsConnectionEdge: SearchTopicsConnectionEdge
-  SearchTopicsResult: SearchTopicsResult
   SelectionComponentConfig: SelectionComponentConfig
   SelectionComponentConfigInput: SelectionComponentConfigInput
   SelectionComponentContentInput: SelectionComponentContentInput
@@ -4999,11 +5173,13 @@ export type ResolversParentTypes = {
   SubscriptionContract: Omit<SubscriptionContract, 'payment'> & {
     payment?: Maybe<ResolversParentTypes['Payment']>
   }
+  SubscriptionContractAddress: SubscriptionContractAddress
   SubscriptionContractCancelledEvent: SubscriptionContractCancelledEvent
   SubscriptionContractConnection: SubscriptionContractConnection
   SubscriptionContractConnectionEdge: SubscriptionContractConnectionEdge
   SubscriptionContractEvent:
     | ResolversParentTypes['SubscriptionContractCancelledEvent']
+    | ResolversParentTypes['SubscriptionContractRenewalDueBroadcastEvent']
     | ResolversParentTypes['SubscriptionContractRenewedEvent']
     | ResolversParentTypes['SubscriptionContractUsageTrackedEvent']
   SubscriptionContractEventConnection: SubscriptionContractEventConnection
@@ -5015,6 +5191,8 @@ export type ResolversParentTypes = {
   SubscriptionContractMutations: SubscriptionContractMutations
   SubscriptionContractPhase: SubscriptionContractPhase
   SubscriptionContractQueries: SubscriptionContractQueries
+  SubscriptionContractRenewalDueBroadcastEvent: SubscriptionContractRenewalDueBroadcastEvent
+  SubscriptionContractRenewalDueBroadcastEventData: SubscriptionContractRenewalDueBroadcastEventData
   SubscriptionContractRenewedEvent: SubscriptionContractRenewedEvent
   SubscriptionContractStatus: SubscriptionContractStatus
   SubscriptionContractUsage: SubscriptionContractUsage
@@ -5033,6 +5211,11 @@ export type ResolversParentTypes = {
   SubscriptionPlanPriceInput: SubscriptionPlanPriceInput
   SubscriptionPlanQueries: SubscriptionPlanQueries
   SubscriptionPlanReferenceInput: SubscriptionPlanReferenceInput
+  SuggestSearchAggregations: SuggestSearchAggregations
+  SuggestSearchConnection: SuggestSearchConnection
+  SuggestSearchConnectionEdge: SuggestSearchConnectionEdge
+  SuggestSearchResult: SuggestSearchResult
+  SuggestSearchTypesAggregation: SuggestSearchTypesAggregation
   Tax: Tax
   TaxInput: TaxInput
   Tenant: Tenant
@@ -5049,6 +5232,10 @@ export type ResolversParentTypes = {
   TopicItemsModified: TopicItemsModified
   TopicMutations: TopicMutations
   TopicQueries: TopicQueries
+  TopicSearchAggregations: TopicSearchAggregations
+  TopicSearchConnection: TopicSearchConnection
+  TopicSearchConnectionEdge: TopicSearchConnectionEdge
+  TopicSearchResult: TopicSearchResult
   TrackUsageInput: TrackUsageInput
   TreeMutations: TreeMutations
   TreeNode: TreeNode
@@ -5109,6 +5296,19 @@ export type ResolversParentTypes = {
   WebhookMetrics: WebhookMetrics
   WebhookMutations: WebhookMutations
   WebhookQueries: WebhookQueries
+}
+
+export type AcceptedContentTypeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['AcceptedContentType'] = ResolversParentTypes['AcceptedContentType']
+> = {
+  contentType?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  extensionLabel?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
 export type AccessTokenResolvers<
@@ -5277,6 +5477,7 @@ export type ComponentConfigResolvers<
   __resolveType: TypeResolveFn<
     | 'ComponentChoiceComponentConfig'
     | 'ContentChunkComponentConfig'
+    | 'FilesComponentConfig'
     | 'ItemRelationsComponentConfig'
     | 'NumericComponentConfig'
     | 'PropertiesTableComponentConfig'
@@ -5295,6 +5496,7 @@ export type ComponentContentResolvers<
     | 'ComponentChoiceContent'
     | 'ContentChunkContent'
     | 'DatetimeContent'
+    | 'FileContent'
     | 'GridRelationsContent'
     | 'ImageContent'
     | 'ItemRelationsContent'
@@ -5493,10 +5695,7 @@ export type CustomerMutationsResolvers<
     ContextType,
     RequireFields<
       CustomerMutationsDeleteArgs,
-      | 'deleteProductSubscriptions'
-      | 'deleteSubscriptionContracts'
-      | 'identifier'
-      | 'tenantId'
+      'deleteSubscriptionContracts' | 'identifier' | 'tenantId'
     >
   >
   deleteAddress?: Resolver<
@@ -5694,6 +5893,67 @@ export interface EmailAddressScalarConfig
   name: 'EmailAddress'
 }
 
+export type FileResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']
+> = {
+  contentType?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  meta?: Resolver<
+    Maybe<Array<ResolversTypes['KeyValuePair']>>,
+    ParentType,
+    ContextType
+  >
+  metaProperty?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType,
+    RequireFields<FileMetaPropertyArgs, 'key'>
+  >
+  size?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type FileContentResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['FileContent'] = ResolversParentTypes['FileContent']
+> = {
+  files?: Resolver<
+    Maybe<Array<ResolversTypes['File']>>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type FileQueriesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['FileQueries'] = ResolversParentTypes['FileQueries']
+> = {
+  get?: Resolver<
+    Maybe<ResolversTypes['File']>,
+    ParentType,
+    ContextType,
+    RequireFields<FileQueriesGetArgs, 'key'>
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type FileSizeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['FileSize'] = ResolversParentTypes['FileSize']
+> = {
+  size?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  unit?: Resolver<ResolversTypes['FileSizeUnit'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
 export type FileUploadMutationsResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['FileUploadMutations'] = ResolversParentTypes['FileUploadMutations']
@@ -5704,9 +5964,28 @@ export type FileUploadMutationsResolvers<
     ContextType,
     RequireFields<
       FileUploadMutationsGeneratePresignedRequestArgs,
-      'contentType' | 'filename' | 'tenantId'
+      'contentType' | 'filename' | 'tenantId' | 'type'
     >
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type FilesComponentConfigResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['FilesComponentConfig'] = ResolversParentTypes['FilesComponentConfig']
+> = {
+  acceptedContentTypes?: Resolver<
+    Maybe<Array<ResolversTypes['AcceptedContentType']>>,
+    ParentType,
+    ContextType
+  >
+  max?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  maxFileSize?: Resolver<
+    Maybe<ResolversTypes['FileSize']>,
+    ParentType,
+    ContextType
+  >
+  min?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -7349,6 +7628,15 @@ export type ProductMutationsResolvers<
     ContextType,
     RequireFields<ProductMutationsUpdateArgs, 'id' | 'input' | 'language'>
   >
+  updateStock?: Resolver<
+    ResolversTypes['ProductStockLocation'],
+    ParentType,
+    ContextType,
+    RequireFields<
+      ProductMutationsUpdateStockArgs,
+      'productId' | 'sku' | 'stock' | 'stockLocationIdentifier'
+    >
+  >
   updateVariant?: Resolver<
     ResolversTypes['Product'],
     ParentType,
@@ -7911,6 +8199,7 @@ export type QueryResolvers<
     ParentType,
     ContextType
   >
+  file?: Resolver<ResolversTypes['FileQueries'], ParentType, ContextType>
   folder?: Resolver<ResolversTypes['FolderQueries'], ParentType, ContextType>
   grid?: Resolver<ResolversTypes['GridQueries'], ParentType, ContextType>
   image?: Resolver<ResolversTypes['ImageQueries'], ParentType, ContextType>
@@ -8052,128 +8341,17 @@ export type SearchQueriesResolvers<
   ParentType extends ResolversParentTypes['SearchQueries'] = ResolversParentTypes['SearchQueries']
 > = {
   suggest?: Resolver<
-    Maybe<ResolversTypes['SearchSuggestConnection']>,
+    Maybe<ResolversTypes['SuggestSearchConnection']>,
     ParentType,
     ContextType,
     RequireFields<SearchQueriesSuggestArgs, 'language' | 'tenantId'>
   >
   topics?: Resolver<
-    Maybe<ResolversTypes['SearchTopicsConnection']>,
+    Maybe<ResolversTypes['TopicSearchConnection']>,
     ParentType,
     ContextType,
     RequireFields<SearchQueriesTopicsArgs, 'language' | 'tenantId'>
   >
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchSuggestAggregationsResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchSuggestAggregations'] = ResolversParentTypes['SearchSuggestAggregations']
-> = {
-  totalResults?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  typesAggregation?: Resolver<
-    Array<ResolversTypes['SearchSuggestTypesAggregation']>,
-    ParentType,
-    ContextType
-  >
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchSuggestConnectionResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchSuggestConnection'] = ResolversParentTypes['SearchSuggestConnection']
-> = {
-  aggregations?: Resolver<
-    ResolversTypes['SearchSuggestAggregations'],
-    ParentType,
-    ContextType
-  >
-  edges?: Resolver<
-    Maybe<Array<ResolversTypes['SearchSuggestConnectionEdge']>>,
-    ParentType,
-    ContextType
-  >
-  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchSuggestConnectionEdgeResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchSuggestConnectionEdge'] = ResolversParentTypes['SearchSuggestConnectionEdge']
-> = {
-  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  node?: Resolver<
-    ResolversTypes['SearchSuggestResult'],
-    ParentType,
-    ContextType
-  >
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchSuggestResultResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchSuggestResult'] = ResolversParentTypes['SearchSuggestResult']
-> = {
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
-  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchSuggestTypesAggregationResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchSuggestTypesAggregation'] = ResolversParentTypes['SearchSuggestTypesAggregation']
-> = {
-  count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchTopicsAggregationsResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchTopicsAggregations'] = ResolversParentTypes['SearchTopicsAggregations']
-> = {
-  totalResults?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchTopicsConnectionResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchTopicsConnection'] = ResolversParentTypes['SearchTopicsConnection']
-> = {
-  aggregations?: Resolver<
-    ResolversTypes['SearchTopicsAggregations'],
-    ParentType,
-    ContextType
-  >
-  edges?: Resolver<
-    Maybe<Array<ResolversTypes['SearchTopicsConnectionEdge']>>,
-    ParentType,
-    ContextType
-  >
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchTopicsConnectionEdgeResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchTopicsConnectionEdge'] = ResolversParentTypes['SearchTopicsConnectionEdge']
-> = {
-  node?: Resolver<ResolversTypes['SearchTopicsResult'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
-}
-
-export type SearchTopicsResultResolvers<
-  ContextType = any,
-  ParentType extends ResolversParentTypes['SearchTopicsResult'] = ResolversParentTypes['SearchTopicsResult']
-> = {
-  display?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
-  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -8472,6 +8650,11 @@ export type SubscriptionContractResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['SubscriptionContract'] = ResolversParentTypes['SubscriptionContract']
 > = {
+  addresses?: Resolver<
+    Maybe<Array<ResolversTypes['SubscriptionContractAddress']>>,
+    ParentType,
+    ContextType
+  >
   customer?: Resolver<
     Maybe<ResolversTypes['Customer']>,
     ParentType,
@@ -8511,12 +8694,54 @@ export type SubscriptionContractResolvers<
   >
   tenant?: Resolver<ResolversTypes['Tenant'], ParentType, ContextType>
   tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  updatedAt?: Resolver<
+    Maybe<ResolversTypes['DateTime']>,
+    ParentType,
+    ContextType
+  >
   usage?: Resolver<
     Maybe<Array<ResolversTypes['SubscriptionContractUsage']>>,
     ParentType,
     ContextType,
     RequireFields<SubscriptionContractUsageArgs, 'end' | 'start'>
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type SubscriptionContractAddressResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SubscriptionContractAddress'] = ResolversParentTypes['SubscriptionContractAddress']
+> = {
+  city?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  country?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  email?: Resolver<
+    Maybe<ResolversTypes['EmailAddress']>,
+    ParentType,
+    ContextType
+  >
+  firstName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  middleName?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  postalCode?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  state?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  street?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  street2?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  streetNumber?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  type?: Resolver<ResolversTypes['AddressType'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -8566,6 +8791,7 @@ export type SubscriptionContractEventResolvers<
 > = {
   __resolveType: TypeResolveFn<
     | 'SubscriptionContractCancelledEvent'
+    | 'SubscriptionContractRenewalDueBroadcastEvent'
     | 'SubscriptionContractRenewedEvent'
     | 'SubscriptionContractUsageTrackedEvent',
     ParentType,
@@ -8752,6 +8978,34 @@ export type SubscriptionContractQueriesResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
+export type SubscriptionContractRenewalDueBroadcastEventResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SubscriptionContractRenewalDueBroadcastEvent'] = ResolversParentTypes['SubscriptionContractRenewalDueBroadcastEvent']
+> = {
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  data?: Resolver<
+    ResolversTypes['SubscriptionContractRenewalDueBroadcastEventData'],
+    ParentType,
+    ContextType
+  >
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  type?: Resolver<
+    ResolversTypes['SubscriptionContractEventType'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type SubscriptionContractRenewalDueBroadcastEventDataResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SubscriptionContractRenewalDueBroadcastEventData'] = ResolversParentTypes['SubscriptionContractRenewalDueBroadcastEventData']
+> = {
+  broadcastAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  renewAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
 export type SubscriptionContractRenewedEventResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['SubscriptionContractRenewedEvent'] = ResolversParentTypes['SubscriptionContractRenewedEvent']
@@ -8924,6 +9178,71 @@ export type SubscriptionPlanQueriesResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
+export type SuggestSearchAggregationsResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SuggestSearchAggregations'] = ResolversParentTypes['SuggestSearchAggregations']
+> = {
+  totalResults?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  typesAggregation?: Resolver<
+    Array<ResolversTypes['SuggestSearchTypesAggregation']>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type SuggestSearchConnectionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SuggestSearchConnection'] = ResolversParentTypes['SuggestSearchConnection']
+> = {
+  aggregations?: Resolver<
+    ResolversTypes['SuggestSearchAggregations'],
+    ParentType,
+    ContextType
+  >
+  edges?: Resolver<
+    Maybe<Array<ResolversTypes['SuggestSearchConnectionEdge']>>,
+    ParentType,
+    ContextType
+  >
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type SuggestSearchConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SuggestSearchConnectionEdge'] = ResolversParentTypes['SuggestSearchConnectionEdge']
+> = {
+  cursor?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  node?: Resolver<
+    ResolversTypes['SuggestSearchResult'],
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type SuggestSearchResultResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SuggestSearchResult'] = ResolversParentTypes['SuggestSearchResult']
+> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type SuggestSearchTypesAggregationResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['SuggestSearchTypesAggregation'] = ResolversParentTypes['SuggestSearchTypesAggregation']
+> = {
+  count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
 export type TaxResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Tax'] = ResolversParentTypes['Tax']
@@ -8960,6 +9279,17 @@ export type TenantResolvers<
   isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   isTrial?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   logo?: Resolver<Maybe<ResolversTypes['Image']>, ParentType, ContextType>
+  meta?: Resolver<
+    Maybe<Array<ResolversTypes['KeyValuePair']>>,
+    ParentType,
+    ContextType
+  >
+  metaProperty?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType,
+    RequireFields<TenantMetaPropertyArgs, 'key'>
+  >
   metrics?: Resolver<
     Maybe<ResolversTypes['TenantMetrics']>,
     ParentType,
@@ -9259,7 +9589,7 @@ export type TopicQueriesResolvers<
     Maybe<ResolversTypes['Topic']>,
     ParentType,
     ContextType,
-    RequireFields<TopicQueriesGetArgs, 'id' | 'language'>
+    RequireFields<TopicQueriesGetArgs, 'language'>
   >
   getRootTopics?: Resolver<
     Maybe<Array<Maybe<ResolversTypes['Topic']>>>,
@@ -9267,6 +9597,52 @@ export type TopicQueriesResolvers<
     ContextType,
     RequireFields<TopicQueriesGetRootTopicsArgs, 'language' | 'tenantId'>
   >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type TopicSearchAggregationsResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['TopicSearchAggregations'] = ResolversParentTypes['TopicSearchAggregations']
+> = {
+  totalResults?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type TopicSearchConnectionResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['TopicSearchConnection'] = ResolversParentTypes['TopicSearchConnection']
+> = {
+  aggregations?: Resolver<
+    ResolversTypes['TopicSearchAggregations'],
+    ParentType,
+    ContextType
+  >
+  edges?: Resolver<
+    Maybe<Array<ResolversTypes['TopicSearchConnectionEdge']>>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type TopicSearchConnectionEdgeResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['TopicSearchConnectionEdge'] = ResolversParentTypes['TopicSearchConnectionEdge']
+> = {
+  node?: Resolver<ResolversTypes['TopicSearchResult'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type TopicSearchResultResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['TopicSearchResult'] = ResolversParentTypes['TopicSearchResult']
+> = {
+  display?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -9817,6 +10193,7 @@ export type WebhookQueriesResolvers<
 }
 
 export type Resolvers<ContextType = any> = {
+  AcceptedContentType?: AcceptedContentTypeResolvers<ContextType>
   AccessToken?: AccessTokenResolvers<ContextType>
   AccessTokenMutations?: AccessTokenMutationsResolvers<ContextType>
   Address?: AddressResolvers<ContextType>
@@ -9848,7 +10225,12 @@ export type Resolvers<ContextType = any> = {
   DocumentMutations?: DocumentMutationsResolvers<ContextType>
   DocumentQueries?: DocumentQueriesResolvers<ContextType>
   EmailAddress?: GraphQLScalarType
+  File?: FileResolvers<ContextType>
+  FileContent?: FileContentResolvers<ContextType>
+  FileQueries?: FileQueriesResolvers<ContextType>
+  FileSize?: FileSizeResolvers<ContextType>
   FileUploadMutations?: FileUploadMutationsResolvers<ContextType>
+  FilesComponentConfig?: FilesComponentConfigResolvers<ContextType>
   Folder?: FolderResolvers<ContextType>
   FolderMutations?: FolderMutationsResolvers<ContextType>
   FolderQueries?: FolderQueriesResolvers<ContextType>
@@ -9953,15 +10335,6 @@ export type Resolvers<ContextType = any> = {
   RichTextContent?: RichTextContentResolvers<ContextType>
   SalesReport?: SalesReportResolvers<ContextType>
   SearchQueries?: SearchQueriesResolvers<ContextType>
-  SearchSuggestAggregations?: SearchSuggestAggregationsResolvers<ContextType>
-  SearchSuggestConnection?: SearchSuggestConnectionResolvers<ContextType>
-  SearchSuggestConnectionEdge?: SearchSuggestConnectionEdgeResolvers<ContextType>
-  SearchSuggestResult?: SearchSuggestResultResolvers<ContextType>
-  SearchSuggestTypesAggregation?: SearchSuggestTypesAggregationResolvers<ContextType>
-  SearchTopicsAggregations?: SearchTopicsAggregationsResolvers<ContextType>
-  SearchTopicsConnection?: SearchTopicsConnectionResolvers<ContextType>
-  SearchTopicsConnectionEdge?: SearchTopicsConnectionEdgeResolvers<ContextType>
-  SearchTopicsResult?: SearchTopicsResultResolvers<ContextType>
   SelectionComponentConfig?: SelectionComponentConfigResolvers<ContextType>
   SelectionComponentOptionConfig?: SelectionComponentOptionConfigResolvers<ContextType>
   SelectionContent?: SelectionContentResolvers<ContextType>
@@ -9977,6 +10350,7 @@ export type Resolvers<ContextType = any> = {
   StockLocationSettings?: StockLocationSettingsResolvers<ContextType>
   StripePayment?: StripePaymentResolvers<ContextType>
   SubscriptionContract?: SubscriptionContractResolvers<ContextType>
+  SubscriptionContractAddress?: SubscriptionContractAddressResolvers<ContextType>
   SubscriptionContractCancelledEvent?: SubscriptionContractCancelledEventResolvers<ContextType>
   SubscriptionContractConnection?: SubscriptionContractConnectionResolvers<ContextType>
   SubscriptionContractConnectionEdge?: SubscriptionContractConnectionEdgeResolvers<ContextType>
@@ -9990,6 +10364,8 @@ export type Resolvers<ContextType = any> = {
   SubscriptionContractMutations?: SubscriptionContractMutationsResolvers<ContextType>
   SubscriptionContractPhase?: SubscriptionContractPhaseResolvers<ContextType>
   SubscriptionContractQueries?: SubscriptionContractQueriesResolvers<ContextType>
+  SubscriptionContractRenewalDueBroadcastEvent?: SubscriptionContractRenewalDueBroadcastEventResolvers<ContextType>
+  SubscriptionContractRenewalDueBroadcastEventData?: SubscriptionContractRenewalDueBroadcastEventDataResolvers<ContextType>
   SubscriptionContractRenewedEvent?: SubscriptionContractRenewedEventResolvers<ContextType>
   SubscriptionContractStatus?: SubscriptionContractStatusResolvers<ContextType>
   SubscriptionContractUsage?: SubscriptionContractUsageResolvers<ContextType>
@@ -10000,6 +10376,11 @@ export type Resolvers<ContextType = any> = {
   SubscriptionPlanPeriod?: SubscriptionPlanPeriodResolvers<ContextType>
   SubscriptionPlanPhase?: SubscriptionPlanPhaseResolvers<ContextType>
   SubscriptionPlanQueries?: SubscriptionPlanQueriesResolvers<ContextType>
+  SuggestSearchAggregations?: SuggestSearchAggregationsResolvers<ContextType>
+  SuggestSearchConnection?: SuggestSearchConnectionResolvers<ContextType>
+  SuggestSearchConnectionEdge?: SuggestSearchConnectionEdgeResolvers<ContextType>
+  SuggestSearchResult?: SuggestSearchResultResolvers<ContextType>
+  SuggestSearchTypesAggregation?: SuggestSearchTypesAggregationResolvers<ContextType>
   Tax?: TaxResolvers<ContextType>
   Tenant?: TenantResolvers<ContextType>
   TenantAuthenticationMethod?: TenantAuthenticationMethodResolvers<ContextType>
@@ -10012,6 +10393,10 @@ export type Resolvers<ContextType = any> = {
   TopicItemsModified?: TopicItemsModifiedResolvers<ContextType>
   TopicMutations?: TopicMutationsResolvers<ContextType>
   TopicQueries?: TopicQueriesResolvers<ContextType>
+  TopicSearchAggregations?: TopicSearchAggregationsResolvers<ContextType>
+  TopicSearchConnection?: TopicSearchConnectionResolvers<ContextType>
+  TopicSearchConnectionEdge?: TopicSearchConnectionEdgeResolvers<ContextType>
+  TopicSearchResult?: TopicSearchResultResolvers<ContextType>
   TreeMutations?: TreeMutationsResolvers<ContextType>
   TreeNode?: TreeNodeResolvers<ContextType>
   TreeNodeIdentifier?: TreeNodeIdentifierResolvers<ContextType>

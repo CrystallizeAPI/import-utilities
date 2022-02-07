@@ -89,6 +89,7 @@ export interface BootstrapperContext {
   callPIM: (props: IcallAPI) => Promise<IcallAPIResult>
   callCatalogue: (props: IcallAPI) => Promise<IcallAPIResult>
   callOrders: (props: IcallAPI) => Promise<IcallAPIResult>
+  emitError: (error: string) => void
 }
 
 export function getTranslation(translation?: any, language?: string): string {
