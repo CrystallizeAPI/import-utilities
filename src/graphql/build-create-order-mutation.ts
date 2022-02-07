@@ -2,7 +2,7 @@ import { DocumentNode } from 'graphql'
 import { gql } from 'graphql-tag'
 import { CreateOrderInput } from '../types'
 
-export function buildCreateOrderQuery(
+export function buildCreateOrderMutation(
   input: CreateOrderInput
 ): { query: DocumentNode; variables: Record<string, any> } {
   return {

@@ -1,6 +1,5 @@
 import { AreaUpdate, BootstrapperContext, IcallAPIResult } from '.'
-import { buildCreateCustomerQuery } from '../../graphql/build-create-customer-mutation'
-import { buildCreateOrderQuery } from '../../graphql/build-create-order-mutation'
+import { buildCreateCustomerMutation } from '../../graphql/build-create-customer-mutation'
 import { JSONCustomer, JsonSpec } from '../json-spec'
 
 export interface Props {
@@ -14,7 +13,7 @@ const createCustomer = async (
   customer: JSONCustomer
 ): Promise<IcallAPIResult> => {
   return context.callPIM(
-    buildCreateCustomerQuery({
+    buildCreateCustomerMutation({
       tenantId: context.tenantId,
       identifier: customer.identifier,
       firstName: customer.firstName,

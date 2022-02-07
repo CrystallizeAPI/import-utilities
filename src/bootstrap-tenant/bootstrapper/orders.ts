@@ -1,5 +1,5 @@
 import { AreaUpdate, BootstrapperContext, IcallAPIResult } from '.'
-import { buildCreateOrderQuery } from '../../graphql/build-create-order-mutation'
+import { buildCreateOrderMutation } from '../../graphql/build-create-order-mutation'
 import { JSONOrder, JsonSpec } from '../json-spec'
 
 export interface Props {
@@ -13,7 +13,7 @@ const createOrder = async (
   { customer, cart, total }: JSONOrder
 ): Promise<IcallAPIResult> => {
   return context.callOrders(
-    buildCreateOrderQuery({
+    buildCreateOrderMutation({
       customer: {
         identifier: customer.identifier,
         firstName: customer.firstName,
