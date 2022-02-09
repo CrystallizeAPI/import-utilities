@@ -26,10 +26,12 @@ interface QueuedRequest {
 
 type errorNotifierFn = (args: { error: string }) => void
 
+type RequestStatus = 'ok' | 'error'
+
 export class ApiManager {
   queue: QueuedRequest[] = []
   url: string = ''
-  maxWorkers: number = 5
+  maxWorkers: number = 1
   errorNotifier: errorNotifierFn
   logLevel: LogLevel = 'silent'
   CRYSTALLIZE_ACCESS_TOKEN_ID = ''
@@ -60,6 +62,38 @@ export class ApiManager {
         failCount: 0,
       })
     })
+  }
+
+  /**
+   * Adjust the maximum amount of workers up and down depending on
+   * the amount of errors coming from the API
+   */
+  lastRequestsStatuses: RequestStatus[] = []
+  recordRequestStatus = (status: RequestStatus) => {
+    this.lastRequestsStatuses.unshift(status)
+
+    const maxRequests = 20
+
+    const errors = this.lastRequestsStatuses.filter((r) => r === 'error')
+      ?.length
+    if (errors > 5) {
+      this.maxWorkers--
+      this.lastRequestsStatuses.length = 0
+    } else if (errors === 0 && this.lastRequestsStatuses.length > maxRequests) {
+      this.maxWorkers++
+      this.lastRequestsStatuses.length = 0
+    }
+
+    const maxWorkers = 5
+    if (this.maxWorkers < 1) {
+      this.maxWorkers = 1
+    } else if (this.maxWorkers > maxWorkers) {
+      this.maxWorkers = maxWorkers
+    }
+
+    if (this.lastRequestsStatuses.length > maxRequests) {
+      this.lastRequestsStatuses.length = maxRequests
+    }
   }
 
   async work() {
@@ -146,20 +180,13 @@ export class ApiManager {
     } else if (errorString) {
       item.failCount++
 
-      await sleep(item.failCount * 1000)
+      this.recordRequestStatus('error')
+
+      await sleep(item.failCount * 5000)
 
       if (item.failCount > 5) {
         if (this.logLevel === 'verbose') {
           console.log(errorString)
-        }
-
-        /**
-         * Reduce the amount of workers to lessen the
-         * toll on the API
-         */
-        this.maxWorkers--
-        if (this.maxWorkers < 1) {
-          this.maxWorkers = 1
         }
       }
 
@@ -173,6 +200,7 @@ export class ApiManager {
       }
       item.working = false
     } else if (json) {
+      this.recordRequestStatus('ok')
       resolveWith(json)
     }
   }
