@@ -1,9 +1,10 @@
-import fetch from 'node-fetch'
+import { DocumentNode } from 'graphql'
+import { request } from 'graphql-request'
 import { v4 as uuid } from 'uuid'
 import { LogLevel } from './types'
 
 export interface IcallAPI {
-  query: string
+  query: DocumentNode | string
   variables?: any
 }
 
@@ -95,32 +96,23 @@ export class ApiManager {
       if (this.logLevel === 'verbose') {
         console.log(JSON.stringify(item.props, null, 1))
       }
-      const response = await fetch(this.url, {
-        method: 'post',
-        headers: {
-          'content-type': 'application/json',
+      const response = await request(
+        this.url,
+        item.props.query,
+        item.props.variables,
+        {
           'X-Crystallize-Access-Token-Id': this.CRYSTALLIZE_ACCESS_TOKEN_ID,
           'X-Crystallize-Access-Token-Secret': this
             .CRYSTALLIZE_ACCESS_TOKEN_SECRET,
           'X-Crystallize-Static-Auth-Token': this.CRYSTALLIZE_STATIC_AUTH_TOKEN,
-        },
-        body: JSON.stringify(item.props),
-      })
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          this.errorNotifier({
-            error: await response.text(),
-          })
-          resolveWith({
-            data: null,
-            errors: [{ error: response.statusText }],
-          })
         }
-      }
+      )
 
-      json = await response.json()
+      resolveWith({
+        data: response,
+      })
     } catch (e) {
+      console.error(e)
       errorString = JSON.stringify(e, null, 1)
     }
 

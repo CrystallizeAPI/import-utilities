@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { PriceVariant } from '../../types'
 import { buildCreatePriceVariantMutation } from '../../graphql'
 
@@ -9,7 +10,7 @@ export async function getExistingPriceVariants(
 ): Promise<PriceVariant[]> {
   const tenantId = context.tenantId
   const r = await context.callPIM({
-    query: `
+    query: gql`
       query GET_TENANT_PRICE_VARIANTS($tenantId: ID!) {
         priceVariant {
           getMany(tenantId: $tenantId) {

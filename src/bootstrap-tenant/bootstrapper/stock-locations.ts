@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { StockLocation } from '../../types'
 import { buildCreateStockLocationMutation } from '../../graphql'
 
@@ -9,7 +10,7 @@ export async function getExistingStockLocations(
 ): Promise<StockLocation[]> {
   const tenantId = context.tenantId
   const r = await context.callPIM({
-    query: `
+    query: gql`
       query GET_TENANT_STOCK_LOCATIONS($tenantId: ID!) {
         stockLocation {
           getMany(tenantId: $tenantId) {

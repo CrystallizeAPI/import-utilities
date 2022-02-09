@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { JsonSpec } from '../json-spec'
 import { AreaUpdate, BootstrapperContext } from './utils'
 import {
@@ -10,7 +11,7 @@ export async function getExistingSubscriptionPlans(
 ): Promise<SubscriptionPlan[]> {
   const tenantId = context.tenantId
   const r = await context.callPIM({
-    query: `
+    query: gql`
       query GET_TENANT_SUBSCRIPTION_PLANS($tenantId: ID!) {
         subscriptionPlan {
           getMany(tenantId: $tenantId) {
@@ -89,16 +90,16 @@ export async function setSubscriptionPlans({
           meteredVariables: subscriptionPlan.meteredVariables,
         }
         const result = await context.callPIM({
-          query: `
-            mutation CREATE_SUBSCRIPTION_PLAN ($input: CreateSubscriptionPlanInput!) {
+          query: gql`
+            mutation CREATE_SUBSCRIPTION_PLAN(
+              $input: CreateSubscriptionPlanInput!
+            ) {
               subscriptionPlan {
-                create(
-                  input: $input
-                ) {
+                create(input: $input) {
                   identifier
                 }
               }
-            }          
+            }
           `,
           variables: {
             input,

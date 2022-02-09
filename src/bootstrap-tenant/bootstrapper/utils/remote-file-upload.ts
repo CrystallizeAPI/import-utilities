@@ -11,6 +11,7 @@ import m3u8ToMp4 from 'm3u8-to-mp4'
 
 import execa from 'execa'
 import { BootstrapperContext } from '.'
+import gql from 'graphql-tag'
 
 export const ffmpegAvailable = new Promise(async (resolve) => {
   try {
@@ -127,19 +128,27 @@ export async function remoteFileUpload(
         filename,
         contentType,
       },
-      query: `
-      mutation generatePresignedRequest($tenantId: ID!, $filename: String!, $contentType: String!) {
-        fileUpload {
-          generatePresignedRequest(tenantId: $tenantId, filename: $filename, contentType: $contentType) {
-            url
-            fields {
-              name
-              value
+      query: gql`
+        mutation generatePresignedRequest(
+          $tenantId: ID!
+          $filename: String!
+          $contentType: String!
+        ) {
+          fileUpload {
+            generatePresignedRequest(
+              tenantId: $tenantId
+              filename: $filename
+              contentType: $contentType
+            ) {
+              url
+              fields {
+                name
+                value
+              }
             }
           }
         }
-      }
-    `,
+      `,
     })
 
     if (!signedUploadResponse || !signedUploadResponse.data?.fileUpload) {

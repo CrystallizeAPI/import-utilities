@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { SubscriptionPlan } from '../../../generated/graphql'
 import { Shape } from '../../../types'
 import {
@@ -34,6 +35,10 @@ export const EVENT_NAMES = {
   GRIDS_DONE: 'BOOTSTRAPPER_GRIDS_DONE',
   ITEMS_UPDATE: 'BOOTSTRAPPER_ITEMS_UPDATE',
   ITEMS_DONE: 'BOOTSTRAPPER_ITEMS_DONE',
+  ORDERS_UPDATE: 'BOOTSTRAPPER_ORDERS_UPDATE',
+  ORDERS_DONE: 'BOOTSTRAPPER_ORDERS_DONE',
+  CUSTOMERS_UPDATE: 'BOOTSTRAPPER_CUSTOMERS_UPDATE',
+  CUSTOMERS_DONE: 'BOOTSTRAPPER_CUSTOMERS_DONE',
   STOCK_LOCATIONS_UPDATE: 'BOOTSTRAPPER_STOCK_LOCATIONS_UPDATE',
   STOCK_LOCATIONS_DONE: 'BOOTSTRAPPER_STOCK_LOCATIONS_DONE',
 }
@@ -83,6 +88,7 @@ export interface BootstrapperContext {
   uploadFileFromUrl: (url: string) => Promise<RemoteFileUploadResult | null>
   callPIM: (props: IcallAPI) => Promise<IcallAPIResult>
   callCatalogue: (props: IcallAPI) => Promise<IcallAPIResult>
+  callOrders: (props: IcallAPI) => Promise<IcallAPIResult>
   emitError: (error: string) => void
 }
 
@@ -226,10 +232,10 @@ async function getItemVersionInfo({
   context,
 }: IgetItemVersionInfo): Promise<ItemVersionDescription> {
   const result = await context.callPIM({
-    query: `
-      query GET_ITEM_VERSION_INFO ($itemId: ID!, $language: String!) {
+    query: gql`
+      query GET_ITEM_VERSION_INFO($itemId: ID!, $language: String!) {
         item {
-          published: get (
+          published: get(
             id: $itemId
             language: $language
             versionLabel: published
@@ -238,11 +244,7 @@ async function getItemVersionInfo({
               createdAt
             }
           }
-          draft: get (
-            id: $itemId
-            language: $language
-            versionLabel: draft
-          ) {
+          draft: get(id: $itemId, language: $language, versionLabel: draft) {
             version {
               createdAt
             }

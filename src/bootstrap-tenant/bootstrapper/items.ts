@@ -1,5 +1,6 @@
 // @ts-ignore
 import fromHTML from '@crystallize/content-transformer/fromHTML'
+import gql from 'graphql-tag'
 
 import {
   BooleanComponentContentInput,
@@ -101,7 +102,7 @@ async function getTenantRootItemId(
 ): Promise<string> {
   const tenantId = context.tenantId
   const r = await context.callPIM({
-    query: `
+    query: gql`
       query GET_TENANT_ROOT_ITEM_ID($tenantId: ID!) {
         tenant {
           get(id: $tenantId) {
@@ -128,7 +129,7 @@ function publishItem(
   }
 
   return context.callPIM({
-    query: `
+    query: gql`
       mutation PUBLISH_ITEM($id: ID!, $language: String!) {
         item {
           publish(id: $id, language: $language) {
@@ -789,10 +790,10 @@ async function getExistingTopicIdsForItem(
   context: BootstrapperContext
 ): Promise<string[]> {
   const result = await context.callPIM({
-    query: `
-      query GET_ITEM_TOPICS ($itemId: ID!, $language: String!) {
+    query: gql`
+      query GET_ITEM_TOPICS($itemId: ID!, $language: String!) {
         item {
-          get (id: $itemId, language: $language) {
+          get(id: $itemId, language: $language) {
             topics {
               id
             }
@@ -1745,8 +1746,12 @@ export async function setItems({
               // Update the component
               if (mutationInput) {
                 const r = await context.callPIM({
-                  query: `
-                    mutation UPDATE_RELATIONS_COMPONENT($itemId: ID!, $language: String!, $input: ComponentInput!) {
+                  query: gql`
+                    mutation UPDATE_RELATIONS_COMPONENT(
+                      $itemId: ID!
+                      $language: String!
+                      $input: ComponentInput!
+                    ) {
                       item {
                         updateComponent(
                           itemId: $itemId

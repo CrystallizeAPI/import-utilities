@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { EventEmitter } from 'events'
 import immer from 'immer'
 // @ts-ignore
@@ -36,6 +37,8 @@ import {
   setSubscriptionPlans,
 } from './subscription-plans'
 import { createAPICaller, IcallAPI, IcallAPIResult } from './utils/api'
+import { setOrders } from './orders'
+import { setCustomers } from './customers'
 
 export interface ICreateSpec {
   language?: string
@@ -75,6 +78,8 @@ export interface Status {
   grids: AreaStatus
   items: AreaStatus
   languages: AreaStatus
+  customers: AreaStatus
+  orders: AreaStatus
   priceVariants: AreaStatus
   vatTypes: AreaStatus
   subscriptionPlans: AreaStatus
@@ -96,6 +101,7 @@ export class Bootstrapper extends EventEmitter {
 
   PIMAPIManager: ApiManager | null = null
   catalogueAPIManager: ApiManager | null = null
+  ordersAPIManager: ApiManager | null = null
   tenantIdentifier = ''
 
   context: BootstrapperContext = {
@@ -131,6 +137,7 @@ export class Bootstrapper extends EventEmitter {
       this.context.fileUploader.uploadFromUrl(url),
     callPIM: () => Promise.resolve({ data: {} }),
     callCatalogue: () => Promise.resolve({ data: {} }),
+    callOrders: () => Promise.resolve({ data: {} }),
     emitError: (error) => {
       this.emit(EVENT_NAMES.ERROR, { error })
     },
@@ -149,6 +156,8 @@ export class Bootstrapper extends EventEmitter {
     grids: defaultAreaStatus(),
     items: defaultAreaStatus(),
     languages: defaultAreaStatus(),
+    customers: defaultAreaStatus(),
+    orders: defaultAreaStatus(),
     priceVariants: defaultAreaStatus(),
     vatTypes: defaultAreaStatus(),
     subscriptionPlans: defaultAreaStatus(),
@@ -214,7 +223,7 @@ export class Bootstrapper extends EventEmitter {
       }
 
       const r = await this.context.callPIM({
-        query: `
+        query: gql`
           {
             tenant {
               get(identifier: "${this.context.tenantIdentifier}") {
@@ -237,12 +246,15 @@ export class Bootstrapper extends EventEmitter {
         this.context.tenantId = tenant.id
         this.context.fileUploader.context = this.context
 
+        const baseUrl = `https://${
+          process.env.CRYSTALLIZE_ENV === 'dev'
+            ? 'api-dev.crystallize.digital'
+            : 'api.crystallize.com'
+        }/${this.context.tenantIdentifier}`
+
+        // Catalogue
         this.catalogueAPIManager = createAPICaller({
-          uri: `https://${
-            process.env.CRYSTALLIZE_ENV === 'dev'
-              ? 'api-dev.crystallize.digital'
-              : 'api.crystallize.com'
-          }/${this.context.tenantIdentifier}/catalogue`,
+          uri: `${baseUrl}/catalogue`,
           errorNotifier: ({ error }) => {
             this.emit(EVENT_NAMES.ERROR, { error })
           },
@@ -251,6 +263,22 @@ export class Bootstrapper extends EventEmitter {
         this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
           tenant.staticAuthToken
         this.context.callCatalogue = this.catalogueAPIManager.push
+
+        // Orders
+        this.ordersAPIManager = createAPICaller({
+          uri: `${baseUrl}/orders`,
+          errorNotifier: ({ error }) => {
+            this.emit(EVENT_NAMES.ERROR, { error })
+          },
+          logLevel: this.config.logLevel,
+        })
+        this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID =
+          process.env.CRYSTALLIZE_ACCESS_TOKEN_ID || ''
+        this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET =
+          process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET || ''
+        this.ordersAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
+          tenant.staticAuthToken
+        this.context.callOrders = this.ordersAPIManager.push
 
         // Set log level late so that we'll catch late changes to the config
         if (this.PIMAPIManager && this.config.logLevel) {
@@ -426,6 +454,8 @@ export class Bootstrapper extends EventEmitter {
       await this.setTopics()
       await this.setGrids()
       await this.setItems()
+      await this.setCustomers()
+      await this.setOrders()
 
       // Set (update) grids again to update include the items
       await this.setGrids(true)
@@ -453,7 +483,9 @@ export class Bootstrapper extends EventEmitter {
       | 'grids'
       | 'items'
       | 'media'
-      | 'stockLocations',
+      | 'stockLocations'
+      | 'customers'
+      | 'orders',
     areaUpdate: AreaUpdate
   ) {
     if ('progress' in areaUpdate) {
@@ -602,5 +634,29 @@ export class Bootstrapper extends EventEmitter {
       },
     })
     this.emit(EVENT_NAMES.STOCK_LOCATIONS_DONE)
+  }
+
+  async setCustomers() {
+    await setCustomers({
+      spec: this.SPEC,
+      context: this.context,
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.CUSTOMERS_UPDATE, areaUpdate)
+        this.areaUpdate('customers', areaUpdate)
+      },
+    })
+    this.emit(EVENT_NAMES.CUSTOMERS_DONE)
+  }
+
+  async setOrders() {
+    await setOrders({
+      spec: this.SPEC,
+      context: this.context,
+      onUpdate: (areaUpdate: AreaUpdate) => {
+        this.emit(EVENT_NAMES.ORDERS_UPDATE, areaUpdate)
+        this.areaUpdate('orders', areaUpdate)
+      },
+    })
+    this.emit(EVENT_NAMES.ORDERS_DONE)
   }
 }

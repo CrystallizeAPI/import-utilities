@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { BootstrapperContext } from '.'
 
 const cache = new Map()
@@ -81,14 +82,18 @@ async function getItemIdFromExternalReference({
   }
 
   const response = await context.callPIM({
-    query: `
+    query: gql`
       query GET_ID_FROM_EXTERNAL_REFERENCE(
         $externalReferences: [String!]
         $language: String!
         $tenantId: ID!
       ) {
         item {
-          getMany(externalReferences: $externalReferences, language: $language, tenantId: $tenantId) {
+          getMany(
+            externalReferences: $externalReferences
+            language: $language
+            tenantId: $tenantId
+          ) {
             id
             shape {
               identifier
@@ -148,8 +153,8 @@ async function getItemIdFromCataloguePath({
   }
 
   const response = await context.callCatalogue({
-    query: `
-      query GET_ID_FROM_PATH ($path: String, $language: String) {
+    query: gql`
+      query GET_ID_FROM_PATH($path: String, $language: String) {
         catalogue(path: $path, language: $language) {
           id
           parent {

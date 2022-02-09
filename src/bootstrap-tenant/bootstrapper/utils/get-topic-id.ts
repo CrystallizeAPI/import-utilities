@@ -1,3 +1,4 @@
+import gql from 'graphql-tag'
 import { BootstrapperContext } from '.'
 import { JSONItemTopic } from '../../json-spec'
 import { IcallAPI, IcallAPIResult } from './api'
@@ -41,20 +42,21 @@ export async function getTopicId(props: {
 
   if (typeof topic !== 'string' && topic.path) {
     const result = await apiFn({
-      query: `
-          query GET_TOPIC_BY_PATH($tenantId: ID!, $language: String!, $path: String!) {
-            topic {
-              get(
-                language: $language,
-                path: {
-                  tenantId: $tenantId
-                  path: $path
-                }
-              ) {
-                id
-              }
+      query: gql`
+        query GET_TOPIC_BY_PATH(
+          $tenantId: ID!
+          $language: String!
+          $path: String!
+        ) {
+          topic {
+            get(
+              language: $language
+              path: { tenantId: $tenantId, path: $path }
+            ) {
+              id
             }
           }
+        }
       `,
       variables: {
         tenantId: context.tenantId,
@@ -65,20 +67,28 @@ export async function getTopicId(props: {
     id = result?.data?.topic?.get?.id || null
   } else {
     const result = await apiFn({
-      query: `
-          query GET_TOPIC($tenantId: ID!, $language: String!, $searchTerm: String!) {
-            search {
-              topics(tenantId: $tenantId, language: $language, searchTerm: $searchTerm) {
-                edges {
-                  node {
-                    id
-                    path
-                    name
-                  }
+      query: gql`
+        query GET_TOPIC(
+          $tenantId: ID!
+          $language: String!
+          $searchTerm: String!
+        ) {
+          search {
+            topics(
+              tenantId: $tenantId
+              language: $language
+              searchTerm: $searchTerm
+            ) {
+              edges {
+                node {
+                  id
+                  path
+                  name
                 }
               }
             }
           }
+        }
       `,
       variables: {
         tenantId: context.tenantId,

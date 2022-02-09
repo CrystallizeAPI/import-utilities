@@ -6,6 +6,7 @@ import { getTranslation, AreaUpdate, BootstrapperContext, sleep } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
 import { getTopicId } from './utils/get-topic-id'
+import gql from 'graphql-tag'
 
 export function removeTopicId(topic: JSONTopic): JSONTopic {
   const { id, children, ...rest } = topic
@@ -31,7 +32,7 @@ export async function getAllTopicsForSpec(
     }[]
   > {
     const response = await context.callPIM({
-      query: `
+      query: gql`
         query GET_TOPIC($id: ID!, $language: String!) {
           topic {
             get(id: $id, language: $language) {
@@ -42,7 +43,7 @@ export async function getAllTopicsForSpec(
               }
             }
           }
-        }    
+        }
       `,
       variables: {
         id,
@@ -78,7 +79,7 @@ export async function getAllTopicsForSpec(
   }
 
   const responseForRootTopics = await context.callPIM({
-    query: `
+    query: gql`
       query GET_TENANT_ROOT_TOPICS($tenantId: ID!, $language: String!) {
         topic {
           getRootTopics(tenantId: $tenantId, language: $language) {
@@ -87,7 +88,7 @@ export async function getAllTopicsForSpec(
             path
           }
         }
-      }    
+      }
     `,
     variables: {
       tenantId,
@@ -292,19 +293,19 @@ export async function setTopics({
 
         // Update topic
         await context.callPIM({
-          query: `
-            mutation UPDATE_TOPIC_NAME($id: ID!, $language: String!, $input: UpdateTopicInput!) {
+          query: gql`
+            mutation UPDATE_TOPIC_NAME(
+              $id: ID!
+              $language: String!
+              $input: UpdateTopicInput!
+            ) {
               topic {
-                update (
-                  id: $id
-                  language: $language
-                  input: $input
-                ) {
+                update(id: $id, language: $language, input: $input) {
                   id
                 }
               }
             }
-            `,
+          `,
           variables: {
             id: existingTopicId,
             language: context.defaultLanguage.code,
