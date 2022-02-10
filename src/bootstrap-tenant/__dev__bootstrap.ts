@@ -126,7 +126,7 @@ async function bootstrap() {
     })
 
     // bootstrapper.config.itemTopics = 'amend'
-    bootstrapper.config.logLevel = 'verbose'
+    // bootstrapper.config.logLevel = 'verbose'
     // bootstrapper.config.multilingual = true
 
     bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {

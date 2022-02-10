@@ -105,7 +105,6 @@ export class ApiManager {
     // Get the first none-working item in the queue
     const item = this.queue.find((q) => !q.working)
     if (!item) {
-      console.log('queue empty')
       return
     }
     debugger

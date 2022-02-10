@@ -4,10 +4,10 @@ config()
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
 
-import { Bootstrapper } from './index'
+import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'hkn-files-demo'
+  const tenantIdentifier = 'furniture'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
