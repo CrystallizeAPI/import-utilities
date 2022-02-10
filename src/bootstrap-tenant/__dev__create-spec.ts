@@ -29,6 +29,10 @@ async function createSpec() {
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
 
+  bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
+    console.log(error)
+  })
+
   const spec = await bootstrapper.createSpec({
     language: 'en',
     shapes: true,

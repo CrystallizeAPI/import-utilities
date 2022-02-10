@@ -102,17 +102,19 @@ export class ApiManager {
     if (currentWorkers === this.maxWorkers) {
       return
     }
-
+    // Get the first none-working item in the queue
     const item = this.queue.find((q) => !q.working)
     if (!item) {
+      console.log('queue empty')
       return
     }
+    debugger
 
     item.working = true
 
-    let json: IcallAPIResult | undefined
-
-    let errorString: string = ''
+    let queryError: string = ''
+    let otherError: string = ''
+    let serverError: string = ''
 
     const resolveWith = (response: IcallAPIResult) => {
       if (item) {
@@ -126,11 +128,12 @@ export class ApiManager {
       }
     }
 
+    let response: any
     try {
       if (this.logLevel === 'verbose') {
         console.log(JSON.stringify(item.props, null, 1))
       }
-      const response = await request(
+      response = await request(
         this.url,
         item.props.query,
         item.props.variables,
@@ -141,59 +144,69 @@ export class ApiManager {
           'X-Crystallize-Static-Auth-Token': this.CRYSTALLIZE_STATIC_AUTH_TOKEN,
         }
       )
+      if (this.logLevel === 'verbose') {
+        console.log(JSON.stringify(response, null, 1))
+      }
+    } catch (e: any) {
+      if (this.logLevel === 'verbose') {
+        console.log(e)
+      }
 
-      resolveWith({
-        data: response,
-      })
-    } catch (e) {
-      console.error(e)
-      errorString = JSON.stringify(e, null, 1)
-    }
+      // Network/system errors
+      if (e?.type === 'system') {
+        otherError = e.message || JSON.stringify(e, null, 1)
 
-    // There are errors in the payload
-    if (json?.errors) {
-      errorString = JSON.stringify(
-        {
-          ...item.props,
-          apiReponse: json.errors,
-        },
-        null,
-        1
-      )
-
-      this.errorNotifier({
-        error: errorString,
-      })
-
-      resolveWith({
-        data: null,
-        errors: [{ error: errorString }],
-      })
-    } else if (errorString) {
-      item.failCount++
-
-      this.recordRequestStatus('error')
-
-      await sleep(item.failCount * 5000)
-
-      if (item.failCount > 5) {
-        if (this.logLevel === 'verbose') {
-          console.log(errorString)
+        // Always report these errors
+        this.errorNotifier({
+          error: otherError,
+        })
+      } else {
+        /**
+         * The API might stumble and throw an internal error "reason: socket hang up".
+         * Deal with this as "serverError" even though the request comes back with a
+         * status 200
+         */
+        if (e.message.includes('reason: socket hang up')) {
+          serverError = e.message
+        } else {
+          queryError = e.message
         }
       }
+    }
 
-      // Stop if there are too many errors
+    /**
+     * When server errors or other errors occur, we want to not discard the item
+     * that is being worked on, but rather wait until the API is back up
+     */
+    if (otherError || serverError) {
+      this.recordRequestStatus('error')
+
+      const err = otherError || serverError
+
+      item.failCount++
+
+      await sleep(item.failCount * 1000)
+
+      // Start reporting this as an error after a while
       if (item.failCount > 10) {
-        this.errorNotifier({ error: errorString })
-        resolveWith({
-          data: null,
-          errors: [{ error: errorString }],
+        this.errorNotifier({
+          error: err,
         })
       }
+
       item.working = false
-    } else if (json) {
+    } else {
       this.recordRequestStatus('ok')
-      resolveWith(json)
+
+      // Report errors in usage of the API
+      if (queryError) {
+        this.errorNotifier({
+          error: queryError,
+        })
+        resolveWith({ data: null, errors: [{ error: queryError }] })
+      } else {
+        resolveWith({ data: response })
+      }
     }
   }
 }
