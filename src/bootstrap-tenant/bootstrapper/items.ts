@@ -1434,7 +1434,11 @@ export async function setItems({
             }),
           })
         }
-      } else if (item._exists && item._parentId !== parentId && itemId !== parentId) {
+      } else if (
+        item._exists &&
+        item._parentId !== parentId &&
+        itemId !== parentId
+      ) {
         /**
          * Move the item if it is a part of a children array,
          * or if item.parentExternalReference is passed
