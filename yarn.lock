@@ -478,10 +478,10 @@
   dependencies:
     arrify "^1.0.1"
 
-"@crystallize/content-transformer@^9.1.0":
-  version "9.1.0"
-  resolved "https://registry.yarnpkg.com/@crystallize/content-transformer/-/content-transformer-9.1.0.tgz#cd6b735926077e8f465aaddb3b1f90200d6d2642"
-  integrity sha512-Aadb++gG1OvAjG3jqMuaxIMcjQd7wwYrFW2ajwJlGxnYaXPZDCJN11YfE4r681F0KwStEQJAuybmFQxAQyBnLg==
+"@crystallize/content-transformer@^9.1.1":
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/@crystallize/content-transformer/-/content-transformer-9.1.1.tgz#4fdbeae3eeae40b3c62922a1ada75ac681685052"
+  integrity sha512-1UWY+8b3xgtrMAqrqxiqWzQx5T0ij46SaDpcpVU9AB96taFDrdSG4uQDgpV/cy21M9MOWywnKa+gO2MOsmh3Tg==
   dependencies:
     is-my-json-valid "^2.17.2"
     isarray "^2.0.4"
