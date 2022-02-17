@@ -7,7 +7,7 @@ import { resolve } from 'path'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'furniture'
+  const tenantIdentifier = 'books'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -29,21 +29,23 @@ async function createSpec() {
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
 
+  bootstrapper.config.logLevel = 'verbose'
+
   bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
     console.log(error)
   })
 
   const spec = await bootstrapper.createSpec({
-    language: 'en',
-    shapes: true,
-    grids: true,
+    language: 'no-nb',
+    shapes: false,
+    grids: false,
     items: true,
-    languages: true,
-    priceVariants: true,
-    stockLocations: true,
-    vatTypes: true,
-    subscriptionPlans: true,
-    topicMaps: true,
+    languages: false,
+    priceVariants: false,
+    stockLocations: false,
+    vatTypes: false,
+    subscriptionPlans: false,
+    topicMaps: false,
     onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 

@@ -367,6 +367,7 @@ fragment item on Item {
   }
   topics {
     path
+    name
   }
   components {
     id
