@@ -147,6 +147,11 @@ async function getExistingShapes(
             unit
           }
         }
+        ... on ItemRelationsComponentConfig {
+          acceptedShapeIdentifiers
+          min
+          max
+        }
       }
     `,
     variables: {
