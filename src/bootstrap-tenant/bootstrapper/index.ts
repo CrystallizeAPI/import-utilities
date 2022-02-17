@@ -371,11 +371,11 @@ export class Bootstrapper extends EventEmitter {
       }
 
       // Topic maps (in just 1 language right now)
-      const allTopicsWithIds = await getAllTopicsForSpec(
-        languageToUse,
-        this.context
-      )
       if (props.topicMaps) {
+        const allTopicsWithIds = await getAllTopicsForSpec(
+          languageToUse,
+          this.context
+        )
         spec.topicMaps = allTopicsWithIds.map(removeTopicId)
       }
 

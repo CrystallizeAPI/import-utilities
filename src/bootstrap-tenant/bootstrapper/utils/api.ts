@@ -107,7 +107,6 @@ export class ApiManager {
     if (!item) {
       return
     }
-    debugger
 
     item.working = true
 
