@@ -164,7 +164,11 @@ export class ApiManager {
          * Deal with this as "serverError" even though the request comes back with a
          * status 200
          */
-        if (e.message.includes('reason: socket hang up')) {
+        if (
+          e.message.includes('reason: socket hang up') ||
+          e.message.includes('ECONNRESET') ||
+          e.message.includes('502 Bad Gateway')
+        ) {
           serverError = e.message
         } else {
           queryError = e.message
