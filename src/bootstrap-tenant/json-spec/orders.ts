@@ -22,12 +22,36 @@ export interface JSONOrderCustomer {
   taxNumber?: string
 }
 
+export interface JSONOrderTax {
+  name?: string
+  percent?: number
+}
+
+export interface JSONOrderDiscount {
+  percent: number
+}
+
 export interface JSONOrderPrice {
   currency: string
   gross?: number
   net?: number
-  // discounts
-  // tax
+  discounts?: JSONOrderDiscount[]
+  tax?: JSONOrderTax
+}
+
+export interface JSONOrderItemMeteredVariableInput {
+  id: string
+  usage: number
+  price: number
+}
+
+export interface JSONOrderItemSubscription {
+  name?: string
+  period: number
+  unit: 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
+  start?: string
+  end?: string
+  meteredVariables?: JSONOrderItemMeteredVariableInput[]
 }
 
 export interface JSONOrderItem {
@@ -40,8 +64,8 @@ export interface JSONOrderItem {
   price?: JSONOrderPrice
   subTotal?: JSONOrderPrice
   meta?: Record<string, unknown>
-  // subscription: JSONOrderItemSubscription
-  // subscriptionContractId?: string
+  subscription?: JSONOrderItemSubscription
+  subscriptionContractId?: string
 }
 
 export interface JSONOrder {

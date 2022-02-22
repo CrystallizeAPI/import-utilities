@@ -27,10 +27,15 @@ interface OrderTaxInput {
   percent?: number
 }
 
+interface OrderDiscountInput {
+  percent?: number
+}
+
 interface OrderPriceInput {
   gross?: number
   net?: number
   currency: string
+  discounts?: OrderDiscountInput[]
   tax?: OrderTaxInput
 }
 
@@ -46,6 +51,6 @@ export interface CreateOrderInput {
   customer: OrderCustomerInput
   cart: OrderItemInput[]
   payment?: any
-  total?: any
+  total?: OrderPriceInput
   additionalInformation?: string
 }

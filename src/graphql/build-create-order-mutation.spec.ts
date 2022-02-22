@@ -45,7 +45,15 @@ test('create order', (t) => {
         },
       },
     ],
-    total: 234,
+    total: {
+      currency: 'NZD',
+      gross: 123,
+      net: 234,
+      tax: {
+        name: 'GST',
+        percent: 15,
+      },
+    },
   }
 
   const got = buildCreateOrderMutation(input)
