@@ -8,112 +8,14 @@ import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutat
 import { getTopicId } from './utils/get-topic-id'
 import gql from 'graphql-tag'
 
+export { getAllTopicsForSpec } from './utils/get-all-topics'
+
 export function removeTopicId(topic: JSONTopic): JSONTopic {
   const { id, children, ...rest } = topic
   return {
     ...rest,
     ...(children && { children: children.map(removeTopicId) }),
   }
-}
-
-export async function getAllTopicsForSpec(
-  language: string,
-  context: BootstrapperContext
-): Promise<JSONTopic[]> {
-  const tenantId = context.tenantId
-
-  async function getTopicChildren(
-    id: string
-  ): Promise<
-    {
-      id: string
-      name: string
-      path: string
-    }[]
-  > {
-    const response = await context.callPIM({
-      query: gql`
-        query GET_TOPIC($id: ID!, $language: String!) {
-          topic {
-            get(id: $id, language: $language) {
-              children {
-                id
-                name
-                path
-              }
-            }
-          }
-        }
-      `,
-      variables: {
-        id,
-        language,
-      },
-    })
-
-    return response.data?.topic?.get?.children || []
-  }
-
-  async function handleTopic(props: {
-    id: string
-    name: string
-    path: string
-  }): Promise<JSONTopic> {
-    const topic: JSONTopic = props
-
-    const children = await getTopicChildren(props.id)
-
-    if (children?.length > 0) {
-      const childrenWithChildren: JSONTopic[] = []
-      await Promise.all(
-        children.map(async (child) => {
-          const childTopic = await handleTopic(child)
-          childrenWithChildren.push(childTopic)
-        })
-      )
-
-      topic.children = childrenWithChildren
-    }
-
-    return topic
-  }
-
-  const responseForRootTopics = await context.callPIM({
-    query: gql`
-      query GET_TENANT_ROOT_TOPICS($tenantId: ID!, $language: String!) {
-        topic {
-          getRootTopics(tenantId: $tenantId, language: $language) {
-            id
-            name
-            path
-          }
-        }
-      }
-    `,
-    variables: {
-      tenantId,
-      language,
-    },
-  })
-
-  const topicMaps: JSONTopic[] = []
-
-  const rootTopics: {
-    id: string
-    name: string
-    path: string
-  }[] = responseForRootTopics.data?.topic?.getRootTopics || []
-
-  await Promise.all(
-    rootTopics.map(async (rootTopic) => {
-      const topic = await handleTopic(rootTopic)
-      if (topic) {
-        topicMaps.push(topic)
-      }
-    })
-  )
-
-  return topicMaps
 }
 
 function prepareTopicForInput(
