@@ -7,7 +7,7 @@ import { resolve } from 'path'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'furniture'
+  const tenantIdentifier = 'my-tech-blog'
 
   if (
     !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -28,13 +28,13 @@ async function createSpec() {
   )
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
+  bootstrapper.config.multilingual = true
 
   bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
     console.log(error)
   })
 
   const spec = await bootstrapper.createSpec({
-    language: 'en',
     shapes: true,
     grids: true,
     items: true,

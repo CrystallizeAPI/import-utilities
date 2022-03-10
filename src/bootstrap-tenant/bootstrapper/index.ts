@@ -307,16 +307,20 @@ export class Bootstrapper extends EventEmitter {
     try {
       await this.getTenantBasics()
 
+      // Store the config in the context for easy access
+      this.context.config = this.config
+
       const tenantLanguageSettings = await getTenantSettings(this.context)
 
       // Languages
-      const availableLanguages = tenantLanguageSettings.availableLanguages.map(
-        (l) => ({
+      const availableLanguages = tenantLanguageSettings.availableLanguages
+        .map((l) => ({
           code: l.code,
           name: l.name,
           isDefault: l.code === tenantLanguageSettings.defaultLanguage,
-        })
-      )
+        }))
+        .sort((a, b) => (a.isDefault ? 1 : 0))
+
       if (!availableLanguages.some((l) => l.isDefault)) {
         availableLanguages[0].isDefault = true
       }
@@ -325,6 +329,10 @@ export class Bootstrapper extends EventEmitter {
 
       if (props.languages) {
         spec.languages = availableLanguages
+      }
+
+      if (this.config.multilingual) {
+        this.context.languages = availableLanguages
       }
 
       const languageToUse = props.language || defaultLanguage
