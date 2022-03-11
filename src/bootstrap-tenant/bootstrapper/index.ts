@@ -16,6 +16,7 @@ import {
   ApiManager,
   sleep,
   FileUploadManager,
+  removeUnwantedFieldsFromThing,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -291,17 +292,6 @@ export class Bootstrapper extends EventEmitter {
   }
 
   async createSpec(props: ICreateSpec = createSpecDefaults): Promise<JsonSpec> {
-    function removeIds(o: any) {
-      if (o && typeof o === 'object') {
-        delete o.id
-        Object.values(o).forEach(removeIds)
-      }
-      if (Array.isArray(o)) {
-        o.forEach(removeIds)
-      }
-      return o
-    }
-
     const spec: JsonSpec = {}
 
     try {
@@ -340,11 +330,8 @@ export class Bootstrapper extends EventEmitter {
       // VAT types
       if (props.vatTypes) {
         spec.vatTypes = await getExistingVatTypes(this.context)
-        spec.vatTypes.forEach((v) => {
-          delete v.id
-          // @ts-ignore
-          delete v.tenantId
-        })
+
+        removeUnwantedFieldsFromThing(spec.vatTypes, ['id', 'tenantId'])
       }
 
       // Subscription plans
@@ -366,8 +353,8 @@ export class Bootstrapper extends EventEmitter {
           periods:
             s.periods?.map((p) => ({
               name: p.name || '',
-              initial: removeIds(p.initial),
-              recurring: removeIds(p.recurring),
+              initial: removeUnwantedFieldsFromThing(p.initial, ['id']),
+              recurring: removeUnwantedFieldsFromThing(p.recurring, ['id']),
             })) || [],
         }))
       }
@@ -380,11 +367,8 @@ export class Bootstrapper extends EventEmitter {
 
       // Topic maps (in just 1 language right now)
       if (props.topicMaps) {
-        const allTopicsWithIds = await getAllTopicsForSpec(
-          languageToUse,
-          this.context
-        )
-        spec.topicMaps = allTopicsWithIds.map(removeTopicId)
+        spec.topicMaps = await getAllTopicsForSpec(languageToUse, this.context)
+        removeUnwantedFieldsFromThing(spec.topicMaps, ['id'])
       }
 
       // Shapes
@@ -418,7 +402,7 @@ export class Bootstrapper extends EventEmitter {
           function handleLevel(a: any) {
             if (a && typeof a === 'object') {
               if ('subscriptionPlans' in a && 'sku' in a) {
-                removeIds(a.subscriptionPlans)
+                removeUnwantedFieldsFromThing(a.subscriptionPlans, ['id'])
               } else {
                 Object.values(a).forEach(handleLevel)
               }

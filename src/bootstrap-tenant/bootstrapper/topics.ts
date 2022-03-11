@@ -33,9 +33,9 @@ function prepareTopicForInput(
 
   let pathIdentifier
   if (topic.pathIdentifier) {
-    pathIdentifier = topic.pathIdentifier
+    pathIdentifier = getTranslation(topic.pathIdentifier, language)
   } else if (topic.path) {
-    const parts = topic.path.split('/')
+    const parts = getTranslation(topic.path).split('/')
     pathIdentifier = parts[parts.length - 1]
   }
 
@@ -73,20 +73,23 @@ async function createTopic(
     preparedTopic.parentId = parentId
   } else if (topic.path) {
     // Check if there is a parent with first part of path
-    const pathParts = topic.path.split('/')
-    pathParts.pop()
-    const parentPath = pathParts.join('/')
+    const translatedPath = getTranslation(topic.path, language)
+    if (translatedPath) {
+      const pathParts = getTranslation(topic.path, language).split('/')
+      pathParts.pop()
+      const parentPath = pathParts.join('/')
 
-    const id = await getTopicId({
-      topic: {
-        path: parentPath,
-      },
-      language: context.defaultLanguage.code,
-      context,
-      useCache: false,
-    })
-    if (id) {
-      preparedTopic.parentId = id
+      const id = await getTopicId({
+        topic: {
+          path: parentPath,
+        },
+        language: context.defaultLanguage.code,
+        context,
+        useCache: false,
+      })
+      if (id) {
+        preparedTopic.parentId = id
+      }
     }
   }
 
@@ -100,45 +103,6 @@ async function createTopic(
   })
 
   const createdTopic = response.data?.topic?.create
-
-  // Get the languages to set topic for
-  const remainingLanguages = context.languages
-    .filter((l) => !l.isDefault)
-    .map((l) => l.code)
-
-  // Keep track of the topics being updated
-  const topicsToUpdate: Promise<any>[] = []
-
-  function updateTopic(
-    language: string,
-    level: JSONTopic,
-    levelFromSpec?: JSONTopic
-  ) {
-    if (!levelFromSpec) {
-      return
-    }
-
-    if (level.id) {
-      topicsToUpdate.push(
-        context.callPIM({
-          query: buildUpdateTopicMutation({
-            id: level.id,
-            language,
-            input: {
-              name: getTranslation(levelFromSpec.name, language) || '',
-              parentId: level.parentId,
-            },
-          }),
-        })
-      )
-    }
-  }
-
-  remainingLanguages.forEach((language) =>
-    updateTopic(language, createdTopic, topicWithoutChildren)
-  )
-
-  await Promise.all(topicsToUpdate)
 
   return createdTopic.id
 }
@@ -158,6 +122,10 @@ export async function setTopics({
     return
   }
 
+  const languages = context.config.multilingual
+    ? context.languages.map((l) => l.code)
+    : [context.defaultLanguage.code]
+
   let finished = 0
   let totalTopics = 0
   function count(topic: JSONTopic) {
@@ -173,7 +141,9 @@ export async function setTopics({
       const language = context.defaultLanguage.code
 
       const existingTopicId = await getTopicId({
-        topic: level.path ? { path: level.path } : level.name,
+        topic: level.path
+          ? { path: getTranslation(level.path, language) }
+          : level.name,
         language,
         context,
         useCache: false,
@@ -186,40 +156,37 @@ export async function setTopics({
       // Can't find this topic, let's create it
       if (!existingTopicId) {
         level.id = await createTopic(level, context, parentId)
-      } else {
-        const preparedTopic = prepareTopicForInput(
-          level,
-          context.defaultLanguage.code,
-          context
-        )
-
-        // Update topic
-        await context.callPIM({
-          query: gql`
-            mutation UPDATE_TOPIC_NAME(
-              $id: ID!
-              $language: String!
-              $input: UpdateTopicInput!
-            ) {
-              topic {
-                update(id: $id, language: $language, input: $input) {
-                  id
-                }
-              }
-            }
-          `,
-          variables: {
-            id: existingTopicId,
-            language: context.defaultLanguage.code,
-            input: {
-              name: preparedTopic.name,
-              ...(preparedTopic.pathIdentifier && {
-                pathIdentifier: preparedTopic.pathIdentifier,
-              }),
-            },
-          },
-        })
       }
+
+      // Keep track of the topics being updated
+      const topicsToUpdate: Promise<any>[] = []
+
+      function updateTopic(language: string, level: JSONTopic) {
+        if (level.id) {
+          topicsToUpdate.push(
+            context.callPIM({
+              query: buildUpdateTopicMutation({
+                id: level.id,
+                language,
+                input: {
+                  name: getTranslation(level.name, language) || '',
+                  ...(level.pathIdentifier && {
+                    pathIdentifier: getTranslation(
+                      level.pathIdentifier,
+                      language
+                    ),
+                  }),
+                  ...(level.parentId && { parentId: level.parentId }),
+                },
+              }),
+            })
+          )
+        }
+      }
+
+      languages.forEach((language) => updateTopic(language, level))
+
+      await Promise.all(topicsToUpdate)
 
       finished++
       onUpdate({

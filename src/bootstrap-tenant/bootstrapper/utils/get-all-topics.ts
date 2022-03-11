@@ -1,6 +1,15 @@
 import gql from 'graphql-tag'
-import { BootstrapperContext } from '.'
+import {
+  BootstrapperContext,
+  getTranslation,
+  removeUnwantedFieldsFromThing,
+} from '.'
 import { JSONTopic } from '../../json-spec'
+import {
+  mergeInTranslations,
+  translationFieldIdentifier,
+  trFactory,
+} from './multilingual'
 
 function getTopicById(topics: JSONTopic[], id: string): JSONTopic | null {
   let found: JSONTopic | null = null
@@ -31,9 +40,7 @@ export async function getAllTopicsForSpec(
     : [lng]
 
   async function handleLanguage(language: string) {
-    function tr(val: any) {
-      return { [language]: val }
-    }
+    const tr = trFactory(language)
 
     async function getTopicChildren(
       id: string
@@ -64,18 +71,32 @@ export async function getAllTopicsForSpec(
         },
       })
 
-      return response.data?.topic?.get?.children || []
+      const children = response.data?.topic?.get?.children || []
+
+      return children
     }
 
-    async function handleTopic(props: {
+    async function handleTopic({
+      id,
+      name,
+      path,
+    }: {
       id: string
       name: string
       path: string
     }): Promise<JSONTopic> {
-      const topic: JSONTopic = props
-      topic.name = tr(topic.name)
+      const topic: JSONTopic = {
+        name: tr(name, `${id}.name`),
+        path: tr(path, `${id}.path`),
+      }
 
-      const children = await getTopicChildren(props.id)
+      const pathParts = path.split('/')
+      topic.pathIdentifier = tr(
+        pathParts[pathParts.length - 1],
+        `${id}.pathIdentifier`
+      )
+
+      const children = await getTopicChildren(id)
 
       if (children?.length > 0) {
         const childrenWithChildren: JSONTopic[] = []
@@ -140,7 +161,7 @@ export async function getAllTopicsForSpec(
       if (!existingTopic) {
         console.log('Could not find existing topic by id. Strange.', topic)
       } else {
-        Object.assign(existingTopic.name, topic.name)
+        mergeInTranslations(existingTopic, topic)
         topic.children?.forEach(handleTopic)
       }
     }
@@ -152,5 +173,5 @@ export async function getAllTopicsForSpec(
     }
   }
 
-  return topicMaps
+  return removeUnwantedFieldsFromThing(topicMaps, [translationFieldIdentifier])
 }

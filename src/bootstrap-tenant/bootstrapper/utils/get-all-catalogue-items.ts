@@ -1,13 +1,8 @@
-import merge from 'lodash.merge'
-
-import { BootstrapperContext } from '.'
-import { PriceVariant } from '../../../generated/graphql'
+import { BootstrapperContext, removeUnwantedFieldsFromThing } from '.'
 import {
   JSONComponentContent,
-  JSONDocument,
   JSONFolder,
   JSONItem,
-  JSONItemTopic,
   JSONProduct,
   JSONProductSubscriptionPlan,
   JSONProductSubscriptionPlanPeriod,
@@ -15,8 +10,12 @@ import {
   JSONProductVariant,
   JSONProductVariantPriceVariants,
   JSONProductVariantSubscriptionPlanMeteredVariableTier,
-  JSONTopic,
 } from '../../json-spec'
+import {
+  mergeInTranslations,
+  translationFieldIdentifier,
+  trFactory,
+} from './multilingual'
 
 function handlePriceVariants(
   priceVariants: { identifier: string; price: number }[]
@@ -109,26 +108,6 @@ export interface ItemsCreateSpecOptions {
   version?: 'published' | 'draft'
 }
 
-function removeUnwantedFieldsFromThing(thing: any, fieldsToRemove: string[]) {
-  function handleThing(thing: any) {
-    if (Array.isArray(thing)) {
-      thing.forEach(handleThing)
-    } else if (thing && typeof thing === 'object') {
-      try {
-        fieldsToRemove.forEach((field) => delete thing[field])
-
-        Object.values(thing).forEach(handleThing)
-      } catch (e) {
-        console.log(e)
-      }
-    }
-  }
-
-  handleThing(thing)
-
-  return thing
-}
-
 export async function getAllCatalogueItems(
   lng: string,
   context: BootstrapperContext,
@@ -142,43 +121,18 @@ export async function getAllCatalogueItems(
   async function handleLanguage(language: string) {
     const allCatalogueItemsForLanguage: JSONItem[] = []
 
-    function tr(val: any) {
-      return { [language]: val }
-    }
-
-    function handleImage(image: any) {
-      return {
-        src: image.url,
-        altText: tr(image.altText),
-        caption: tr(image.caption),
-      }
-    }
-
-    function handleVideo(video: any) {
-      return {
-        src: video.playlist,
-        title: tr(video.title),
-        thumbnails: video.thumbnails?.map(handleImage),
-      }
-    }
-
-    function handleFile(file: any) {
-      return {
-        src: file.url,
-        title: tr(file.title),
-      }
-    }
-
-    function handleParagraph(paragraph: any) {
-      return {
-        title: tr(paragraph?.title?.text),
-        body: tr(paragraph?.body),
-        images: paragraph?.images?.map(handleImage),
-        videos: paragraph?.videos?.map(handleVideo),
-      }
-    }
+    const tr = trFactory(language)
 
     async function getItem(path: string): Promise<JSONItem | null> {
+      /**
+       * "/" represents the catalogue root and is not retrieved here.
+       * If an item path is "/", then it is most likely not published
+       * to the catalogue
+       */
+      if (path === '/') {
+        return null
+      }
+
       const itemResponse = await context.callCatalogue({
         query: GET_ITEM_QUERY,
         variables: {
@@ -200,7 +154,7 @@ export async function getAllCatalogueItems(
     async function handleItem(item: any): Promise<JSONItem> {
       const jsonItem: JSONItem = {
         id: item.id, // Used for reference when doing multilingual spec
-        name: tr(item.name),
+        name: tr(item.name, `${item.id}.name`),
         cataloguePath: item.cataloguePath,
         externalReference: item.externalReference,
         shape: item.shape.identifier,
@@ -219,14 +173,16 @@ export async function getAllCatalogueItems(
           )
 
           const variant: JSONProductVariant = {
-            name: tr(v.name),
+            name: tr(v.name, `${v.sku}.name`),
             sku: v.sku,
             price: handlePriceVariants(v.priceVariants),
             isDefault: v.isDefault,
             attributes,
             externalReference: v.externalReference,
             stock: v.stock,
-            images: v.images?.map(handleImage),
+            images: v.images?.map((i: any, index: number) =>
+              handleImage(i, `${v.sku}.images.${index}`)
+            ),
             subscriptionPlans: v.subscriptionPlans?.map(handleSubscriptionPlan),
           }
 
@@ -281,91 +237,145 @@ export async function getAllCatalogueItems(
         return children
       }
 
-      return jsonItem
-    }
-
-    function handleComponents(
-      cmps?: any
-    ): Record<string, JSONComponentContent> {
-      const components: Record<string, any> = {}
-
-      function getComponentContent(c: any): any {
-        if (!c) {
-          return null
-        }
-        switch (c.type) {
-          case 'singleLine': {
-            return tr(c.content?.text)
-          }
-          case 'itemRelations': {
-            return c.content?.items
-          }
-          case 'gridRelations': {
-            return c.content?.grids
-          }
-          case 'boolean': {
-            return c.content?.value
-          }
-          case 'images': {
-            return c.content?.images?.map(handleImage)
-          }
-          case 'videos': {
-            return c.content?.videos?.map(handleVideo)
-          }
-          case 'files': {
-            return c.content?.files?.map(handleFile)
-          }
-          case 'datetime': {
-            return c.content?.datetime
-          }
-          case 'paragraphCollection': {
-            return c.content?.paragraphs?.map(handleParagraph)
-          }
-          case 'propertiesTable': {
-            return c.content?.sections?.map(handlePropertiesTableSection)
-          }
-          case 'selection': {
-            return c.content?.options?.map((o: any) => o.key)
-          }
-          case 'componentChoice': {
-            const sel = c.content?.selectedComponent
-            if (!sel) {
-              return null
-            }
-
-            return {
-              [sel.id]: getComponentContent(sel),
-            }
-          }
-          case 'contentChunk': {
-            const chunks: any[] = []
-            c.content?.chunks.forEach((catalogueChunk: any[]) => {
-              const chunk: Record<string, any> = {}
-
-              catalogueChunk.forEach((component) => {
-                chunk[component.id] = getComponentContent(component)
-              })
-
-              chunks.push(chunk)
-            })
-
-            return chunks
-          }
-          default: {
-            return c.content
-          }
+      function handleImage(image: any, id: string) {
+        return {
+          src: image.url,
+          altText: tr(image.altText, `${id}.altText`),
+          caption: tr(image.caption, `${id}.caption`),
         }
       }
 
-      cmps?.forEach((c: any) => {
-        const content = getComponentContent(c)
-
-        if (content) {
-          components[c.id] = content
+      function handleVideo(video: any, id: string) {
+        return {
+          src: video.playlist,
+          title: tr(video.title, `${id}.title`),
+          thumbnails: video.thumbnails?.map((i: any, index: number) =>
+            handleImage(i, `${id}.thumbnails.${index}`)
+          ),
         }
-      })
+      }
 
-      return components
+      function handleFile(file: any, id: string) {
+        return {
+          src: file.url,
+          title: tr(file.title, `${id}.title`),
+        }
+      }
+
+      function handleParagraph(paragraph: any, id: string) {
+        return {
+          title: tr(paragraph?.title?.text, `${id}.title`),
+          body: tr(paragraph?.body, `${id}.body`),
+          images: paragraph?.images?.map((i: any, index: number) =>
+            handleImage(i, `${id}.images.${index}`)
+          ),
+          videos: paragraph?.videos?.map((v: any, index: number) =>
+            handleVideo(v, `${id}.videos.${index}`)
+          ),
+        }
+      }
+
+      function handleComponents(
+        cmps?: any
+      ): Record<string, JSONComponentContent> {
+        const components: Record<string, any> = {}
+
+        function getComponentContent(c: any, id: string): any {
+          if (!c) {
+            return null
+          }
+          switch (c.type) {
+            case 'singleLine': {
+              return tr(c.content?.text, id)
+            }
+            case 'richText': {
+              return tr(c.content, id)
+            }
+            case 'itemRelations': {
+              return c.content?.items
+            }
+            case 'gridRelations': {
+              return c.content?.grids
+            }
+            case 'boolean': {
+              return c.content?.value
+            }
+            case 'images': {
+              return c.content?.images?.map((i: any, index: number) =>
+                handleImage(i, `${id}.${index}`)
+              )
+            }
+            case 'videos': {
+              return c.content?.videos?.map((v: any, index: number) =>
+                handleVideo(v, `${id}.${index}`)
+              )
+            }
+            case 'files': {
+              return c.content?.files?.map((v: any, index: number) =>
+                handleFile(v, `${id}.${index}`)
+              )
+            }
+            case 'datetime': {
+              return c.content?.datetime
+            }
+            case 'paragraphCollection': {
+              return c.content?.paragraphs?.map((v: any, index: number) =>
+                handleParagraph(v, `${id}.${index}`)
+              )
+            }
+            case 'propertiesTable': {
+              return c.content?.sections?.map(handlePropertiesTableSection)
+            }
+            case 'selection': {
+              return c.content?.options?.map((o: any) => o.key)
+            }
+            case 'componentChoice': {
+              const sel = c.content?.selectedComponent
+              if (!sel) {
+                return null
+              }
+
+              return {
+                [sel.id]: getComponentContent(sel, `${id}.${sel.id}`),
+              }
+            }
+            case 'contentChunk': {
+              const chunks: any[] = []
+              c.content?.chunks.forEach(
+                (catalogueChunk: any[], chunkIndex: number) => {
+                  const chunk: Record<string, any> = {}
+
+                  catalogueChunk.forEach((component) => {
+                    chunk[component.id] = getComponentContent(
+                      component,
+                      `${id}.${chunkIndex}.${component.id}`
+                    )
+                  })
+
+                  chunks.push(chunk)
+                }
+              )
+
+              return chunks
+            }
+            default: {
+              return c.content
+            }
+          }
+        }
+
+        cmps?.forEach((c: any) => {
+          const content = getComponentContent(c, `${item.id}.${c.id}`)
+
+          if (content) {
+            components[c.id] = content
+          }
+        })
+
+        return components
+      }
+
+      return jsonItem
     }
 
     const rootItemsResponse = await context.callCatalogue({
@@ -406,7 +416,7 @@ export async function getAllCatalogueItems(
           itemForNewLang.id
         )
       } else {
-        merge(existingItem, itemForNewLang)
+        mergeInTranslations(existingItem, itemForNewLang)
       }
 
       ;(itemForNewLang as JSONFolder).children?.forEach(mergeWithExisting)
@@ -415,8 +425,6 @@ export async function getAllCatalogueItems(
     if (allCatalogueItems.length === 0) {
       allCatalogueItems.push(...itemsForLanguage)
     } else {
-      const itemsForLanguage = await handleLanguage(language)
-
       /**
        * Remove catalogue path here, as we only want the default language
        * catalogue path to be in the spec
@@ -427,7 +435,10 @@ export async function getAllCatalogueItems(
     }
   }
 
-  return removeUnwantedFieldsFromThing(allCatalogueItems, ['id'])
+  return removeUnwantedFieldsFromThing(allCatalogueItems, [
+    'id',
+    translationFieldIdentifier,
+  ])
 }
 
 const GET_ROOT_ITEMS_QUERY = `

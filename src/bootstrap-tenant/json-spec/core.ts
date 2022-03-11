@@ -50,8 +50,8 @@ export interface JSONTopic {
   name: JSONStringTranslated
   children?: JSONTopic[]
   parentId?: string
-  path?: string
-  pathIdentifier?: string
+  path?: JSONStringTranslated
+  pathIdentifier?: JSONStringTranslated
   hierarchyPath?: string
   parentHierarchyPath?: string
 }

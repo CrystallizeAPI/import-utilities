@@ -332,3 +332,26 @@ export function chunkArray<T>({
     [[]]
   )
 }
+
+export function removeUnwantedFieldsFromThing(
+  thing: any,
+  fieldsToRemove: string[]
+) {
+  function handleThing(thing: any) {
+    if (Array.isArray(thing)) {
+      thing.forEach(handleThing)
+    } else if (thing && typeof thing === 'object') {
+      try {
+        fieldsToRemove.forEach((field) => delete thing[field])
+
+        Object.values(thing).forEach(handleThing)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+  }
+
+  handleThing(thing)
+
+  return thing
+}
