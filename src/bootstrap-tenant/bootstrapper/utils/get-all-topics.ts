@@ -86,6 +86,7 @@ export async function getAllTopicsForSpec(
       path: string
     }): Promise<JSONTopic> {
       const topic: JSONTopic = {
+        id,
         name: tr(name, `${id}.name`),
         path: tr(path, `${id}.path`),
       }
@@ -173,5 +174,8 @@ export async function getAllTopicsForSpec(
     }
   }
 
-  return removeUnwantedFieldsFromThing(topicMaps, [translationFieldIdentifier])
+  return removeUnwantedFieldsFromThing(topicMaps, [
+    'id',
+    translationFieldIdentifier,
+  ])
 }
