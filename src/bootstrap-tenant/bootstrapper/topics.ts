@@ -1,7 +1,7 @@
 import { TopicInput } from '../../types'
 import { buildCreateTopicMutation } from '../../graphql'
 
-import { JsonSpec, JSONTopic } from '../json-spec'
+import { JsonSpec, JSONStringTranslated, JSONTopic } from '../json-spec'
 import { getTranslation, AreaUpdate, BootstrapperContext, sleep } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
@@ -158,35 +158,32 @@ export async function setTopics({
         level.id = await createTopic(level, context, parentId)
       }
 
-      // Keep track of the topics being updated
-      const topicsToUpdate: Promise<any>[] = []
+      for (let i = 0; i < languages.length; i++) {
+        // Due to a race condition in the PIM, we need to sleep for a bit
+        sleep(25)
 
-      function updateTopic(language: string, level: JSONTopic) {
-        if (level.id) {
-          topicsToUpdate.push(
-            context.callPIM({
-              query: buildUpdateTopicMutation({
-                id: level.id,
-                language,
-                input: {
-                  name: getTranslation(level.name, language) || '',
-                  ...(level.pathIdentifier && {
-                    pathIdentifier: getTranslation(
-                      level.pathIdentifier,
-                      language
-                    ),
-                  }),
-                  ...(level.parentId && { parentId: level.parentId }),
-                },
-              }),
-            })
-          )
+        const language = languages[i]
+        const name = getTranslation(level.name, language) || ''
+
+        if (level.id && name) {
+          await context.callPIM({
+            query: buildUpdateTopicMutation({
+              id: level.id,
+              language,
+              input: {
+                name,
+                ...(level.pathIdentifier && {
+                  pathIdentifier: getTranslation(
+                    level.pathIdentifier,
+                    language
+                  ),
+                }),
+                ...(level.parentId && { parentId: level.parentId }),
+              },
+            }),
+          })
         }
       }
-
-      languages.forEach((language) => updateTopic(language, level))
-
-      await Promise.all(topicsToUpdate)
 
       finished++
       onUpdate({
