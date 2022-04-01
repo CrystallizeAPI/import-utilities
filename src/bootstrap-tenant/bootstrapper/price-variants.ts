@@ -4,6 +4,7 @@ import { buildCreatePriceVariantMutation } from '../../graphql'
 
 import { JsonSpec, JSONPriceVariant as JsonPriceVariant } from '../json-spec'
 import { AreaUpdate, BootstrapperContext } from './utils'
+import { buildUpdatePriceVariantQueryAndVariables } from '../../graphql/build-update-price-variant-mutation'
 
 export async function getExistingPriceVariants(
   context: BootstrapperContext
@@ -47,24 +48,61 @@ export async function setPriceVariants({
     return existingPriceVariants
   }
 
+  const specVariants = spec.priceVariants || []
+
   const existingPriceVariantsIdentifiers = existingPriceVariants.map(
     (p) => p.identifier
   )
-  const missingPriceVariants = spec.priceVariants.filter(
+  const updatePriceVariants = specVariants.filter((p) =>
+    existingPriceVariantsIdentifiers.includes(p.identifier)
+  )
+  const addPriceVariants = specVariants.filter(
     (p) => !existingPriceVariantsIdentifiers.includes(p.identifier)
   )
 
-  if (missingPriceVariants.length > 0) {
+  let finished = 0
+
+  const { tenantId } = context
+
+  // Updating existing price variants
+  if (updatePriceVariants.length > 0) {
     onUpdate({
-      message: `Adding ${missingPriceVariants.length} price variant(s)...`,
+      message: `Updating ${addPriceVariants.length} price variant(s)...`,
     })
 
-    const tenantId = context.tenantId
+    await Promise.all(
+      updatePriceVariants.map(async (priceVariant) => {
+        const result = await context.callPIM(
+          buildUpdatePriceVariantQueryAndVariables({
+            tenantId,
+            identifier: priceVariant.identifier,
+            input: {
+              currency: priceVariant.currency,
+              name: priceVariant.name,
+            },
+          })
+        )
 
-    let finished = 0
+        finished++
+
+        onUpdate({
+          progress: finished / specVariants.length,
+          message: `${priceVariant.name}: ${
+            result?.errors ? 'error' : 'updated'
+          }`,
+        })
+      })
+    )
+  }
+
+  // Adding missing price variants
+  if (addPriceVariants.length > 0) {
+    onUpdate({
+      message: `Adding ${addPriceVariants.length} price variant(s)...`,
+    })
 
     await Promise.all(
-      missingPriceVariants.map(async (priceVariant) => {
+      addPriceVariants.map(async (priceVariant) => {
         const result = await context.callPIM({
           query: buildCreatePriceVariantMutation({
             tenantId,
@@ -77,7 +115,7 @@ export async function setPriceVariants({
         finished++
 
         onUpdate({
-          progress: finished / missingPriceVariants.length,
+          progress: finished / specVariants.length,
           message: `${priceVariant.name}: ${
             result?.errors ? 'error' : 'added'
           }`,
@@ -90,7 +128,5 @@ export async function setPriceVariants({
     progress: 1,
   })
 
-  const priceVariants = [...existingPriceVariants, ...missingPriceVariants]
-
-  return priceVariants
+  return getExistingPriceVariants(context)
 }
