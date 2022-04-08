@@ -192,7 +192,7 @@ function buildComponentConfigInput(component: Component) {
       if (component.config) {
         return {
           config: {
-            numeric: component.config,
+            files: component.config,
           },
         }
       }
