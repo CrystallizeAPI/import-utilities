@@ -85,7 +85,7 @@ export class ApiManager {
       this.lastRequestsStatuses.length = 0
     }
 
-    const maxWorkers = 5
+    const maxWorkers = 3
     if (this.maxWorkers < 1) {
       this.maxWorkers = 1
     } else if (this.maxWorkers > maxWorkers) {
