@@ -457,6 +457,7 @@ export class Bootstrapper extends EventEmitter {
         start,
         end,
         duration: new Duration(start, end).toString(1),
+        spec: this.SPEC,
       })
     } catch (e) {
       this.emit(EVENT_NAMES.ERROR, {
