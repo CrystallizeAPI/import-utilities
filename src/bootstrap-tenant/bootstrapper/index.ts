@@ -98,8 +98,6 @@ function defaultAreaStatus(): AreaStatus {
 export class Bootstrapper extends EventEmitter {
   SPEC: JsonSpec | null = null
 
-  #tenantBasics: Promise<boolean> | null = null
-
   PIMAPIManager: ApiManager | null = null
   catalogueAPIManager: ApiManager | null = null
   ordersAPIManager: ApiManager | null = null
@@ -193,7 +191,6 @@ export class Bootstrapper extends EventEmitter {
   setTenantIdentifier = async (tenantIdentifier: string) => {
     this.context.tenantIdentifier = tenantIdentifier
     this.tenantIdentifier = tenantIdentifier
-    return this.getTenantBasics()
   }
 
   constructor() {
@@ -203,28 +200,23 @@ export class Bootstrapper extends EventEmitter {
   }
 
   getTenantBasics = async () => {
-    if (this.#tenantBasics) {
-      return this.#tenantBasics
+    /**
+     * Allow for access tokens to be set synchronosly after the
+     * the setTenantIdentifier is set
+     */
+    await sleep(5)
+
+    if (this.PIMAPIManager && this.config.multilingual) {
+      /**
+       * Due to a potential race condition when operating on
+       * multiple languages on the same time, we need to limit
+       * the amount of workers to 1 for now
+       */
+      this.PIMAPIManager.maxWorkers = 1
     }
 
-    this.#tenantBasics = new Promise(async (resolve, reject) => {
-      /**
-       * Allow for access tokens to be set synchronosly after the
-       * the setTenantIdentifier is set
-       */
-      await sleep(5)
-
-      if (this.PIMAPIManager && this.config.multilingual) {
-        /**
-         * Due to a potential race condition when operating on
-         * multiple languages on the same time, we need to limit
-         * the amount of workers to 1 for now
-         */
-        this.PIMAPIManager.maxWorkers = 1
-      }
-
-      const r = await this.context.callPIM({
-        query: gql`
+    const r = await this.context.callPIM({
+      query: gql`
           {
             tenant {
               get(identifier: "${this.context.tenantIdentifier}") {
@@ -235,60 +227,120 @@ export class Bootstrapper extends EventEmitter {
             }
           }
         `,
-      })
-
-      const tenant = r?.data?.tenant?.get
-
-      if (!tenant) {
-        const error = `⛔️ You do not have access to tenant "${this.context.tenantIdentifier}" ⛔️`
-        this.emit(EVENT_NAMES.ERROR, { error })
-        reject()
-      } else {
-        this.context.tenantId = tenant.id
-        this.context.fileUploader.context = this.context
-
-        const baseUrl = `https://${
-          process.env.CRYSTALLIZE_ENV === 'dev'
-            ? 'api-dev.crystallize.digital'
-            : 'api.crystallize.com'
-        }/${this.context.tenantIdentifier}`
-
-        // Catalogue
-        this.catalogueAPIManager = createAPICaller({
-          uri: `${baseUrl}/catalogue`,
-          errorNotifier: ({ error }) => {
-            this.emit(EVENT_NAMES.ERROR, { error })
-          },
-          logLevel: this.config.logLevel,
-        })
-        this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
-          tenant.staticAuthToken
-        this.context.callCatalogue = this.catalogueAPIManager.push
-
-        // Orders
-        this.ordersAPIManager = createAPICaller({
-          uri: `${baseUrl}/orders`,
-          errorNotifier: ({ error }) => {
-            this.emit(EVENT_NAMES.ERROR, { error })
-          },
-          logLevel: this.config.logLevel,
-        })
-        this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID =
-          process.env.CRYSTALLIZE_ACCESS_TOKEN_ID || ''
-        this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET =
-          process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET || ''
-        this.ordersAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
-          tenant.staticAuthToken
-        this.context.callOrders = this.ordersAPIManager.push
-
-        // Set log level late so that we'll catch late changes to the config
-        if (this.PIMAPIManager && this.config.logLevel) {
-          this.PIMAPIManager.logLevel = this.config.logLevel
-        }
-
-        resolve(true)
-      }
     })
+
+    const tenant = r?.data?.tenant?.get
+
+    if (!tenant) {
+      const error = `⛔️ You do not have access to tenant "${this.context.tenantIdentifier}" ⛔️`
+      this.emit(EVENT_NAMES.ERROR, { error })
+      return false
+    } else {
+      this.context.tenantId = tenant.id
+      this.context.fileUploader.context = this.context
+
+      const baseUrl = `https://${
+        process.env.CRYSTALLIZE_ENV === 'dev'
+          ? 'api-dev.crystallize.digital'
+          : 'api.crystallize.com'
+      }/${this.context.tenantIdentifier}`
+
+      // Catalogue
+      this.catalogueAPIManager = createAPICaller({
+        uri: `${baseUrl}/catalogue`,
+        errorNotifier: ({ error }) => {
+          this.emit(EVENT_NAMES.ERROR, { error })
+        },
+        logLevel: this.config.logLevel,
+      })
+      this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
+        tenant.staticAuthToken
+      this.context.callCatalogue = this.catalogueAPIManager.push
+
+      // Orders
+      this.ordersAPIManager = createAPICaller({
+        uri: `${baseUrl}/orders`,
+        errorNotifier: ({ error }) => {
+          this.emit(EVENT_NAMES.ERROR, { error })
+        },
+        logLevel: this.config.logLevel,
+      })
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID =
+        process.env.CRYSTALLIZE_ACCESS_TOKEN_ID || ''
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET =
+        process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET || ''
+      this.ordersAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
+        tenant.staticAuthToken
+      this.context.callOrders = this.ordersAPIManager.push
+
+      // Set log level late so that we'll catch late changes to the config
+      if (this.PIMAPIManager && this.config.logLevel) {
+        this.PIMAPIManager.logLevel = this.config.logLevel
+      }
+
+      return true
+    }
+  }
+
+  async ensureTenantExists() {
+    /**
+     * Allow for access tokens to be set synchronosly after the
+     * the setTenantIdentifier is set
+     */
+    await sleep(5)
+
+    if (!this.tenantIdentifier) {
+      throw new Error(
+        'tenantIdentifier is not set. Use bootstrapper.setTenantIdentifier(<identifier>)'
+      )
+    }
+
+    const identifier = this.tenantIdentifier
+    const resultGetTenant = await this.PIMAPIManager?.push({
+      query: `
+      query ($identifier: String!) {
+        tenant {
+          get(identifier: $identifier) {
+            identifier
+          }
+        }
+      }`,
+      variables: {
+        identifier,
+      },
+    })
+
+    const match = resultGetTenant?.data?.tenant?.get || null
+    if (match) {
+      return true
+    }
+
+    // Attempt to create the tenant
+    const resultCreate = await this.PIMAPIManager?.push({
+      query: `
+        mutation ($identifier: String!) {
+          tenant {
+            create (
+              input: {
+                identifier: $identifier
+                name: $identifier
+              }
+            ) {
+              identifier
+            }
+          }
+        }`,
+      variables: {
+        identifier,
+      },
+    })
+
+    // This tenant identifier exists, but you do not have access
+    if (resultCreate?.errors) {
+      return false
+    }
+
+    return true
   }
 
   async createSpec(props: ICreateSpec = createSpecDefaults): Promise<JsonSpec> {
@@ -430,6 +482,8 @@ export class Bootstrapper extends EventEmitter {
 
   async start() {
     try {
+      await this.ensureTenantExists()
+
       await this.getTenantBasics()
 
       // Store the config in the context for easy access
