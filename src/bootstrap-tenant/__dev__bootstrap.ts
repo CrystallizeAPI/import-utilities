@@ -6,11 +6,16 @@ import { resolve } from 'path'
 // import Progress from 'cli-progress'
 
 import { Bootstrapper, EVENT_NAMES, Status } from './bootstrapper'
-import { JSONImages, JSONParagraphCollection, JSONProduct } from './json-spec'
+import {
+  JSONImages,
+  JSONParagraphCollection,
+  JSONProduct,
+  JSONShapeComponentFilesConfig,
+} from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'hkn-files-demo'
+    const tenantIdentifier = 'hkn-files-demo-with-excel'
     // const jsonSpec = JSON.parse(
     //   await readFile(
     //     resolve(__dirname, '../../json-spec/photofinder.json'),
@@ -49,6 +54,15 @@ async function bootstrap() {
               id: 'some-files',
               name: 'Some files',
               type: 'files',
+              config: {
+                acceptedContentTypes: [
+                  {
+                    contentType:
+                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                  },
+                ],
+                max: 1,
+              } as JSONShapeComponentFilesConfig,
             },
           ],
         },

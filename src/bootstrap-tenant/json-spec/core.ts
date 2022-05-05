@@ -336,6 +336,7 @@ export type JSONShapeComponentConfig =
   | JSONShapeComponentItemRelationsConfig
   | JSONShapeComponentNumericConfig
   | JSONShapeComponentPropertiesTableConfig
+  | JSONShapeComponentFilesConfig
 
 interface JSONShapeComponentConfigMinMax {
   min?: number | null
@@ -370,6 +371,18 @@ export interface JSONShapeComponentPropertiesTableConfig {
     title?: string
     keys: string[]
   }[]
+}
+
+export interface JSONShapeComponentFilesConfig
+  extends JSONShapeComponentConfigMinMax {
+  acceptedContentTypes?: {
+    contentType: string
+    extensionLabel?: string
+  }[]
+  maxFileSize: {
+    size: number
+    unit: 'Bytes' | 'GiB' | 'KiB' | 'MiB'
+  }
 }
 
 export interface JSONAddress {
