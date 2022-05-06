@@ -151,7 +151,10 @@ export class FileUploadManager {
     item.status = 'working'
 
     try {
-      const result = await remoteFileUpload(item.url, this.context)
+      const result = await remoteFileUpload({
+        fileUrl: item.url,
+        context: this.context,
+      })
       item.resolve(result)
       removeWorker(item)
     } catch (e) {

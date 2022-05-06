@@ -72,9 +72,7 @@ async function downloadFile(fileURL: string) {
 
   const fileBuffer = await downloadRemoteOrLocal(fileURL)
 
-  const fType = await fileType.fromBuffer(fileBuffer)
-  let contentType: MimeType | undefined | string = fType?.mime
-  let ext = fType?.ext as string
+  let { ext, contentType } = await handleFileBuffer(fileBuffer)
 
   // Override for SVG files that somtimes get wrong mime type back
   if (fileURL.endsWith('.svg')) {
@@ -99,6 +97,17 @@ async function downloadFile(fileURL: string) {
   }
 }
 
+async function handleFileBuffer(fileBuffer: Buffer) {
+  const fType = await fileType.fromBuffer(fileBuffer)
+  const contentType: MimeType | undefined | string = fType?.mime
+  const ext = fType?.ext as string
+
+  return {
+    contentType,
+    ext,
+  }
+}
+
 const mimeArray = {
   'image/jpeg': '.jpeg',
   'image/png': '.png',
@@ -114,30 +123,56 @@ export interface RemoteFileUploadResult {
   key: string
 }
 
-export async function remoteFileUpload(
-  fileUrl: string,
+export async function remoteFileUpload({
+  fileUrl,
+  fileBuffer,
+  fileName = '',
+  context,
+}: {
+  fileUrl?: string
+  fileBuffer?: Buffer
+  fileName?: string
   context: BootstrapperContext
-): Promise<RemoteFileUploadResult | null> {
+}): Promise<RemoteFileUploadResult | null> {
   try {
-    const { file, contentType, filename } = await downloadFile(fileUrl)
+    let file: Buffer | null = null
+    let contentType: string | undefined
+
+    if (fileUrl) {
+      const downloadResult = await downloadFile(fileUrl)
+      file = downloadResult.file
+      fileName = downloadResult.filename
+      contentType = downloadResult.contentType
+    } else if (fileBuffer) {
+      const result = await handleFileBuffer(fileBuffer)
+
+      file = fileBuffer
+      contentType = result.contentType
+    }
+
+    if (!file) {
+      throw new Error(
+        'Could not handle file ' + JSON.stringify({ fileUrl, fileName })
+      )
+    }
 
     // Create the signature required to do an upload
     const signedUploadResponse = await context.callPIM({
       variables: {
         tenantId: context.tenantId,
-        filename,
+        fileName,
         contentType,
       },
       query: gql`
         mutation generatePresignedRequest(
           $tenantId: ID!
-          $filename: String!
+          $fileName: String!
           $contentType: String!
         ) {
           fileUpload {
             generatePresignedRequest(
               tenantId: $tenantId
-              filename: $filename
+              filename: $fileName
               contentType: $contentType
             ) {
               url
