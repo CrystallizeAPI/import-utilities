@@ -127,26 +127,26 @@ export async function remoteFileUpload({
   fileUrl,
   fileBuffer,
   fileName = '',
+  contentType,
   context,
 }: {
   fileUrl?: string
   fileBuffer?: Buffer
   fileName?: string
+  contentType?: string
   context: BootstrapperContext
 }): Promise<RemoteFileUploadResult | null> {
   try {
-    let file: Buffer | null = null
-    let contentType: string | undefined
+    let file: Buffer | null = fileBuffer || null
 
     if (fileUrl) {
       const downloadResult = await downloadFile(fileUrl)
       file = downloadResult.file
       fileName = downloadResult.filename
       contentType = downloadResult.contentType
-    } else if (fileBuffer) {
-      const result = await handleFileBuffer(fileBuffer)
+    } else if (file && !contentType) {
+      const result = await handleFileBuffer(file)
 
-      file = fileBuffer
       contentType = result.contentType
     }
 
