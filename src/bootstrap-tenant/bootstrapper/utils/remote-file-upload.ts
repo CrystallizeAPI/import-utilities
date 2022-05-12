@@ -135,94 +135,91 @@ export async function remoteFileUpload({
   fileName?: string
   contentType?: string
   context: BootstrapperContext
-}): Promise<RemoteFileUploadResult | null> {
-  try {
-    let file: Buffer | null = fileBuffer || null
+}): Promise<RemoteFileUploadResult> {
+  let file: Buffer | null = fileBuffer || null
 
-    if (fileUrl) {
-      const downloadResult = await downloadFile(fileUrl)
-      file = downloadResult.file
-      fileName = downloadResult.filename
-      contentType = downloadResult.contentType
-    } else if (file && !contentType) {
-      const result = await handleFileBuffer(file)
+  if (fileUrl) {
+    const downloadResult = await downloadFile(fileUrl)
+    file = downloadResult.file
+    fileName = downloadResult.filename
+    contentType = downloadResult.contentType
+  } else if (file && !contentType) {
+    const result = await handleFileBuffer(file)
 
-      contentType = result.contentType
-    }
+    contentType = result.contentType
+  }
 
-    if (!file) {
-      throw new Error(
-        'Could not handle file ' + JSON.stringify({ fileUrl, fileName })
-      )
-    }
+  throw new Error('Cannot upload ' + fileUrl)
 
-    // Create the signature required to do an upload
-    const signedUploadResponse = await context.callPIM({
-      variables: {
-        tenantId: context.tenantId,
-        fileName,
-        contentType,
-      },
-      query: gql`
-        mutation generatePresignedRequest(
-          $tenantId: ID!
-          $fileName: String!
-          $contentType: String!
-        ) {
-          fileUpload {
-            generatePresignedRequest(
-              tenantId: $tenantId
-              filename: $fileName
-              contentType: $contentType
-            ) {
-              url
-              fields {
-                name
-                value
-              }
+  if (!file) {
+    throw new Error(
+      'Could not handle file ' + JSON.stringify({ fileUrl, fileName })
+    )
+  }
+
+  // Create the signature required to do an upload
+  const signedUploadResponse = await context.callPIM({
+    variables: {
+      tenantId: context.tenantId,
+      fileName,
+      contentType,
+    },
+    query: gql`
+      mutation generatePresignedRequest(
+        $tenantId: ID!
+        $fileName: String!
+        $contentType: String!
+      ) {
+        fileUpload {
+          generatePresignedRequest(
+            tenantId: $tenantId
+            filename: $fileName
+            contentType: $contentType
+          ) {
+            url
+            fields {
+              name
+              value
             }
           }
         }
-      `,
-    })
+      }
+    `,
+  })
 
-    if (!signedUploadResponse || !signedUploadResponse.data?.fileUpload) {
-      throw new Error('Could not get presigned request fields')
-    }
+  if (!signedUploadResponse || !signedUploadResponse.data?.fileUpload) {
+    throw new Error('Could not get presigned request fields')
+  }
 
-    // Extract what we need for upload
-    const {
-      fields,
-      url,
-    } = signedUploadResponse.data.fileUpload.generatePresignedRequest
+  // Extract what we need for upload
+  const {
+    fields,
+    url,
+  } = signedUploadResponse.data?.fileUpload.generatePresignedRequest
 
-    const formData = new FormData()
-    fields.forEach((field: any) => formData.append(field.name, field.value))
-    formData.append('file', file)
+  const formData = new FormData()
+  fields.forEach((field: any) => formData.append(field.name, field.value))
+  formData.append('file', file)
 
-    // Upload the file
-    const uploadResponse = await fetch(url, {
-      method: 'post',
-      body: formData,
-    })
+  // Upload the file
+  const uploadResponse = await fetch(url, {
+    method: 'post',
+    body: formData,
+  })
 
-    if (uploadResponse.status !== 201) {
-      throw new Error('Cannot upload ' + fileUrl)
-    }
+  if (uploadResponse.status !== 201) {
+    throw new Error('Cannot upload ' + fileUrl)
+  }
 
-    const jsonResponse = JSON.parse(xmlJS.xml2json(await uploadResponse.text()))
+  const jsonResponse = JSON.parse(xmlJS.xml2json(await uploadResponse.text()))
 
-    const attrs = jsonResponse.elements[0].elements.map((el: any) => ({
-      name: el.name,
-      value: el.elements[0].text,
-    }))
+  const attrs = jsonResponse.elements[0].elements.map((el: any) => ({
+    name: el.name,
+    value: el.elements[0].text,
+  }))
 
-    return {
-      mimeType: contentType as string,
-      key: attrs.find((a: any) => a.name === 'Key').value,
-    }
-  } catch (e) {
-    context.emitError(`Could not upload ${fileUrl}`)
-    return null
+  return {
+    mimeType: contentType as string,
+    key: attrs.find((a: any) => a.name === 'Key').value,
   }
 }

@@ -150,6 +150,9 @@ export class FileUploadManager {
 
     item.status = 'working'
 
+    // Allow for 5 fails
+    const isLastAttempt = item.failCount === 5
+
     try {
       const result = await remoteFileUpload({
         fileUrl: item.url,
@@ -157,17 +160,17 @@ export class FileUploadManager {
       })
       item.resolve(result)
       removeWorker(item)
-    } catch (e) {
+    } catch (e: any) {
       if (!item.failCount) {
-        item.failCount = 0
+        item.failCount = 1
       }
-      item.failCount++
 
-      // Allow for 5 fails
-      if (item.failCount > 5) {
+      if (isLastAttempt) {
         item.reject(e)
         removeWorker(item)
+        this.context.emitError(e.message || JSON.stringify(e, null, 1))
       } else {
+        item.failCount++
         item.status = 'not-started'
       }
     }
