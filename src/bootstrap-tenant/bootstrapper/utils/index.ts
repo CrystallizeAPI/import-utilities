@@ -110,7 +110,7 @@ type uploadFileRecord = {
 
 type fileUploadQueueItem = {
   url: string
-  status: 'working' | 'done' | 'not-started'
+  status: 'not-started' | 'working' | 'done'
   failCount?: number
   resolve?: (result: RemoteFileUploadResult | null) => void
   reject?: (r: any) => void
@@ -185,6 +185,7 @@ export class FileUploadManager {
     if (existing) {
       return existing.result
     }
+
     const result = this.scheduleUpload(url)
 
     result.catch((e) => {})
