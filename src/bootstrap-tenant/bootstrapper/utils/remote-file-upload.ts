@@ -149,8 +149,6 @@ export async function remoteFileUpload({
     contentType = result.contentType
   }
 
-  throw new Error('Cannot upload ' + fileUrl)
-
   if (!file) {
     throw new Error(
       'Could not handle file ' + JSON.stringify({ fileUrl, fileName })
