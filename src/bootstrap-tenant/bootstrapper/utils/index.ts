@@ -112,8 +112,8 @@ type fileUploadQueueItem = {
   url: string
   status: 'working' | 'done' | 'not-started'
   failCount?: number
-  resolve: (result: RemoteFileUploadResult | null) => void
-  reject: (r: any) => void
+  resolve?: (result: RemoteFileUploadResult | null) => void
+  reject?: (r: any) => void
 }
 
 export class FileUploadManager {
@@ -144,29 +144,32 @@ export class FileUploadManager {
     }
 
     const removeWorker = (item: fileUploadQueueItem) => {
-      const index = this.workerQueue.findIndex((q) => q === item)
-      this.workerQueue.splice(index, 1)
+      item.status = 'done'
+
+      // Remove unused fields to reduce memory footprint
+      item.resolve = undefined
+      item.reject = undefined
     }
 
     item.status = 'working'
-
-    // Allow for 5 fails
-    const isLastAttempt = item.failCount === 5
 
     try {
       const result = await remoteFileUpload({
         fileUrl: item.url,
         context: this.context,
       })
-      item.resolve(result)
+      item.resolve?.(result)
       removeWorker(item)
     } catch (e: any) {
       if (!item.failCount) {
         item.failCount = 1
       }
 
+      // Allow for 5 fails
+      const isLastAttempt = item.failCount === 5
+
       if (isLastAttempt) {
-        item.reject(e)
+        item.reject?.(e)
         removeWorker(item)
         this.context.emitError(e.message || JSON.stringify(e, null, 1))
       } else {

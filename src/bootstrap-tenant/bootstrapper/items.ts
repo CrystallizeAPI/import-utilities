@@ -1009,10 +1009,10 @@ export async function setItems({
 
   // Pull the status every second
   const getFileuploaderStatusInterval = setInterval(() => {
-    const doneUploads = context.fileUploader.workerQueue.filter(
+    const endedUploads = context.fileUploader.workerQueue.filter(
       (u) => u.status !== 'not-started'
     )
-    const progress = doneUploads.length / allMediaUrls.length
+    const progress = endedUploads.length / allMediaUrls.length
     onUpdate({
       message: 'media-upload-progress',
       progress,
