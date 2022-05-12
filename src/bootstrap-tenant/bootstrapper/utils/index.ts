@@ -165,13 +165,14 @@ export class FileUploadManager {
         item.failCount = 1
       }
 
-      // Allow for 5 fails
-      const isLastAttempt = item.failCount === 5
+      // Allow for 3 fails
+      const isLastAttempt = item.failCount === 3
 
       if (isLastAttempt) {
-        item.reject?.(e)
+        const msg = e.message || JSON.stringify(e, null, 1)
+        item.reject?.(msg)
         removeWorker(item)
-        this.context.emitError(e.message || JSON.stringify(e, null, 1))
+        // this.context.emitError(msg)
       } else {
         item.failCount++
         item.status = 'not-started'
@@ -185,6 +186,8 @@ export class FileUploadManager {
       return existing.result
     }
     const result = this.scheduleUpload(url)
+
+    result.catch((e) => {})
 
     this.uploads.push({
       url,

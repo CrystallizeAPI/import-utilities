@@ -249,7 +249,7 @@ async function createImagesInput(
         onUpdate({
           warning: {
             code: 'UPLOAD_FAILED',
-            message: `Could not upload "${image.src}"`,
+            message: `Could not upload image "${JSON.stringify(image)}"`,
           },
         })
       }
@@ -298,7 +298,7 @@ async function createVideosInput(
         onUpdate({
           warning: {
             code: 'UPLOAD_FAILED',
-            message: `Could not upload "${key}"`,
+            message: `Could not upload video "${JSON.stringify(video)}"`,
           },
         })
       }
@@ -350,7 +350,7 @@ async function createFilesInput(
         onUpdate({
           warning: {
             code: 'UPLOAD_FAILED',
-            message: `Could not upload "${key}"`,
+            message: `Could not upload file "${JSON.stringify(file)}"`,
           },
         })
       }
