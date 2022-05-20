@@ -167,6 +167,7 @@ export class Bootstrapper extends EventEmitter {
   getStatus = () => this.status
 
   setAccessToken = (ACCESS_TOKEN_ID: string, ACCESS_TOKEN_SECRET: string) => {
+    // PIM
     this.PIMAPIManager = createAPICaller({
       uri: `https://${
         process.env.CRYSTALLIZE_ENV === 'dev'
@@ -182,6 +183,21 @@ export class Bootstrapper extends EventEmitter {
     this.PIMAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET
 
     this.context.callPIM = this.PIMAPIManager.push
+
+    // Orders
+    this.ordersAPIManager = createAPICaller({
+      uri: `https://${
+        process.env.CRYSTALLIZE_ENV === 'dev'
+          ? 'pim-dev.crystallize.digital'
+          : 'pim.crystallize.com'
+      }/orders`,
+      errorNotifier: ({ error }) => {
+        this.emit(EVENT_NAMES.ERROR, { error })
+      },
+    })
+    this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = ACCESS_TOKEN_ID;
+    this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET;
+    this.context.callOrders = this.ordersAPIManager.push
   }
 
   setSpec(spec: JsonSpec) {
@@ -256,22 +272,6 @@ export class Bootstrapper extends EventEmitter {
       this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
         tenant.staticAuthToken
       this.context.callCatalogue = this.catalogueAPIManager.push
-
-      // Orders
-      this.ordersAPIManager = createAPICaller({
-        uri: `${baseUrl}/orders`,
-        errorNotifier: ({ error }) => {
-          this.emit(EVENT_NAMES.ERROR, { error })
-        },
-        logLevel: this.config.logLevel,
-      })
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID =
-        process.env.CRYSTALLIZE_ACCESS_TOKEN_ID || ''
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET =
-        process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET || ''
-      this.ordersAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
-        tenant.staticAuthToken
-      this.context.callOrders = this.ordersAPIManager.push
 
       // Set log level late so that we'll catch late changes to the config
       if (this.PIMAPIManager && this.config.logLevel) {
