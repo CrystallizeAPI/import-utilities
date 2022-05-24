@@ -169,7 +169,51 @@ function getComponentType(type: string): EnumType {
   return (componentTypes as Record<string, EnumType>)[type]
 }
 
-function buildComponentConfigInput(component: Component) {
+function buildComponentConfigInput(
+  component: Component,
+  existingShapes: Shape[],
+  isDeferred: boolean
+) {
+  if (component.type === 'itemRelations') {
+    if (!component.config?.acceptedShapeIdentifiers?.length) {
+      return {
+        config: {
+          itemRelations: component.config,
+        },
+      }
+    }
+
+    // API throws an error if related shape identifier does not exist.
+    // We need to defer an update for this shape after the initial shape creation is complete.
+    let deferUpdate = false
+    component.config.acceptedShapeIdentifiers.map((identifier: string) => {
+      if (
+        !existingShapes.find((shape: Shape) => shape.identifier === identifier)
+      ) {
+        if (isDeferred) {
+          // If we're updating the shape then we will throw an error, as the
+          // related shapes should already exist.
+          throw new InvalidItemRelationShapeIdentifier(identifier)
+        }
+
+        deferUpdate = true
+      }
+    })
+
+    return {
+      config: {
+        itemRelations: component.config
+          ? {
+              ...component.config,
+              acceptedShapeIdentifiers: !deferUpdate
+                ? component.config.acceptedShapeIdentifiers
+                : undefined,
+            }
+          : undefined,
+      },
+    }
+  }
+
   switch (component.type) {
     case 'propertiesTable': {
       // When updating an existing shape, we get "sections"
@@ -205,16 +249,6 @@ function buildComponentConfigInput(component: Component) {
         },
       }
     }
-    case 'itemRelations': {
-      if (component.config) {
-        return {
-          config: {
-            itemRelations: component.config,
-          },
-        }
-      }
-      return {}
-    }
     case 'componentChoice': {
       return {
         config: {
@@ -223,7 +257,7 @@ function buildComponentConfigInput(component: Component) {
             choices: component.config?.choices?.map((c: any) => ({
               ...c,
               type: getComponentType(c.type),
-              ...buildComponentConfigInput(c),
+              ...buildComponentConfigInput(c, existingShapes, isDeferred),
             })),
           },
         },
@@ -237,7 +271,7 @@ function buildComponentConfigInput(component: Component) {
             components: component.config?.components?.map((c: any) => ({
               ...c,
               type: getComponentType(c.type),
-              ...buildComponentConfigInput(c),
+              ...buildComponentConfigInput(c, existingShapes, isDeferred),
             })),
           },
         },
@@ -266,7 +300,7 @@ async function createOrUpdateShape(
           name: c.name,
           type: getComponentType(c.type),
           ...(c.description && { description: c.description }),
-          ...buildComponentConfigInput(c),
+          ...buildComponentConfigInput(c, existingShapes, !!existingShape),
         }
       }) || []
 
@@ -278,7 +312,7 @@ async function createOrUpdateShape(
             name: c.name,
             type: getComponentType(c.type),
             ...(c.description && { description: c.description }),
-            ...buildComponentConfigInput(c),
+            ...buildComponentConfigInput(c, existingShapes, !!existingShape),
           })
         }
       })
