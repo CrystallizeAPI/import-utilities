@@ -1,13 +1,15 @@
 import gql from 'graphql-tag'
-import { Shape, shapeTypes, componentTypes, Component } from '../../types'
+import { Shape, Component } from '../../../types'
 import {
   buildCreateShapeMutation,
   buildUpdateShapeMutation,
-} from '../../graphql'
+} from '../../../graphql'
 
-import { JsonSpec } from '../json-spec'
-import { AreaUpdate, BootstrapperContext, validShapeIdentifier } from './utils'
-import { EnumType } from 'json-to-graphql-query'
+import { JSONShape, JsonSpec } from '../../json-spec'
+import { AreaUpdate, BootstrapperContext, validShapeIdentifier } from '../utils'
+import { getComponentType } from './get-component-type'
+import { buildComponentConfigInput } from './build-component-config-input'
+import { getShapeType } from './get-shape-type'
 
 export async function getExistingShapesForSpec(
   context: BootstrapperContext,
@@ -162,132 +164,14 @@ async function getExistingShapes(
   return r.data?.shape?.getMany || []
 }
 
-function getShapeType(type: string): EnumType {
-  return (shapeTypes as Record<string, EnumType>)[type]
-}
-function getComponentType(type: string): EnumType {
-  return (componentTypes as Record<string, EnumType>)[type]
-}
-
-function buildComponentConfigInput(
-  component: Component,
-  existingShapes: Shape[],
-  isDeferred: boolean
-) {
-  if (component.type === 'itemRelations') {
-    if (!component.config?.acceptedShapeIdentifiers?.length) {
-      return {
-        config: {
-          itemRelations: component.config,
-        },
-      }
-    }
-
-    // API throws an error if related shape identifier does not exist.
-    // We need to defer an update for this shape after the initial shape creation is complete.
-    let deferUpdate = false
-    component.config.acceptedShapeIdentifiers.map((identifier: string) => {
-      if (
-        !existingShapes.find((shape: Shape) => shape.identifier === identifier)
-      ) {
-        if (isDeferred) {
-          // If we're updating the shape then we will throw an error, as the
-          // related shapes should already exist.
-          throw new InvalidItemRelationShapeIdentifier(identifier)
-        }
-
-        deferUpdate = true
-      }
-    })
-
-    return {
-      config: {
-        itemRelations: component.config
-          ? {
-              ...component.config,
-              acceptedShapeIdentifiers: !deferUpdate
-                ? component.config.acceptedShapeIdentifiers
-                : undefined,
-            }
-          : undefined,
-      },
-    }
-  }
-
-  switch (component.type) {
-    case 'propertiesTable': {
-      // When updating an existing shape, we get "sections"
-      const conf = component.config?.sections || component.config
-
-      return {
-        config: {
-          propertiesTable: { sections: conf || [] },
-        },
-      }
-    }
-    case 'numeric': {
-      return {
-        config: {
-          numeric: component.config,
-        },
-      }
-    }
-    case 'files': {
-      if (component.config) {
-        return {
-          config: {
-            files: component.config,
-          },
-        }
-      }
-      return {}
-    }
-    case 'selection': {
-      return {
-        config: {
-          selection: component.config,
-        },
-      }
-    }
-    case 'componentChoice': {
-      return {
-        config: {
-          componentChoice: {
-            ...component.config,
-            choices: component.config?.choices?.map((c: any) => ({
-              ...c,
-              type: getComponentType(c.type),
-              ...buildComponentConfigInput(c, existingShapes, isDeferred),
-            })),
-          },
-        },
-      }
-    }
-    case 'contentChunk': {
-      return {
-        config: {
-          contentChunk: {
-            ...component.config,
-            components: component.config?.components?.map((c: any) => ({
-              ...c,
-              type: getComponentType(c.type),
-              ...buildComponentConfigInput(c, existingShapes, isDeferred),
-            })),
-          },
-        },
-      }
-    }
-  }
-
-  return {}
-}
-
 async function createOrUpdateShape(
   shape: Shape,
   existingShapes: Shape[],
   onUpdate: (t: AreaUpdate) => {},
-  context: BootstrapperContext
+  context: BootstrapperContext,
+  isDeferred: boolean = false
 ): Promise<string> {
+  let status
   try {
     const tenantId = context.tenantId
     const existingShape = existingShapes.find(
@@ -300,7 +184,7 @@ async function createOrUpdateShape(
           name: c.name,
           type: getComponentType(c.type),
           ...(c.description && { description: c.description }),
-          ...buildComponentConfigInput(c, existingShapes, !!existingShape),
+          ...buildComponentConfigInput(c, existingShapes, isDeferred),
         }
       }) || []
 
@@ -312,7 +196,7 @@ async function createOrUpdateShape(
             name: c.name,
             type: getComponentType(c.type),
             ...(c.description && { description: c.description }),
-            ...buildComponentConfigInput(c, existingShapes, !!existingShape),
+            ...buildComponentConfigInput(c, existingShapes, isDeferred),
           })
         }
       })
@@ -337,7 +221,9 @@ async function createOrUpdateShape(
       })
 
       if (r?.data?.shape?.update) {
-        return 'updated'
+        status = 'updated'
+      } else {
+        return 'error'
       }
     } else {
       const r = await context.callPIM({
@@ -350,14 +236,21 @@ async function createOrUpdateShape(
         }),
       })
       if (r?.data?.shape?.create) {
-        return 'created'
+        status = 'created'
+      } else {
+        return 'error'
       }
+    }
+
+    if (components.find((config) => config?.deferUpdate)) {
+      status = 'deferred'
     }
   } catch (e) {
     console.log(e)
+    return 'error'
   }
 
-  return 'error'
+  return status
 }
 
 export interface Props {
@@ -373,6 +266,7 @@ export async function setShapes({
 }: Props): Promise<Shape[]> {
   // Get all the shapes from the tenant
   const existingShapes = await getExistingShapes(context)
+  const deferredShapes: JSONShape[] = []
 
   if (!spec?.shapes) {
     return existingShapes
@@ -386,6 +280,27 @@ export async function setShapes({
       existingShapes,
       onUpdate,
       context
+    )
+    if (result === 'deferred') {
+      deferredShapes.push(shape)
+    } else {
+      finished++
+    }
+
+    onUpdate({
+      progress: finished / spec.shapes.length,
+      message: `${shape.name} (${shape.identifier}): ${result}`,
+    })
+  }
+
+  for (let i = 0; i < deferredShapes.length; i++) {
+    const shape = deferredShapes[i]
+    const result = await createOrUpdateShape(
+      shape,
+      existingShapes,
+      onUpdate,
+      context,
+      true
     )
     finished++
     onUpdate({
