@@ -13,10 +13,13 @@ const buildItemRelationsComponentConfigInput = (
   existingShapes: Shape[],
   isDeferred: boolean
 ): ComponentConfigInputSettings => {
-  if (!component.config?.itemRelations?.acceptedShapeIdentifiers?.length) {
-    const conf = {
-      config: component.config,
-    }
+  const conf: ComponentConfigInputSettings = {
+    config: {
+      itemRelations: component.config,
+    },
+  }
+
+  if (!component.config?.acceptedShapeIdentifiers?.length) {
     delete component.config?.itemRelations?.acceptedShapeIdentifiers
     return conf
   }
@@ -24,28 +27,23 @@ const buildItemRelationsComponentConfigInput = (
   // API throws an error if related shape identifier does not exist.
   // We need to defer an update for this shape after the initial shape creation is complete.
   let deferUpdate = false
-  component.config.itemRelations.acceptedShapeIdentifiers.map(
-    (identifier: string) => {
-      if (
-        !existingShapes.find((shape: Shape) => shape.identifier === identifier)
-      ) {
-        if (isDeferred) {
-          // If we're updating the shape then we will throw an error, as the
-          // related shapes should already exist. This also prevents an
-          // endless loop of deferred updates when spec is invalid.
-          throw new InvalidItemRelationShapeIdentifier(identifier)
-        }
-
-        deferUpdate = true
+  component.config.acceptedShapeIdentifiers.map((identifier: string) => {
+    if (
+      !existingShapes.find((shape: Shape) => shape.identifier === identifier)
+    ) {
+      if (isDeferred) {
+        // If we're updating the shape then we will throw an error, as the
+        // related shapes should already exist. This also prevents an
+        // endless loop of deferred updates when spec is invalid.
+        throw new InvalidItemRelationShapeIdentifier(identifier)
       }
-    }
-  )
 
-  const conf: ComponentConfigInputSettings = {
-    config: component.config,
-    deferUpdate,
-  }
+      deferUpdate = true
+    }
+  })
+
   if (deferUpdate) {
+    conf.deferUpdate = true
     delete conf.config?.itemRelations?.acceptedShapeIdentifiers
   }
   return conf

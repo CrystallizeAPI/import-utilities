@@ -1,5 +1,5 @@
 import gql from 'graphql-tag'
-import { Shape, Component } from '../../../types'
+import { Shape, Component, ComponentInput } from '../../../types'
 import {
   buildCreateShapeMutation,
   buildUpdateShapeMutation,
@@ -7,9 +7,8 @@ import {
 
 import { JSONShape, JsonSpec } from '../../json-spec'
 import { AreaUpdate, BootstrapperContext, validShapeIdentifier } from '../utils'
-import { getComponentType } from './get-component-type'
-import { buildComponentConfigInput } from './build-component-config-input'
 import { getShapeType } from './get-shape-type'
+import { buildcomponentInput } from './build-component-input'
 
 export async function getExistingShapesForSpec(
   context: BootstrapperContext,
@@ -171,6 +170,7 @@ async function createOrUpdateShape(
   context: BootstrapperContext,
   isDeferred: boolean = false
 ): Promise<string> {
+  let shouldDefer
   let status
   try {
     const tenantId = context.tenantId
@@ -179,25 +179,29 @@ async function createOrUpdateShape(
     )
     const components =
       shape.components?.map((c) => {
-        return {
-          id: c.id,
-          name: c.name,
-          type: getComponentType(c.type),
-          ...(c.description && { description: c.description }),
-          ...buildComponentConfigInput(c, existingShapes, isDeferred),
+        const { input, deferUpdate } = buildcomponentInput(
+          c,
+          existingShapes,
+          isDeferred
+        )
+        if (deferUpdate) {
+          shouldDefer = true
         }
+        return input
       }) || []
 
     if (existingShape?.components) {
       existingShape.components.forEach((c) => {
         if (!components.some((e) => e.id === c.id)) {
-          components.push({
-            id: c.id,
-            name: c.name,
-            type: getComponentType(c.type),
-            ...(c.description && { description: c.description }),
-            ...buildComponentConfigInput(c, existingShapes, isDeferred),
-          })
+          const { input, deferUpdate } = buildcomponentInput(
+            c,
+            existingShapes,
+            isDeferred
+          )
+          if (deferUpdate) {
+            shouldDefer = true
+          }
+          components.push(input)
         }
       })
 
@@ -220,11 +224,7 @@ async function createOrUpdateShape(
         }),
       })
 
-      if (r?.data?.shape?.update) {
-        status = 'updated'
-      } else {
-        return 'error'
-      }
+      status = r?.data?.shape?.update ? 'updated' : 'error'
     } else {
       const r = await context.callPIM({
         query: buildCreateShapeMutation({
@@ -235,19 +235,15 @@ async function createOrUpdateShape(
           components,
         }),
       })
-      if (r?.data?.shape?.create) {
-        status = 'created'
-      } else {
-        return 'error'
-      }
+      status = r?.data?.shape?.create ? 'created' : 'error'
     }
+  } catch (err) {
+    console.error(err)
+    status = 'error'
+  }
 
-    if (components.find((config) => config?.deferUpdate)) {
-      status = 'deferred'
-    }
-  } catch (e) {
-    console.log(e)
-    return 'error'
+  if (shouldDefer) {
+    status = 'deferred'
   }
 
   return status

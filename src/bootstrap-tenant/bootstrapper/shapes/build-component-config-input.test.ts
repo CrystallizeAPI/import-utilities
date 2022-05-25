@@ -24,10 +24,8 @@ const testCases: testCase[] = [
       component: {
         type: 'itemRelations',
         config: {
-          itemRelations: {
-            min: 1,
-            max: 3,
-          },
+          min: 1,
+          max: 3,
         },
       } as Component,
       existingShapes: [],
@@ -47,9 +45,7 @@ const testCases: testCase[] = [
       component: {
         type: 'itemRelations',
         config: {
-          itemRelations: {
-            acceptedShapeIdentifiers: ['foo'],
-          },
+          acceptedShapeIdentifiers: ['foo'],
         },
       } as Component,
       existingShapes: [{ identifier: 'foo' } as Shape],
@@ -60,7 +56,6 @@ const testCases: testCase[] = [
           acceptedShapeIdentifiers: ['foo'],
         },
       },
-      deferUpdate: false,
     },
   },
   {
@@ -69,9 +64,7 @@ const testCases: testCase[] = [
       component: {
         type: 'itemRelations',
         config: {
-          itemRelations: {
-            acceptedShapeIdentifiers: ['foo', 'bar'],
-          },
+          acceptedShapeIdentifiers: ['foo', 'bar'],
         },
       } as Component,
       existingShapes: [{ identifier: 'bar' } as Shape],
@@ -90,9 +83,7 @@ const testCases: testCase[] = [
       component: {
         type: 'itemRelations',
         config: {
-          itemRelations: {
-            acceptedShapeIdentifiers: ['foo', 'bar'],
-          },
+          acceptedShapeIdentifiers: ['foo', 'bar'],
         },
       } as Component,
       existingShapes: [{ identifier: 'bar' } as Shape],
@@ -107,9 +98,7 @@ const testCases: testCase[] = [
       component: {
         type: 'itemRelations',
         config: {
-          itemRelations: {
-            acceptedShapeIdentifiers: ['foo', 'bar'],
-          },
+          acceptedShapeIdentifiers: ['foo', 'bar'],
         },
       } as Component,
       existingShapes: [
@@ -124,7 +113,6 @@ const testCases: testCase[] = [
           acceptedShapeIdentifiers: ['foo', 'bar'],
         },
       },
-      deferUpdate: false,
     },
   },
 ]
