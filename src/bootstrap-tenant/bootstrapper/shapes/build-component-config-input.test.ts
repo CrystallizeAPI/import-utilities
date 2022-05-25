@@ -10,14 +10,23 @@ interface testCase {
   name: string
   input: {
     component: Component
-    existingShapes: Shape[]
+    existingShapes?: Shape[]
     isDeferred?: boolean
   }
-  expected?: ComponentConfigInputSettings
+  expected?: ComponentConfigInputSettings | null
   error?: Error
 }
 
 const testCases: testCase[] = [
+  {
+    name: 'has no config when config is not provided',
+    input: {
+      component: {
+        type: 'itemRelations',
+      } as Component,
+    },
+    expected: null,
+  },
   {
     name: 'sets min and max config',
     input: {
@@ -122,7 +131,7 @@ testCases.forEach((tc) =>
     try {
       const actual = buildComponentConfigInput(
         tc.input.component,
-        tc.input.existingShapes,
+        tc.input.existingShapes || [],
         tc.input.isDeferred || false
       )
       if (tc.error) {

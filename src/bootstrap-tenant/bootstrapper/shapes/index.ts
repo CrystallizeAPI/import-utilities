@@ -10,6 +10,13 @@ import { AreaUpdate, BootstrapperContext, validShapeIdentifier } from '../utils'
 import { getShapeType } from './get-shape-type'
 import { buildcomponentInput } from './build-component-input'
 
+enum Status {
+  created = 'created',
+  updated = 'updated',
+  error = 'error',
+  deferred = 'deferred',
+}
+
 export async function getExistingShapesForSpec(
   context: BootstrapperContext,
   onUpdate: (t: AreaUpdate) => any
@@ -224,7 +231,7 @@ async function createOrUpdateShape(
         }),
       })
 
-      status = r?.data?.shape?.update ? 'updated' : 'error'
+      status = r?.data?.shape?.update ? Status.updated : Status.error
     } else {
       const r = await context.callPIM({
         query: buildCreateShapeMutation({
@@ -235,15 +242,15 @@ async function createOrUpdateShape(
           components,
         }),
       })
-      status = r?.data?.shape?.create ? 'created' : 'error'
+      status = r?.data?.shape?.create ? Status.created : Status.error
     }
   } catch (err) {
     console.error(err)
-    status = 'error'
+    return Status.error
   }
 
-  if (shouldDefer) {
-    status = 'deferred'
+  if (shouldDefer && status !== Status.error) {
+    status = Status.deferred
   }
 
   return status
@@ -290,6 +297,7 @@ export async function setShapes({
   }
 
   for (let i = 0; i < deferredShapes.length; i++) {
+    const existingShapes = await getExistingShapes(context)
     const shape = deferredShapes[i]
     const result = await createOrUpdateShape(
       shape,

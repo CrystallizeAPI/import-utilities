@@ -12,22 +12,18 @@ export const buildcomponentInput = (
   existingShapes: Shape[],
   isDeferred: boolean
 ): BuildComponentInputResponse => {
-  const { config, deferUpdate } = buildComponentConfigInput(
-    component,
-    existingShapes,
-    isDeferred
-  )
+  const conf = buildComponentConfigInput(component, existingShapes, isDeferred)
   const input: ComponentInput = {
     id: component.id,
     name: component.name,
     type: getComponentType(component.type),
     ...(component.description && { description: component.description }),
   }
-  if (config) {
-    input.config = config
+  if (conf?.config) {
+    input.config = conf.config
   }
   return {
     input,
-    deferUpdate,
+    deferUpdate: conf?.deferUpdate,
   }
 }
