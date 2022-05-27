@@ -185,9 +185,9 @@ async function createOrUpdateShape(
       (s) => s.identifier === shape.identifier
     )
     const components =
-      shape.components?.map((c) => {
+      shape.components?.map((component) => {
         const { input, deferUpdate } = buildcomponentInput(
-          c,
+          component,
           existingShapes,
           isDeferred
         )
@@ -198,10 +198,14 @@ async function createOrUpdateShape(
       }) || []
 
     if (existingShape?.components) {
-      existingShape.components.forEach((c) => {
-        if (!components.some((e) => e.id === c.id)) {
+      existingShape.components.forEach((component) => {
+        if (
+          !components.some(
+            (existingComponent) => existingComponent.id === component.id
+          )
+        ) {
           const { input, deferUpdate } = buildcomponentInput(
-            c,
+            component,
             existingShapes,
             isDeferred
           )
