@@ -186,7 +186,9 @@ export class Bootstrapper extends EventEmitter {
 
     // Orders
     if (!this.tenantIdentifier) {
-      console.warn('⚠️ Tenant identifier not set. Could not create API manager for orders')
+      console.warn(
+        '⚠️ Tenant identifier not set. Could not create API manager for orders'
+      )
     } else {
       this.ordersAPIManager = createAPICaller({
         uri: `https://${
@@ -198,8 +200,8 @@ export class Bootstrapper extends EventEmitter {
           this.emit(EVENT_NAMES.ERROR, { error })
         },
       })
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = ACCESS_TOKEN_ID;
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET;
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = ACCESS_TOKEN_ID
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET
       this.context.callOrders = this.ordersAPIManager.push
     }
   }
