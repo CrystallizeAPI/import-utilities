@@ -100,6 +100,7 @@ export class Bootstrapper extends EventEmitter {
 
   PIMAPIManager: ApiManager | null = null
   catalogueAPIManager: ApiManager | null = null
+  searchAPIManager: ApiManager | null = null
   ordersAPIManager: ApiManager | null = null
   tenantIdentifier = ''
 
@@ -136,6 +137,7 @@ export class Bootstrapper extends EventEmitter {
       this.context.fileUploader.uploadFromUrl(url),
     callPIM: () => Promise.resolve({ data: {} }),
     callCatalogue: () => Promise.resolve({ data: {} }),
+    callSearch: () => Promise.resolve({ data: {} }),
     callOrders: () => Promise.resolve({ data: {} }),
     emitError: (error) => {
       this.emit(EVENT_NAMES.ERROR, { error })
@@ -278,6 +280,18 @@ export class Bootstrapper extends EventEmitter {
       this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
         tenant.staticAuthToken
       this.context.callCatalogue = this.catalogueAPIManager.push
+
+      // Search
+      this.searchAPIManager = createAPICaller({
+        uri: `${baseUrl}/search`,
+        errorNotifier: ({ error }) => {
+          this.emit(EVENT_NAMES.ERROR, { error })
+        },
+        logLevel: this.config.logLevel,
+      })
+      this.searchAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
+        tenant.staticAuthToken
+      this.context.callSearch = this.searchAPIManager.push
 
       // Set log level late so that we'll catch late changes to the config
       if (this.PIMAPIManager && this.config.logLevel) {
