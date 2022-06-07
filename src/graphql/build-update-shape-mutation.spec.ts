@@ -1,96 +1,209 @@
 import test from 'ava'
+import { DocumentNode } from 'graphql'
+import gql from 'graphql-tag'
 
 import { componentTypes } from '../types/shapes/components/component.input'
 import { ShapeUpdateInput } from '../types/shapes/shape.input'
-import { buildUpdateShapeMutation } from './build-update-shape-mutation'
+import {
+  buildUpdateShapeMutation,
+  buildUpdateShapeQueryAndVariables,
+} from './build-update-shape-mutation'
 
-test('update mutation for shape without components', (t) => {
-  const shape: ShapeUpdateInput = {
-    id: 'some-id',
-    identifier: 'my-shape',
-    tenantId: '1234',
+interface testCase {
+  name: string
+  fn: (input: ShapeUpdateInput) => any
+  input: ShapeUpdateInput
+  expected: string | { query: DocumentNode; variables?: Record<string, any> }
+}
+
+const testCases: testCase[] = [
+  {
+    name: 'buildUpdateShapeMutation for shape without components',
+    fn: buildUpdateShapeMutation,
     input: {
-      name: 'my shape (updated)',
+      id: 'some-id',
+      identifier: 'my-shape',
+      tenantId: '1234',
+      input: {
+        name: 'my shape (updated)',
+      },
     },
-  }
-
-  const got = buildUpdateShapeMutation(shape).replace(/ /g, '')
-
-  const want: string = `
-    mutation {
-      shape {
-        update (
-          id: "some-id",
-          identifier: "my-shape",
-          tenantId: "1234",
-          input: {
-            name: "my shape (updated)"
+    expected: `
+      mutation {
+        shape {
+          update (
+            id: "some-id",
+            identifier: "my-shape",
+            tenantId: "1234",
+            input: {
+              name: "my shape (updated)"
+            }
+          ) {
+            identifier
+            name
           }
-        ) {
-          identifier
-          name
         }
       }
-    }
-  `
-    .replace(/\n/g, '')
-    .replace(/ /g, '')
-
-  t.is(got, want, 'mutation string should match')
-})
-
-test('update mutation for shape with basic components', (t) => {
-  const input: ShapeUpdateInput = {
-    id: 'some-id',
-    identifier: 'my-shape',
-    tenantId: '1234',
+    `
+      .replace(/\n/g, '')
+      .replace(/ /g, ''),
+  },
+  {
+    name: 'buildUpdateShapeMutation for shape with basic components',
+    fn: buildUpdateShapeMutation,
     input: {
-      components: [
-        {
-          id: 'images',
-          name: 'Images',
-          type: componentTypes.images,
-        },
-        {
-          id: 'description',
-          name: 'Description',
-          type: componentTypes.richText,
-        },
-      ],
+      id: 'some-id',
+      identifier: 'my-shape',
+      tenantId: '1234',
+      input: {
+        components: [
+          {
+            id: 'images',
+            name: 'Images',
+            type: componentTypes.images,
+          },
+          {
+            id: 'description',
+            name: 'Description',
+            type: componentTypes.richText,
+          },
+        ],
+      },
     },
-  }
-
-  const got = buildUpdateShapeMutation(input).replace(/ /g, '')
-  const want: string = `
-    mutation {
-      shape {
-        update (
-          id: "some-id",
-          identifier: "my-shape",
-          tenantId: "1234",
+    expected: `
+      mutation {
+        shape {
+          update (
+            id: "some-id",
+            identifier: "my-shape",
+            tenantId: "1234",
+            input: {
+              components: [
+                {
+                  id: "images",
+                  name: "Images",
+                  type: images
+                },
+                {
+                  id: "description",
+                  name: "Description",
+                  type: richText
+                }
+              ]
+            }
+          ) {
+            identifier
+            name
+          }
+        }
+      }
+    `
+      .replace(/\n/g, '')
+      .replace(/ /g, ''),
+  },
+  {
+    name: 'buildUpdateShapeQueryAndVariables for shape without components',
+    fn: buildUpdateShapeQueryAndVariables,
+    input: {
+      id: 'some-id',
+      identifier: 'my-shape',
+      tenantId: '1234',
+      input: {
+        name: 'my shape (updated)',
+      },
+    },
+    expected: {
+      query: gql`
+        mutation UPDATE_SHAPE($language: String!, $input: UpdateShapeInput!) {
+          shape {
+            update(input: $input) {
+              identifier
+              name
+            }
+          }
+        }
+      `,
+      variables: {
+        input: {
+          id: 'some-id',
+          identifier: 'my-shape',
+          tenantId: '1234',
+          input: {
+            name: 'my shape (updated)',
+          },
+        },
+      },
+    },
+  },
+  {
+    name: 'buildUpdateShapeQueryAndVariables for shape with basic components',
+    fn: buildUpdateShapeQueryAndVariables,
+    input: {
+      id: 'some-id',
+      identifier: 'my-shape',
+      tenantId: '1234',
+      input: {
+        components: [
+          {
+            id: 'images',
+            name: 'Images',
+            type: componentTypes.images,
+          },
+          {
+            id: 'description',
+            name: 'Description',
+            type: componentTypes.richText,
+          },
+        ],
+      },
+    },
+    expected: {
+      query: gql`
+        mutation UPDATE_SHAPE($language: String!, $input: UpdateShapeInput!) {
+          shape {
+            update(input: $input) {
+              identifier
+              name
+            }
+          }
+        }
+      `,
+      variables: {
+        input: {
+          id: 'some-id',
+          identifier: 'my-shape',
+          tenantId: '1234',
           input: {
             components: [
               {
-                id: "images",
-                name: "Images",
-                type: images
+                id: 'images',
+                name: 'Images',
+                type: componentTypes.images,
               },
               {
-                id: "description",
-                name: "Description",
-                type: richText
-              }
-            ]
-          }
-        ) {
-          identifier
-          name
-        }
-      }
-    }
-  `
-    .replace(/\n/g, '')
-    .replace(/ /g, '')
+                id: 'description',
+                name: 'Description',
+                type: componentTypes.richText,
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+]
 
-  t.is(got, want, 'mutation string should match')
-})
+testCases.forEach((tc) =>
+  test(tc.name, (t) => {
+    const actual = tc.fn(tc.input)
+    if (typeof actual === 'string') {
+      t.is(
+        actual.replace(/ /g, ''),
+        tc.expected,
+        'mutation string should match'
+      )
+    } else {
+      t.deepEqual(actual, tc.expected, 'query and variables should match')
+    }
+  })
+)
