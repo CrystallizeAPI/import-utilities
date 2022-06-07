@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 import { Shape, Component, ComponentInput } from '../../../types'
 import {
-  buildCreateShapeMutation,
-  buildUpdateShapeMutation,
+  buildCreateShapeQueryAndVariables,
+  buildUpdateShapeQueryAndVariables,
 } from '../../../graphql'
 
 import { JSONShape, JsonSpec } from '../../json-spec'
@@ -223,8 +223,8 @@ async function createOrUpdateShape(
         )
       }
 
-      const r = await context.callPIM({
-        query: buildUpdateShapeMutation({
+      const r = await context.callPIM(
+        buildUpdateShapeQueryAndVariables({
           id: identifier,
           identifier,
           tenantId,
@@ -232,20 +232,20 @@ async function createOrUpdateShape(
             components,
             ...(shape.name && { name: shape.name }),
           },
-        }),
-      })
+        })
+      )
 
       status = r?.data?.shape?.update ? Status.updated : Status.error
     } else {
-      const r = await context.callPIM({
-        query: buildCreateShapeMutation({
+      const r = await context.callPIM(
+        buildCreateShapeQueryAndVariables({
           identifier: shape.identifier,
           type: getShapeType(shape.type),
           name: shape.name,
           tenantId: context.tenantId,
           components,
-        }),
-      })
+        })
+      )
       status = r?.data?.shape?.create ? Status.created : Status.error
     }
   } catch (err) {
