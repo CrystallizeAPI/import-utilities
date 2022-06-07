@@ -1044,7 +1044,8 @@ export async function setItems({
 
   async function createOrUpdateItem(
     item: JSONItem,
-    parentId: string
+    parentId: string,
+    treePosition: number
   ): Promise<string | null> {
     // Create the object to store the component data in
     item._componentsData = {}
@@ -1103,6 +1104,7 @@ export async function setItems({
             }),
             tree: {
               parentId,
+              position: treePosition,
             },
             ...(item.topics && item._topicsData),
             components: item._componentsData?.[language],
@@ -1446,6 +1448,7 @@ export async function setItems({
         await context.callPIM({
           query: buildMoveItemMutation(itemId, {
             parentId,
+            position: treePosition,
           }),
         })
       }
@@ -1526,7 +1529,7 @@ export async function setItems({
     return itemId
   }
 
-  async function handleItem(item: JSONItem, parentId?: string) {
+  async function handleItem(item: JSONItem, index: number, parentId?: string) {
     if (!item) {
       return
     }
@@ -1557,7 +1560,11 @@ export async function setItems({
     // If the item exists in Crystallize already
     item._exists = Boolean(item.id)
 
-    item.id = (await createOrUpdateItem(item, parentId || rootItemId)) as string
+    item.id = (await createOrUpdateItem(
+      item,
+      parentId || rootItemId,
+      index + 1
+    )) as string
 
     finishedItems++
     onUpdate({
@@ -1584,7 +1591,7 @@ export async function setItems({
 
         if (itm.children) {
           await Promise.all(
-            itm.children.map((child) => handleItem(child, itm.id))
+            itm.children.map((child, index) => handleItem(child, index, itm.id))
           )
         }
       }
@@ -1815,30 +1822,22 @@ export async function setItems({
     }
   }
 
-  const chunks = chunkArray({
-    array: spec.items,
-    chunkSize: context.config.experimental?.parallelize ? 5 : 1,
-  })
-
-  for (let i = 0; i < chunks.length; i++) {
-    await Promise.all(
-      chunks[i].map(async (c) => {
-        try {
-          await handleItem(c, rootItemId)
-        } catch (e) {
-          console.log(e)
-          onUpdate({
-            warning: {
-              code: 'CANNOT_HANDLE_ITEM',
-              message: `Skipping "${getTranslation(
-                c.name,
-                context.defaultLanguage.code
-              )}"`,
-            },
-          })
-        }
+  for (let i = 0; i < spec.items.length; i++) {
+    const item = spec.items[i]
+    try {
+      await handleItem(item, i, rootItemId)
+    } catch (e) {
+      console.log(e)
+      onUpdate({
+        warning: {
+          code: 'CANNOT_HANDLE_ITEM',
+          message: `Skipping "${getTranslation(
+            item.name,
+            context.defaultLanguage.code
+          )}"`,
+        },
       })
-    )
+    }
   }
 
   /**
