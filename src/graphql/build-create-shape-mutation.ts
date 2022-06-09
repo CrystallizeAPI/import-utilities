@@ -28,7 +28,7 @@ export const buildCreateShapeQueryAndVariables = (
   variables: Record<string, any>
 } => {
   const query = gql`
-    mutation CREATE_SHAPE($language: String!, $input: CreateShapeInput!) {
+    mutation CREATE_SHAPE($input: CreateShapeInput!) {
       shape {
         create(input: $input) {
           identifier

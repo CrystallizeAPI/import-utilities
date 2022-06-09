@@ -216,7 +216,7 @@ const testCases: testCase[] = [
     },
     expected: {
       query: gql`
-        mutation CREATE_SHAPE($language: String!, $input: CreateShapeInput!) {
+        mutation CREATE_SHAPE($input: CreateShapeInput!) {
           shape {
             create(input: $input) {
               identifier
@@ -258,7 +258,7 @@ const testCases: testCase[] = [
     },
     expected: {
       query: gql`
-        mutation CREATE_SHAPE($language: String!, $input: CreateShapeInput!) {
+        mutation CREATE_SHAPE($input: CreateShapeInput!) {
           shape {
             create(input: $input) {
               identifier
@@ -339,7 +339,7 @@ const testCases: testCase[] = [
     },
     expected: {
       query: gql`
-        mutation CREATE_SHAPE($language: String!, $input: CreateShapeInput!) {
+        mutation CREATE_SHAPE($input: CreateShapeInput!) {
           shape {
             create(input: $input) {
               identifier

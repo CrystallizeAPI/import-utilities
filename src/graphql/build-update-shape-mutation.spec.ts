@@ -114,7 +114,7 @@ const testCases: testCase[] = [
     },
     expected: {
       query: gql`
-        mutation UPDATE_SHAPE($language: String!, $input: UpdateShapeInput!) {
+        mutation UPDATE_SHAPE($input: UpdateShapeInput!) {
           shape {
             update(input: $input) {
               identifier
@@ -159,7 +159,7 @@ const testCases: testCase[] = [
     },
     expected: {
       query: gql`
-        mutation UPDATE_SHAPE($language: String!, $input: UpdateShapeInput!) {
+        mutation UPDATE_SHAPE($input: UpdateShapeInput!) {
           shape {
             update(input: $input) {
               identifier
