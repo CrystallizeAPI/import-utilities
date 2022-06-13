@@ -66,7 +66,7 @@ export interface Config {
   logLevel?: LogLevel
   multilingual?: boolean
   experimental: {
-    parallelize?: boolean
+    parallelize?: boolean // Deprecated
   }
 }
 

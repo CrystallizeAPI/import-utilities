@@ -67,6 +67,10 @@ export const setOrders = async ({
   await Promise.all(
     spec.orders.map(async (order) => {
       const res = await createOrder(context, order)
+
+      // Store the created id
+      order.id = res.data?.orders?.create?.id
+
       onUpdate({
         progress: finished / orders.length,
         message: `order: ${res?.errors ? 'error' : 'added'}`,
