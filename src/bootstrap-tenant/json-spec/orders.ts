@@ -45,6 +45,7 @@ export interface JSONOrderItem {
 }
 
 export interface JSONOrder {
+  id?: string
   customer: JSONOrderCustomer
   cart: JSONOrderItem[]
   // payment?: JSONPayment
