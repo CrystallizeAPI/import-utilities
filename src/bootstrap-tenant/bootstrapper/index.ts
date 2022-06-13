@@ -31,7 +31,6 @@ import {
 import { getAllGrids } from './utils/get-all-grids'
 import { setGrids } from './grids'
 import { clearCache as clearTopicCache } from './utils/get-topic-id'
-import { clearCache as clearItemCache } from './utils/get-item-id'
 import { setStockLocations, getExistingStockLocations } from './stock-locations'
 import {
   getExistingSubscriptionPlans,
@@ -121,7 +120,13 @@ export class Bootstrapper extends EventEmitter {
      * A map keeping a reference of all of the items in
      * the current spec and their (possible) item id
      */
-    itemJSONCataloguePathToIDMap: new Map(),
+    itemCataloguePathToIDMap: new Map(),
+
+    /**
+     * A map keeping a reference of all of the items in
+     * the current spec and their (possible) item id
+     */
+    itemExternalReferenceToIDMap: new Map(),
 
     /**
      * A map keeping a reference of all of the items in
@@ -203,7 +208,8 @@ export class Bootstrapper extends EventEmitter {
         },
       })
       this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = ACCESS_TOKEN_ID
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET =
+        ACCESS_TOKEN_SECRET
       this.context.callOrders = this.ordersAPIManager.push
     }
   }
@@ -220,7 +226,6 @@ export class Bootstrapper extends EventEmitter {
   constructor() {
     super()
     clearTopicCache()
-    clearItemCache()
   }
 
   getTenantBasics = async () => {

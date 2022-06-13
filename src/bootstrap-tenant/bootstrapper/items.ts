@@ -61,6 +61,7 @@ import {
   JSONProductVariantStockLocations,
   JSONRichTextTranslated,
   JSONFiles,
+  JSONItemReference,
 } from '../json-spec'
 import {
   getTranslation,
@@ -70,11 +71,11 @@ import {
   ItemVersionDescription,
   getItemVersionsForLanguages,
   getItemId,
-  chunkArray,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
 import {
+  ComponentChoiceContent,
   CreateProductVariantInput,
   FileContentInput,
   FileInput,
@@ -681,9 +682,10 @@ async function createComponentsInput(
           const chunkKeys = Object.keys(chunk)
           for (let x = 0; x < chunkKeys.length; x++) {
             const componentId = chunkKeys[x]
-            const selectedComponentDefinition = componentDefinition.config.components.find(
-              (c: any) => c.id === componentId
-            )
+            const selectedComponentDefinition =
+              componentDefinition.config.components.find(
+                (c: any) => c.id === componentId
+              )
 
             if (selectedComponentDefinition) {
               const content: any = await createComponentInput(
@@ -1466,7 +1468,26 @@ export async function setItems({
         )
       }
 
-      await updateForLanguage(context.defaultLanguage.code, itemId)
+      const responses = await updateForLanguage(
+        context.defaultLanguage.code,
+        itemId
+      )
+      if (responses?.length) {
+        responses.forEach((response) => {
+          if (response?.data?.[shape?.type]?.update) {
+            const {
+              id,
+              externalReference,
+              tree: { path },
+            } = response?.data?.[shape?.type]?.update
+            context.itemCataloguePathToIDMap.set(path, id)
+
+            if (externalReference) {
+              context.itemExternalReferenceToIDMap.set(externalReference, id)
+            }
+          }
+        })
+      }
     } else {
       // Ensure a name is set for the default language (required by the API)
       if (!getTranslation(item.name, context.defaultLanguage.code)) {
@@ -1501,7 +1522,19 @@ export async function setItems({
       }
 
       const response = await createForLanguage(context.defaultLanguage.code)
-      itemId = response?.data?.[shape?.type]?.create?.id
+
+      if (response?.data?.[shape?.type]?.create) {
+        const {
+          id,
+          externalReference,
+          tree: { path },
+        } = response?.data?.[shape?.type]?.create
+        context.itemCataloguePathToIDMap.set(path, id)
+        if (externalReference) {
+          context.itemExternalReferenceToIDMap.set(externalReference, id)
+        }
+        itemId = id
+      }
     }
 
     if (!itemId) {
@@ -1580,7 +1613,14 @@ export async function setItems({
        * cataloguePath is different than the one in the JSON spec
        */
       if (item.cataloguePath) {
-        context.itemJSONCataloguePathToIDMap.set(item.cataloguePath, {
+        context.itemCataloguePathToIDMap.set(item.cataloguePath, {
+          itemId: item.id,
+          parentId: parentId || rootItemId,
+        })
+      }
+
+      if (item.externalReference) {
+        context.itemExternalReferenceToIDMap.set(item.externalReference, {
           itemId: item.id,
           parentId: parentId || rootItemId,
         })
@@ -1594,6 +1634,23 @@ export async function setItems({
             itm.children.map((child, index) => handleItem(child, index, itm.id))
           )
         }
+      }
+    }
+
+    for (let i = 0; i < context.languages.length; i++) {
+      const versionsInfo = context.itemVersions.get(item.id)
+      const passedPublishConfig = item._options?.publish
+      if (typeof passedPublishConfig === 'boolean') {
+        if (passedPublishConfig) {
+          await publishItem(context.languages[i].code, item.id, context)
+        }
+      } else if (
+        context.config.itemPublish === 'publish' ||
+        !versionsInfo ||
+        versionsInfo[context.languages[i].code] ===
+          ItemVersionDescription.Published
+      ) {
+        await publishItem(context.languages[i].code, item.id, context)
       }
     }
   }
@@ -1636,6 +1693,17 @@ export async function setItems({
 
             if (itemId) {
               ids.push(itemId)
+            } else {
+              onUpdate({
+                warning: {
+                  code: 'CANNOT_HANDLE_ITEM_RELATION',
+                  message: `Could not determine an ID for related item "${
+                    itemRelation.externalReference
+                      ? itemRelation.externalReference
+                      : itemRelation.cataloguePath
+                  }`,
+                },
+              })
             }
           }
         })
@@ -1698,14 +1766,22 @@ export async function setItems({
                             c.id === componentData.componentChoice.componentId
                         )
                         if (selectedDef?.type === 'itemRelations') {
+                          const chosenComponentId =
+                            componentData.componentChoice.componentId
+                          const component = jsonItem as Record<
+                            string,
+                            JSONItemReference[]
+                          >
+                          componentData.componentChoice
                           mutationInput = {
                             componentId,
                             componentChoice: {
-                              componentId:
-                                componentData.componentChoice.componentId,
+                              componentId: chosenComponentId,
                               itemRelations: {
                                 itemIds: await getItemIdsForItemRelation(
-                                  jsonItem as JSONItemRelations
+                                  component[
+                                    chosenComponentId
+                                  ] as JSONItemReference[]
                                 ),
                               },
                             },
@@ -1727,10 +1803,11 @@ export async function setItems({
                               await Promise.all(
                                 itemRelationIds.map(
                                   async (itemRelationId: string) => {
-                                    const itemRelationComponentIndex = chunk.findIndex(
-                                      (c: any) =>
-                                        c.componentId === itemRelationId
-                                    )
+                                    const itemRelationComponentIndex =
+                                      chunk.findIndex(
+                                        (c: any) =>
+                                          c.componentId === itemRelationId
+                                      )
 
                                     if (itemRelationComponentIndex !== -1) {
                                       chunk[
@@ -1756,30 +1833,45 @@ export async function setItems({
 
               // Update the component
               if (mutationInput) {
-                const r = await context.callPIM({
-                  query: gql`
-                    mutation UPDATE_RELATIONS_COMPONENT(
-                      $itemId: ID!
-                      $language: String!
-                      $input: ComponentInput!
-                    ) {
-                      item {
-                        updateComponent(
-                          itemId: $itemId
-                          language: $language
-                          input: $input
-                        ) {
-                          id
+                try {
+                  const r = await context.callPIM({
+                    query: gql`
+                      mutation UPDATE_RELATIONS_COMPONENT(
+                        $itemId: ID!
+                        $language: String!
+                        $input: ComponentInput!
+                      ) {
+                        item {
+                          updateComponent(
+                            itemId: $itemId
+                            language: $language
+                            input: $input
+                          ) {
+                            id
+                          }
                         }
                       }
-                    }
-                  `,
-                  variables: {
-                    itemId: item.id,
-                    language: context.defaultLanguage.code,
-                    input: mutationInput,
-                  },
-                })
+                    `,
+                    variables: {
+                      itemId: item.id,
+                      language: context.defaultLanguage.code,
+                      input: mutationInput,
+                    },
+                  })
+
+                  if (r.errors) {
+                    throw r.errors
+                  }
+                } catch (err) {
+                  onUpdate({
+                    warning: {
+                      code: 'CANNOT_HANDLE_ITEM_RELATION',
+                      message: `Unable to update relation for item "${
+                        item.id
+                      }" with input ${JSON.stringify(mutationInput)} `,
+                    },
+                  })
+                }
               }
             }
           })
