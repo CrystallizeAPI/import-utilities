@@ -33,6 +33,10 @@ export const buildUpdateItemMutation = (
       },
       id: true,
       name: true,
+      externalReference: true,
+      tree: {
+        path: true,
+      },
     },
   }
 
@@ -96,6 +100,10 @@ export function buildUpdateItemQueryAndVariables(
         ${topFieldName} {
           update (id: $id, language: $language, input: $input) {
             id
+            externalReference
+            tree {
+              path
+            }
           }
         }
       }

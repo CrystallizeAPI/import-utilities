@@ -51,6 +51,7 @@ export interface AreaWarning {
     | 'SHAPE_ID_TRUNCATED'
     | 'CANNOT_HANDLE_ITEM'
     | 'CANNOT_HANDLE_PRODUCT'
+    | 'CANNOT_HANDLE_ITEM_RELATION'
     | 'OTHER'
 }
 
@@ -82,7 +83,8 @@ export interface BootstrapperContext {
   config: Config
   useReferenceCache: boolean
   stockLocations?: JSONStockLocation[]
-  itemJSONCataloguePathToIDMap: Map<string, ItemAndParentId>
+  itemCataloguePathToIDMap: Map<string, ItemAndParentId>
+  itemExternalReferenceToIDMap: Map<string, ItemAndParentId>
   itemVersions: Map<string, ItemVersionsForLanguages>
   fileUploader: FileUploadManager
   uploadFileFromUrl: (url: string) => Promise<RemoteFileUploadResult | null>
