@@ -7,15 +7,16 @@ export type Maybe<T> = T | null
 export type Exact<T extends { [key: string]: unknown }> = {
   [K in keyof T]: T[K]
 }
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
-  { [SubKey in K]?: Maybe<T[SubKey]> }
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
-  { [SubKey in K]: Maybe<T[SubKey]> }
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>
+}
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>
+}
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
-export type RequireFields<T, K extends keyof T> = {
-  [X in Exclude<keyof T, K>]?: T[X]
-} &
-  { [P in K]-?: NonNullable<T[P]> }
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & {
+  [P in K]-?: NonNullable<T[P]>
+}
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string
@@ -190,8 +191,6 @@ export type BulkCreateProductInput = {
   components?: Maybe<Array<ComponentInput>>
   createdAt?: Maybe<Scalars['DateTime']>
   externalReference?: Maybe<Scalars['String']>
-  isSubscriptionOnly?: Maybe<Scalars['Boolean']>
-  isVirtual?: Maybe<Scalars['Boolean']>
   name: Scalars['String']
   topicIds?: Maybe<Array<Scalars['ID']>>
   tree?: Maybe<TreeNodeInput>
@@ -389,6 +388,11 @@ export type CreateChildTopicInput = {
 export type CreateCustomerAddressInput = {
   city?: Maybe<Scalars['String']>
   country?: Maybe<Scalars['String']>
+  email?: Maybe<Scalars['EmailAddress']>
+  firstName?: Maybe<Scalars['String']>
+  lastName?: Maybe<Scalars['String']>
+  middleName?: Maybe<Scalars['String']>
+  phone?: Maybe<Scalars['String']>
   postalCode?: Maybe<Scalars['String']>
   state?: Maybe<Scalars['String']>
   street?: Maybe<Scalars['String']>
@@ -465,8 +469,6 @@ export type CreateProductInput = {
   components?: Maybe<Array<ComponentInput>>
   createdAt?: Maybe<Scalars['DateTime']>
   externalReference?: Maybe<Scalars['String']>
-  isSubscriptionOnly?: Maybe<Scalars['Boolean']>
-  isVirtual?: Maybe<Scalars['Boolean']>
   name: Scalars['String']
   shapeIdentifier?: Maybe<Scalars['String']>
   tenantId: Scalars['ID']
@@ -548,6 +550,7 @@ export type CreateProductVariantInput = {
   stock?: Maybe<Scalars['Int']>
   stockLocations?: Maybe<Array<StockLocationReferenceInput>>
   subscriptionPlans?: Maybe<Array<SubscriptionPlanReferenceInput>>
+  videos?: Maybe<Array<VideoInput>>
 }
 
 export type CreateShapeInput = {
@@ -860,6 +863,7 @@ export type CustomerQueriesGetManyArgs = {
   first?: Maybe<Scalars['Int']>
   identifier?: Maybe<Scalars['ID']>
   last?: Maybe<Scalars['Int']>
+  meta?: Maybe<Array<KeyValuePairInput>>
   tenantId: Scalars['ID']
 }
 
@@ -888,7 +892,7 @@ export type Document = Item & {
   externalReference?: Maybe<Scalars['String']>
   hasVersion?: Maybe<Scalars['Boolean']>
   id: Scalars['ID']
-  language?: Maybe<Scalars['String']>
+  language: Scalars['String']
   name?: Maybe<Scalars['String']>
   relatingItems?: Maybe<Array<Item>>
   shape?: Maybe<Shape>
@@ -949,6 +953,15 @@ export type DocumentQueriesGetArgs = {
   id: Scalars['ID']
   language: Scalars['String']
   versionLabel?: VersionLabel
+}
+
+export type ExperimentalPreferences = {
+  __typename?: 'ExperimentalPreferences'
+  nerdyView?: Maybe<NerdyViewPreferences>
+}
+
+export type ExperimentalPreferencesInput = {
+  nerdyView?: Maybe<NerdyViewPreferencesInput>
 }
 
 export type File = {
@@ -1042,7 +1055,7 @@ export type Folder = Item & {
   externalReference?: Maybe<Scalars['String']>
   hasVersion?: Maybe<Scalars['Boolean']>
   id: Scalars['ID']
-  language?: Maybe<Scalars['String']>
+  language: Scalars['String']
   name?: Maybe<Scalars['String']>
   relatingItems?: Maybe<Array<Item>>
   shape?: Maybe<Shape>
@@ -1114,6 +1127,15 @@ export type FullTreeNodeInput = {
 export type GenericPublishInput = {
   id: Scalars['ID']
   type: ShapeType
+}
+
+export type GenericSuggestSearchResult = SuggestSearchResult & {
+  __typename?: 'GenericSuggestSearchResult'
+  id: Scalars['ID']
+  name: Scalars['String']
+  path: Scalars['String']
+  tenantId: Scalars['ID']
+  type: Scalars['String']
 }
 
 export type GetTopicByPathArguments = {
@@ -1369,10 +1391,10 @@ export type ImageVariant = {
 }
 
 export type ImageVariantInput = {
-  height?: Maybe<Scalars['Int']>
+  height: Scalars['Int']
   key: Scalars['String']
   size?: Maybe<Scalars['Int']>
-  width?: Maybe<Scalars['Int']>
+  width: Scalars['Int']
 }
 
 export enum Interval {
@@ -1418,7 +1440,7 @@ export type Item = {
   externalReference?: Maybe<Scalars['String']>
   hasVersion?: Maybe<Scalars['Boolean']>
   id: Scalars['ID']
-  language?: Maybe<Scalars['String']>
+  language: Scalars['String']
   name?: Maybe<Scalars['String']>
   relatingItems?: Maybe<Array<Item>>
   shape?: Maybe<Shape>
@@ -1528,6 +1550,16 @@ export type ItemRelationsContentInput = {
   itemIds?: Maybe<Array<Scalars['ID']>>
 }
 
+export type ItemSuggestSearchResult = SuggestSearchResult & {
+  __typename?: 'ItemSuggestSearchResult'
+  id: Scalars['ID']
+  name: Scalars['String']
+  path: Scalars['String']
+  shapeIdentifier: Scalars['String']
+  tenantId: Scalars['ID']
+  type: Scalars['String']
+}
+
 export enum ItemType {
   Document = 'document',
   Folder = 'folder',
@@ -1548,17 +1580,23 @@ export type KeyValuePairInput = {
 export type KlarnaPayment = PaymentType & {
   __typename?: 'KlarnaPayment'
   id?: Maybe<Scalars['String']>
+  merchantReference1?: Maybe<Scalars['String']>
+  merchantReference2?: Maybe<Scalars['String']>
   metadata?: Maybe<Scalars['String']>
   orderId?: Maybe<Scalars['String']>
   provider: PaymentProvider
   recurringToken?: Maybe<Scalars['String']>
+  status?: Maybe<Scalars['String']>
 }
 
 export type KlarnaPaymentInput = {
   klarna?: Maybe<Scalars['String']>
+  merchantReference1?: Maybe<Scalars['String']>
+  merchantReference2?: Maybe<Scalars['String']>
   metadata?: Maybe<Scalars['String']>
   orderId?: Maybe<Scalars['String']>
   recurringToken?: Maybe<Scalars['String']>
+  status?: Maybe<Scalars['String']>
 }
 
 export type Language = {
@@ -1610,11 +1648,17 @@ export type MaxFileSizeInput = {
 export type MeMutations = {
   __typename?: 'MeMutations'
   generateAccessToken?: Maybe<AccessToken>
+  setPreferences?: Maybe<Preferences>
   update?: Maybe<User>
 }
 
 export type MeMutationsGenerateAccessTokenArgs = {
   input: CreateAccessTokenInput
+}
+
+export type MeMutationsSetPreferencesArgs = {
+  input: PreferencesInput
+  tenantId?: Maybe<Scalars['ID']>
 }
 
 export type MeMutationsUpdateArgs = {
@@ -1651,6 +1695,15 @@ export type Mutation = {
   vatType?: Maybe<VatTypeMutations>
   video?: Maybe<VideoMutations>
   webhook?: Maybe<WebhookMutations>
+}
+
+export type NerdyViewPreferences = {
+  __typename?: 'NerdyViewPreferences'
+  enabled?: Maybe<Scalars['Boolean']>
+}
+
+export type NerdyViewPreferencesInput = {
+  enabled?: Maybe<Scalars['Boolean']>
 }
 
 export type NumericComponentConfig = {
@@ -2082,6 +2135,15 @@ export type PipelineStageOrdersArgs = {
   sortField?: Maybe<OrderSortField>
 }
 
+export type Preferences = {
+  __typename?: 'Preferences'
+  experimental?: Maybe<ExperimentalPreferences>
+}
+
+export type PreferencesInput = {
+  experimental?: Maybe<ExperimentalPreferencesInput>
+}
+
 export type PresignedUploadRequest = {
   __typename?: 'PresignedUploadRequest'
   fields: Array<UploadField>
@@ -2168,9 +2230,11 @@ export type Product = Item & {
   externalReference?: Maybe<Scalars['String']>
   hasVersion?: Maybe<Scalars['Boolean']>
   id: Scalars['ID']
-  isSubscriptionOnly: Scalars['Boolean']
-  isVirtual: Scalars['Boolean']
-  language?: Maybe<Scalars['String']>
+  /** @deprecated option removed */
+  isSubscriptionOnly?: Maybe<Scalars['Boolean']>
+  /** @deprecated option removed */
+  isVirtual?: Maybe<Scalars['Boolean']>
+  language: Scalars['String']
   name?: Maybe<Scalars['String']>
   relatingItems?: Maybe<Array<Item>>
   shape?: Maybe<Shape>
@@ -2191,6 +2255,7 @@ export type ProductHasVersionArgs = {
 
 export type ProductMutations = {
   __typename?: 'ProductMutations'
+  addVariant: Product
   create: Product
   delete: Scalars['Int']
   publish: PublishInfo
@@ -2199,6 +2264,12 @@ export type ProductMutations = {
   update: Product
   updateStock: ProductStockLocation
   updateVariant: Product
+}
+
+export type ProductMutationsAddVariantArgs = {
+  input: CreateProductVariantInput
+  language: Scalars['String']
+  productId: Scalars['ID']
 }
 
 export type ProductMutationsCreateArgs = {
@@ -2321,29 +2392,32 @@ export type ProductSubscriptionHistoryEvent = {
   type: ProductSubscriptionHistoryEventType
 }
 
-export type ProductSubscriptionHistoryEventCancellation = ProductSubscriptionHistoryEvent & {
-  __typename?: 'ProductSubscriptionHistoryEventCancellation'
-  activeUntil?: Maybe<Scalars['DateTime']>
-  cancelledAt: Scalars['DateTime']
-  deactivated: Scalars['Boolean']
-  type: ProductSubscriptionHistoryEventType
-}
+export type ProductSubscriptionHistoryEventCancellation =
+  ProductSubscriptionHistoryEvent & {
+    __typename?: 'ProductSubscriptionHistoryEventCancellation'
+    activeUntil?: Maybe<Scalars['DateTime']>
+    cancelledAt: Scalars['DateTime']
+    deactivated: Scalars['Boolean']
+    type: ProductSubscriptionHistoryEventType
+  }
 
-export type ProductSubscriptionHistoryEventRenewal = ProductSubscriptionHistoryEvent & {
-  __typename?: 'ProductSubscriptionHistoryEventRenewal'
-  activeUntil?: Maybe<Scalars['DateTime']>
-  currency: Scalars['String']
-  price: Scalars['Float']
-  renewedAt: Scalars['DateTime']
-  type: ProductSubscriptionHistoryEventType
-}
+export type ProductSubscriptionHistoryEventRenewal =
+  ProductSubscriptionHistoryEvent & {
+    __typename?: 'ProductSubscriptionHistoryEventRenewal'
+    activeUntil?: Maybe<Scalars['DateTime']>
+    currency: Scalars['String']
+    price: Scalars['Float']
+    renewedAt: Scalars['DateTime']
+    type: ProductSubscriptionHistoryEventType
+  }
 
-export type ProductSubscriptionHistoryEventRenewalDueBroadcast = ProductSubscriptionHistoryEvent & {
-  __typename?: 'ProductSubscriptionHistoryEventRenewalDueBroadcast'
-  broadcastAt: Scalars['DateTime']
-  renewAt: Scalars['DateTime']
-  type: ProductSubscriptionHistoryEventType
-}
+export type ProductSubscriptionHistoryEventRenewalDueBroadcast =
+  ProductSubscriptionHistoryEvent & {
+    __typename?: 'ProductSubscriptionHistoryEventRenewalDueBroadcast'
+    broadcastAt: Scalars['DateTime']
+    renewAt: Scalars['DateTime']
+    type: ProductSubscriptionHistoryEventType
+  }
 
 export enum ProductSubscriptionHistoryEventType {
   Cancellation = 'CANCELLATION',
@@ -2459,6 +2533,7 @@ export type ProductVariant = {
   stock?: Maybe<Scalars['Int']>
   stockLocations?: Maybe<Array<ProductStockLocation>>
   subscriptionPlans?: Maybe<Array<ProductVariantSubscriptionPlan>>
+  videos?: Maybe<Array<Video>>
 }
 
 export type ProductVariantPriceArgs = {
@@ -2845,7 +2920,7 @@ export type StockLocation = {
   __typename?: 'StockLocation'
   identifier: Scalars['String']
   name: Scalars['String']
-  settings?: Maybe<StockLocationSettings>
+  settings: StockLocationSettings
   tenant: Tenant
   tenantId: Scalars['ID']
 }
@@ -2896,7 +2971,7 @@ export type StockLocationReferenceInput = {
 export type StockLocationSettings = {
   __typename?: 'StockLocationSettings'
   minimum?: Maybe<Scalars['Int']>
-  unlimited?: Maybe<Scalars['Boolean']>
+  unlimited: Scalars['Boolean']
 }
 
 export type StockLocationSettingsInput = {
@@ -3121,13 +3196,14 @@ export type SubscriptionContractQueriesGetManyArgs = {
   tenantId: Scalars['ID']
 }
 
-export type SubscriptionContractRenewalDueBroadcastEvent = SubscriptionContractEvent & {
-  __typename?: 'SubscriptionContractRenewalDueBroadcastEvent'
-  createdAt: Scalars['DateTime']
-  data: SubscriptionContractRenewalDueBroadcastEventData
-  id: Scalars['ID']
-  type: SubscriptionContractEventType
-}
+export type SubscriptionContractRenewalDueBroadcastEvent =
+  SubscriptionContractEvent & {
+    __typename?: 'SubscriptionContractRenewalDueBroadcastEvent'
+    createdAt: Scalars['DateTime']
+    data: SubscriptionContractRenewalDueBroadcastEventData
+    id: Scalars['ID']
+    type: SubscriptionContractEventType
+  }
 
 export type SubscriptionContractRenewalDueBroadcastEventData = {
   __typename?: 'SubscriptionContractRenewalDueBroadcastEventData'
@@ -3160,12 +3236,13 @@ export type SubscriptionContractUsage = {
   quantity?: Maybe<Scalars['Float']>
 }
 
-export type SubscriptionContractUsageTrackedEvent = SubscriptionContractEvent & {
-  __typename?: 'SubscriptionContractUsageTrackedEvent'
-  createdAt: Scalars['DateTime']
-  id: Scalars['ID']
-  type: SubscriptionContractEventType
-}
+export type SubscriptionContractUsageTrackedEvent =
+  SubscriptionContractEvent & {
+    __typename?: 'SubscriptionContractUsageTrackedEvent'
+    createdAt: Scalars['DateTime']
+    id: Scalars['ID']
+    type: SubscriptionContractEventType
+  }
 
 export enum SubscriptionPeriodUnit {
   Day = 'day',
@@ -3325,7 +3402,6 @@ export enum SuggestSearchItemType {
 }
 
 export type SuggestSearchResult = {
-  __typename?: 'SuggestSearchResult'
   id: Scalars['ID']
   name: Scalars['String']
   path: Scalars['String']
@@ -3366,6 +3442,7 @@ export type Tenant = {
   metaProperty?: Maybe<Scalars['String']>
   metrics?: Maybe<TenantMetrics>
   name: Scalars['String']
+  preferences?: Maybe<TenantPreferences>
   rootItemId: Scalars['ID']
   shapes?: Maybe<Array<Shape>>
   staticAuthToken?: Maybe<Scalars['String']>
@@ -3421,6 +3498,32 @@ export type TenantDefaultsInput = {
   language?: Maybe<Scalars['String']>
 }
 
+export type TenantFrontend = {
+  __typename?: 'TenantFrontend'
+  /** @deprecated authentication property has been deprecated */
+  authentication?: Maybe<TenantFrontendAuthentication>
+  name: Scalars['String']
+  /** @deprecated responsive property has been deprecated */
+  responsive?: Maybe<Scalars['Boolean']>
+  url: Scalars['String']
+}
+
+export type TenantFrontendAuthentication = {
+  __typename?: 'TenantFrontendAuthentication'
+  key: Scalars['String']
+  value: Scalars['String']
+}
+
+export type TenantFrontendAuthenticationInput = {
+  key: Scalars['String']
+  value: Scalars['String']
+}
+
+export type TenantFrontendInput = {
+  name: Scalars['String']
+  url: Scalars['String']
+}
+
 export type TenantMetrics = {
   __typename?: 'TenantMetrics'
   apiCalls: ApiCallMetrics
@@ -3440,6 +3543,7 @@ export type TenantMutations = {
   regenerateStaticAuthToken: Tenant
   removeUsers?: Maybe<Array<UserTenantRole>>
   setAuthenticationMethod: Tenant
+  setPreferences: TenantPreferences
   update: Tenant
 }
 
@@ -3470,9 +3574,23 @@ export type TenantMutationsSetAuthenticationMethodArgs = {
   tenantId: Scalars['ID']
 }
 
+export type TenantMutationsSetPreferencesArgs = {
+  input: TenantPreferencesInput
+  tenantId: Scalars['ID']
+}
+
 export type TenantMutationsUpdateArgs = {
   id: Scalars['ID']
   input: UpdateTenantInput
+}
+
+export type TenantPreferences = {
+  __typename?: 'TenantPreferences'
+  frontends?: Maybe<Array<Maybe<TenantFrontend>>>
+}
+
+export type TenantPreferencesInput = {
+  frontends?: Maybe<Array<TenantFrontendInput>>
 }
 
 export type TenantQueries = {
@@ -3534,6 +3652,7 @@ export enum TierType {
 export type Topic = {
   __typename?: 'Topic'
   ancestors?: Maybe<Array<Topic>>
+  childCount: Scalars['Int']
   children?: Maybe<Array<Topic>>
   createdAt: Scalars['DateTime']
   descendants?: Maybe<Array<Topic>>
@@ -3673,6 +3792,7 @@ export type TreeNode = {
   identifiers?: Maybe<Array<TreeNodeIdentifier>>
   item?: Maybe<Item>
   itemId: Scalars['ID']
+  language?: Maybe<Scalars['String']>
   parent?: Maybe<TreeNode>
   parentId?: Maybe<Scalars['ID']>
   path?: Maybe<Scalars['String']>
@@ -3682,11 +3802,11 @@ export type TreeNode = {
 }
 
 export type TreeNodeItemArgs = {
-  language: Scalars['String']
+  language?: Maybe<Scalars['String']>
 }
 
 export type TreeNodePathArgs = {
-  language: Scalars['String']
+  language?: Maybe<Scalars['String']>
 }
 
 export type TreeNodeIdentifier = {
@@ -3712,12 +3832,18 @@ export type TreeQueries = {
 
 export type TreeQueriesGetNodeArgs = {
   itemId: Scalars['ID']
+  language?: Maybe<Scalars['String']>
   versionLabel?: VersionLabel
 }
 
 export type UpdateCustomerAddressInput = {
   city?: Maybe<Scalars['String']>
   country?: Maybe<Scalars['String']>
+  email?: Maybe<Scalars['EmailAddress']>
+  firstName?: Maybe<Scalars['String']>
+  lastName?: Maybe<Scalars['String']>
+  middleName?: Maybe<Scalars['String']>
+  phone?: Maybe<Scalars['String']>
   postalCode?: Maybe<Scalars['String']>
   state?: Maybe<Scalars['String']>
   street?: Maybe<Scalars['String']>
@@ -3793,8 +3919,6 @@ export type UpdateProductInput = {
   components?: Maybe<Array<ComponentInput>>
   createdAt?: Maybe<Scalars['DateTime']>
   externalReference?: Maybe<Scalars['String']>
-  isSubscriptionOnly?: Maybe<Scalars['Boolean']>
-  isVirtual?: Maybe<Scalars['Boolean']>
   name?: Maybe<Scalars['String']>
   topicIds?: Maybe<Array<Scalars['ID']>>
   variants?: Maybe<Array<UpdateProductVariantInput>>
@@ -3843,6 +3967,7 @@ export type UpdateProductVariantInput = {
   stock?: Maybe<Scalars['Int']>
   stockLocations?: Maybe<Array<StockLocationReferenceInput>>
   subscriptionPlans?: Maybe<Array<SubscriptionPlanReferenceInput>>
+  videos?: Maybe<Array<VideoInput>>
 }
 
 export type UpdateShapeInput = {
@@ -3862,6 +3987,7 @@ export type UpdateSingleProductVariantInput = {
   stock?: Maybe<Scalars['Int']>
   stockLocations?: Maybe<Array<StockLocationReferenceInput>>
   subscriptionPlans?: Maybe<Array<SubscriptionPlanReferenceInput>>
+  videos?: Maybe<Array<VideoInput>>
 }
 
 export type UpdateStockLocationInput = {
@@ -3963,10 +4089,15 @@ export type User = {
   lastName?: Maybe<Scalars['String']>
   lastSeenAt?: Maybe<Scalars['DateTime']>
   marketingEmailConsentedAt?: Maybe<Scalars['DateTime']>
+  preferences?: Maybe<Preferences>
   role?: Maybe<UserTenantRole>
   sub: Array<Scalars['String']>
   tenants?: Maybe<Array<UserTenantRole>>
   tocReadAt?: Maybe<Scalars['DateTime']>
+}
+
+export type UserPreferencesArgs = {
+  tenantId?: Maybe<Scalars['ID']>
 }
 
 export type UserRoleArgs = {
@@ -4285,7 +4416,7 @@ export type SubscriptionSubscribeFn<TResult, TParent, TContext, TArgs> = (
   args: TArgs,
   context: TContext,
   info: GraphQLResolveInfo
-) => AsyncIterator<TResult> | Promise<AsyncIterator<TResult>>
+) => AsyncIterable<TResult> | Promise<AsyncIterable<TResult>>
 
 export type SubscriptionResolveFn<TResult, TParent, TContext, TArgs> = (
   parent: TParent,
@@ -4496,6 +4627,8 @@ export type ResolversTypes = {
   DocumentMutations: ResolverTypeWrapper<DocumentMutations>
   DocumentQueries: ResolverTypeWrapper<DocumentQueries>
   EmailAddress: ResolverTypeWrapper<Scalars['EmailAddress']>
+  ExperimentalPreferences: ResolverTypeWrapper<ExperimentalPreferences>
+  ExperimentalPreferencesInput: ExperimentalPreferencesInput
   File: ResolverTypeWrapper<File>
   FileContent: ResolverTypeWrapper<FileContent>
   FileContentInput: FileContentInput
@@ -4513,6 +4646,7 @@ export type ResolversTypes = {
   FolderQueries: ResolverTypeWrapper<FolderQueries>
   FullTreeNodeInput: FullTreeNodeInput
   GenericPublishInput: GenericPublishInput
+  GenericSuggestSearchResult: ResolverTypeWrapper<GenericSuggestSearchResult>
   GetTopicByPathArguments: GetTopicByPathArguments
   Grid: ResolverTypeWrapper<Grid>
   GridColumn: ResolverTypeWrapper<GridColumn>
@@ -4558,6 +4692,7 @@ export type ResolversTypes = {
   ItemRelationsComponentConfigInput: ItemRelationsComponentConfigInput
   ItemRelationsContent: ResolverTypeWrapper<ItemRelationsContent>
   ItemRelationsContentInput: ItemRelationsContentInput
+  ItemSuggestSearchResult: ResolverTypeWrapper<ItemSuggestSearchResult>
   ItemType: ItemType
   JSON: ResolverTypeWrapper<Scalars['JSON']>
   KeyValuePair: ResolverTypeWrapper<KeyValuePair>
@@ -4571,6 +4706,8 @@ export type ResolversTypes = {
   MaxFileSizeInput: MaxFileSizeInput
   MeMutations: ResolverTypeWrapper<MeMutations>
   Mutation: ResolverTypeWrapper<{}>
+  NerdyViewPreferences: ResolverTypeWrapper<NerdyViewPreferences>
+  NerdyViewPreferencesInput: NerdyViewPreferencesInput
   NonNegativeFloat: ResolverTypeWrapper<Scalars['NonNegativeFloat']>
   NonNegativeInt: ResolverTypeWrapper<Scalars['NonNegativeInt']>
   NumericComponentConfig: ResolverTypeWrapper<NumericComponentConfig>
@@ -4627,6 +4764,8 @@ export type ResolversTypes = {
   PipelineSortField: PipelineSortField
   PipelineStage: ResolverTypeWrapper<PipelineStage>
   PositiveInt: ResolverTypeWrapper<Scalars['PositiveInt']>
+  Preferences: ResolverTypeWrapper<Preferences>
+  PreferencesInput: PreferencesInput
   PresignedUploadRequest: ResolverTypeWrapper<PresignedUploadRequest>
   Price: ResolverTypeWrapper<Price>
   PriceInput: PriceInput
@@ -4765,7 +4904,9 @@ export type ResolversTypes = {
   SuggestSearchConnection: ResolverTypeWrapper<SuggestSearchConnection>
   SuggestSearchConnectionEdge: ResolverTypeWrapper<SuggestSearchConnectionEdge>
   SuggestSearchItemType: SuggestSearchItemType
-  SuggestSearchResult: ResolverTypeWrapper<SuggestSearchResult>
+  SuggestSearchResult:
+    | ResolversTypes['GenericSuggestSearchResult']
+    | ResolversTypes['ItemSuggestSearchResult']
   SuggestSearchTypesAggregation: ResolverTypeWrapper<SuggestSearchTypesAggregation>
   Tax: ResolverTypeWrapper<Tax>
   TaxInput: TaxInput
@@ -4774,8 +4915,14 @@ export type ResolversTypes = {
   TenantAuthenticationMethodInput: TenantAuthenticationMethodInput
   TenantDefaults: ResolverTypeWrapper<TenantDefaults>
   TenantDefaultsInput: TenantDefaultsInput
+  TenantFrontend: ResolverTypeWrapper<TenantFrontend>
+  TenantFrontendAuthentication: ResolverTypeWrapper<TenantFrontendAuthentication>
+  TenantFrontendAuthenticationInput: TenantFrontendAuthenticationInput
+  TenantFrontendInput: TenantFrontendInput
   TenantMetrics: ResolverTypeWrapper<TenantMetrics>
   TenantMutations: ResolverTypeWrapper<TenantMutations>
+  TenantPreferences: ResolverTypeWrapper<TenantPreferences>
+  TenantPreferencesInput: TenantPreferencesInput
   TenantQueries: ResolverTypeWrapper<TenantQueries>
   TenantReports: ResolverTypeWrapper<TenantReports>
   TenantRoleInput: TenantRoleInput
@@ -4973,6 +5120,8 @@ export type ResolversParentTypes = {
   DocumentMutations: DocumentMutations
   DocumentQueries: DocumentQueries
   EmailAddress: Scalars['EmailAddress']
+  ExperimentalPreferences: ExperimentalPreferences
+  ExperimentalPreferencesInput: ExperimentalPreferencesInput
   File: File
   FileContent: FileContent
   FileContentInput: FileContentInput
@@ -4988,6 +5137,7 @@ export type ResolversParentTypes = {
   FolderQueries: FolderQueries
   FullTreeNodeInput: FullTreeNodeInput
   GenericPublishInput: GenericPublishInput
+  GenericSuggestSearchResult: GenericSuggestSearchResult
   GetTopicByPathArguments: GetTopicByPathArguments
   Grid: Grid
   GridColumn: GridColumn
@@ -5031,6 +5181,7 @@ export type ResolversParentTypes = {
   ItemRelationsComponentConfigInput: ItemRelationsComponentConfigInput
   ItemRelationsContent: ItemRelationsContent
   ItemRelationsContentInput: ItemRelationsContentInput
+  ItemSuggestSearchResult: ItemSuggestSearchResult
   JSON: Scalars['JSON']
   KeyValuePair: KeyValuePair
   KeyValuePairInput: KeyValuePairInput
@@ -5043,6 +5194,8 @@ export type ResolversParentTypes = {
   MaxFileSizeInput: MaxFileSizeInput
   MeMutations: MeMutations
   Mutation: {}
+  NerdyViewPreferences: NerdyViewPreferences
+  NerdyViewPreferencesInput: NerdyViewPreferencesInput
   NonNegativeFloat: Scalars['NonNegativeFloat']
   NonNegativeInt: Scalars['NonNegativeInt']
   NumericComponentConfig: NumericComponentConfig
@@ -5091,6 +5244,8 @@ export type ResolversParentTypes = {
   PipelineQueries: PipelineQueries
   PipelineStage: PipelineStage
   PositiveInt: Scalars['PositiveInt']
+  Preferences: Preferences
+  PreferencesInput: PreferencesInput
   PresignedUploadRequest: PresignedUploadRequest
   Price: Price
   PriceInput: PriceInput
@@ -5214,7 +5369,9 @@ export type ResolversParentTypes = {
   SuggestSearchAggregations: SuggestSearchAggregations
   SuggestSearchConnection: SuggestSearchConnection
   SuggestSearchConnectionEdge: SuggestSearchConnectionEdge
-  SuggestSearchResult: SuggestSearchResult
+  SuggestSearchResult:
+    | ResolversParentTypes['GenericSuggestSearchResult']
+    | ResolversParentTypes['ItemSuggestSearchResult']
   SuggestSearchTypesAggregation: SuggestSearchTypesAggregation
   Tax: Tax
   TaxInput: TaxInput
@@ -5223,8 +5380,14 @@ export type ResolversParentTypes = {
   TenantAuthenticationMethodInput: TenantAuthenticationMethodInput
   TenantDefaults: TenantDefaults
   TenantDefaultsInput: TenantDefaultsInput
+  TenantFrontend: TenantFrontend
+  TenantFrontendAuthentication: TenantFrontendAuthentication
+  TenantFrontendAuthenticationInput: TenantFrontendAuthenticationInput
+  TenantFrontendInput: TenantFrontendInput
   TenantMetrics: TenantMetrics
   TenantMutations: TenantMutations
+  TenantPreferences: TenantPreferences
+  TenantPreferencesInput: TenantPreferencesInput
   TenantQueries: TenantQueries
   TenantReports: TenantReports
   TenantRoleInput: TenantRoleInput
@@ -5392,7 +5555,7 @@ export type ApiCallMetricsResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<ApiCallMetricsCountArgs, never>
+    Partial<ApiCallMetricsCountArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -5800,10 +5963,10 @@ export type DocumentResolvers<
     Maybe<ResolversTypes['Boolean']>,
     ParentType,
     ContextType,
-    RequireFields<DocumentHasVersionArgs, never>
+    Partial<DocumentHasVersionArgs>
   >
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
-  language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   relatingItems?: Resolver<
     Maybe<Array<ResolversTypes['Item']>>,
@@ -5891,6 +6054,18 @@ export type DocumentQueriesResolvers<
 export interface EmailAddressScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes['EmailAddress'], any> {
   name: 'EmailAddress'
+}
+
+export type ExperimentalPreferencesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ExperimentalPreferences'] = ResolversParentTypes['ExperimentalPreferences']
+> = {
+  nerdyView?: Resolver<
+    Maybe<ResolversTypes['NerdyViewPreferences']>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
 export type FileResolvers<
@@ -6012,10 +6187,10 @@ export type FolderResolvers<
     Maybe<ResolversTypes['Boolean']>,
     ParentType,
     ContextType,
-    RequireFields<FolderHasVersionArgs, never>
+    Partial<FolderHasVersionArgs>
   >
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
-  language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   relatingItems?: Resolver<
     Maybe<Array<ResolversTypes['Item']>>,
@@ -6100,6 +6275,18 @@ export type FolderQueriesResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
+export type GenericSuggestSearchResultResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['GenericSuggestSearchResult'] = ResolversParentTypes['GenericSuggestSearchResult']
+> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
 export type GridResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Grid'] = ResolversParentTypes['Grid']
@@ -6109,7 +6296,7 @@ export type GridResolvers<
     ResolversTypes['Boolean'],
     ParentType,
     ContextType,
-    RequireFields<GridHasVersionArgs, never>
+    Partial<GridHasVersionArgs>
   >
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   language?: Resolver<ResolversTypes['String'], ParentType, ContextType>
@@ -6292,7 +6479,7 @@ export type IObjectMetricsResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<IObjectMetricsCountArgs, never>
+    Partial<IObjectMetricsCountArgs>
   >
 }
 
@@ -6317,7 +6504,7 @@ export type IObjectReportsResolvers<
     ResolversTypes['Float'],
     ParentType,
     ContextType,
-    RequireFields<IObjectReportsTotalArgs, never>
+    Partial<IObjectReportsTotalArgs>
   >
 }
 
@@ -6493,10 +6680,10 @@ export type ItemResolvers<
     Maybe<ResolversTypes['Boolean']>,
     ParentType,
     ContextType,
-    RequireFields<ItemHasVersionArgs, never>
+    Partial<ItemHasVersionArgs>
   >
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
-  language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   relatingItems?: Resolver<
     Maybe<Array<ResolversTypes['Item']>>,
@@ -6532,7 +6719,7 @@ export type ItemMetricsResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<ItemMetricsCountArgs, never>
+    Partial<ItemMetricsCountArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -6634,6 +6821,19 @@ export type ItemRelationsContentResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
+export type ItemSuggestSearchResultResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['ItemSuggestSearchResult'] = ResolversParentTypes['ItemSuggestSearchResult']
+> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  shapeIdentifier?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
 export interface JsonScalarConfig
   extends GraphQLScalarTypeConfig<ResolversTypes['JSON'], any> {
   name: 'JSON'
@@ -6653,6 +6853,16 @@ export type KlarnaPaymentResolvers<
   ParentType extends ResolversParentTypes['KlarnaPayment'] = ResolversParentTypes['KlarnaPayment']
 > = {
   id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  merchantReference1?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
+  merchantReference2?: Resolver<
+    Maybe<ResolversTypes['String']>,
+    ParentType,
+    ContextType
+  >
   metadata?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   orderId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   provider?: Resolver<
@@ -6665,6 +6875,7 @@ export type KlarnaPaymentResolvers<
     ParentType,
     ContextType
   >
+  status?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -6722,11 +6933,17 @@ export type MeMutationsResolvers<
     ContextType,
     RequireFields<MeMutationsGenerateAccessTokenArgs, 'input'>
   >
+  setPreferences?: Resolver<
+    Maybe<ResolversTypes['Preferences']>,
+    ParentType,
+    ContextType,
+    RequireFields<MeMutationsSetPreferencesArgs, 'input'>
+  >
   update?: Resolver<
     Maybe<ResolversTypes['User']>,
     ParentType,
     ContextType,
-    RequireFields<MeMutationsUpdateArgs, never>
+    Partial<MeMutationsUpdateArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -6866,6 +7083,14 @@ export type MutationResolvers<
     ParentType,
     ContextType
   >
+}
+
+export type NerdyViewPreferencesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['NerdyViewPreferences'] = ResolversParentTypes['NerdyViewPreferences']
+> = {
+  enabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
 export interface NonNegativeFloatScalarConfig
@@ -7048,7 +7273,7 @@ export type OrderMetricsResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<OrderMetricsCountArgs, never>
+    Partial<OrderMetricsCountArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -7142,7 +7367,7 @@ export type OrdersReportResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<OrdersReportTotalArgs, never>
+    Partial<OrdersReportTotalArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -7410,6 +7635,18 @@ export interface PositiveIntScalarConfig
   name: 'PositiveInt'
 }
 
+export type PreferencesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['Preferences'] = ResolversParentTypes['Preferences']
+> = {
+  experimental?: Resolver<
+    Maybe<ResolversTypes['ExperimentalPreferences']>,
+    ParentType,
+    ContextType
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
 export type PresignedUploadRequestResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['PresignedUploadRequest'] = ResolversParentTypes['PresignedUploadRequest']
@@ -7534,16 +7771,20 @@ export type ProductResolvers<
     Maybe<ResolversTypes['Boolean']>,
     ParentType,
     ContextType,
-    RequireFields<ProductHasVersionArgs, never>
+    Partial<ProductHasVersionArgs>
   >
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   isSubscriptionOnly?: Resolver<
-    ResolversTypes['Boolean'],
+    Maybe<ResolversTypes['Boolean']>,
     ParentType,
     ContextType
   >
-  isVirtual?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
-  language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
+  isVirtual?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >
+  language?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   relatingItems?: Resolver<
     Maybe<Array<ResolversTypes['Item']>>,
@@ -7583,6 +7824,15 @@ export type ProductMutationsResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['ProductMutations'] = ResolversParentTypes['ProductMutations']
 > = {
+  addVariant?: Resolver<
+    ResolversTypes['Product'],
+    ParentType,
+    ContextType,
+    RequireFields<
+      ProductMutationsAddVariantArgs,
+      'input' | 'language' | 'productId'
+    >
+  >
   create?: Resolver<
     ResolversTypes['Product'],
     ParentType,
@@ -8014,6 +8264,11 @@ export type ProductVariantResolvers<
     ParentType,
     ContextType
   >
+  videos?: Resolver<
+    Maybe<Array<ResolversTypes['Video']>>,
+    ParentType,
+    ContextType
+  >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -8331,7 +8586,7 @@ export type SalesReportResolvers<
     ResolversTypes['Float'],
     ParentType,
     ContextType,
-    RequireFields<SalesReportTotalArgs, never>
+    Partial<SalesReportTotalArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -8464,7 +8719,7 @@ export type ShapeMetricsResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<ShapeMetricsCountArgs, never>
+    Partial<ShapeMetricsCountArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -8483,7 +8738,7 @@ export type ShapeMutationsResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<ShapeMutationsDeleteArgs, never>
+    Partial<ShapeMutationsDeleteArgs>
   >
   migrateLegacyId?: Resolver<
     ResolversTypes['Shape'],
@@ -8511,7 +8766,7 @@ export type ShapeQueriesResolvers<
     Maybe<ResolversTypes['Shape']>,
     ParentType,
     ContextType,
-    RequireFields<ShapeQueriesGetArgs, never>
+    Partial<ShapeQueriesGetArgs>
   >
   getMany?: Resolver<
     Maybe<Array<ResolversTypes['Shape']>>,
@@ -8537,7 +8792,7 @@ export type StockLocationResolvers<
   identifier?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   settings?: Resolver<
-    Maybe<ResolversTypes['StockLocationSettings']>,
+    ResolversTypes['StockLocationSettings'],
     ParentType,
     ContextType
   >
@@ -8598,11 +8853,7 @@ export type StockLocationSettingsResolvers<
   ParentType extends ResolversParentTypes['StockLocationSettings'] = ResolversParentTypes['StockLocationSettings']
 > = {
   minimum?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
-  unlimited?: Resolver<
-    Maybe<ResolversTypes['Boolean']>,
-    ParentType,
-    ContextType
-  >
+  unlimited?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -9226,12 +9477,16 @@ export type SuggestSearchResultResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['SuggestSearchResult'] = ResolversParentTypes['SuggestSearchResult']
 > = {
+  __resolveType: TypeResolveFn<
+    'GenericSuggestSearchResult' | 'ItemSuggestSearchResult',
+    ParentType,
+    ContextType
+  >
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   path?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   type?: Resolver<ResolversTypes['String'], ParentType, ContextType>
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
 export type SuggestSearchTypesAggregationResolvers<
@@ -9296,6 +9551,11 @@ export type TenantResolvers<
     ContextType
   >
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  preferences?: Resolver<
+    Maybe<ResolversTypes['TenantPreferences']>,
+    ParentType,
+    ContextType
+  >
   rootItemId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   shapes?: Resolver<
     Maybe<Array<ResolversTypes['Shape']>>,
@@ -9317,7 +9577,7 @@ export type TenantResolvers<
     Maybe<Array<ResolversTypes['TreeNode']>>,
     ParentType,
     ContextType,
-    RequireFields<TenantTreeArgs, never>
+    Partial<TenantTreeArgs>
   >
   updatedAt?: Resolver<
     Maybe<ResolversTypes['DateTime']>,
@@ -9338,7 +9598,7 @@ export type TenantResolvers<
     Maybe<Array<ResolversTypes['Webhook']>>,
     ParentType,
     ContextType,
-    RequireFields<TenantWebhooksArgs, never>
+    Partial<TenantWebhooksArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -9366,6 +9626,34 @@ export type TenantDefaultsResolvers<
 > = {
   currency?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   language?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type TenantFrontendResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['TenantFrontend'] = ResolversParentTypes['TenantFrontend']
+> = {
+  authentication?: Resolver<
+    Maybe<ResolversTypes['TenantFrontendAuthentication']>,
+    ParentType,
+    ContextType
+  >
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  responsive?: Resolver<
+    Maybe<ResolversTypes['Boolean']>,
+    ParentType,
+    ContextType
+  >
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type TenantFrontendAuthenticationResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['TenantFrontendAuthentication'] = ResolversParentTypes['TenantFrontendAuthentication']
+> = {
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>
+  value?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
@@ -9427,11 +9715,29 @@ export type TenantMutationsResolvers<
     ContextType,
     RequireFields<TenantMutationsSetAuthenticationMethodArgs, 'tenantId'>
   >
+  setPreferences?: Resolver<
+    ResolversTypes['TenantPreferences'],
+    ParentType,
+    ContextType,
+    RequireFields<TenantMutationsSetPreferencesArgs, 'input' | 'tenantId'>
+  >
   update?: Resolver<
     ResolversTypes['Tenant'],
     ParentType,
     ContextType,
     RequireFields<TenantMutationsUpdateArgs, 'id' | 'input'>
+  >
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
+export type TenantPreferencesResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['TenantPreferences'] = ResolversParentTypes['TenantPreferences']
+> = {
+  frontends?: Resolver<
+    Maybe<Array<Maybe<ResolversTypes['TenantFrontend']>>>,
+    ParentType,
+    ContextType
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -9444,13 +9750,13 @@ export type TenantQueriesResolvers<
     Maybe<ResolversTypes['Tenant']>,
     ParentType,
     ContextType,
-    RequireFields<TenantQueriesGetArgs, never>
+    Partial<TenantQueriesGetArgs>
   >
   getMany?: Resolver<
     Maybe<Array<ResolversTypes['Tenant']>>,
     ParentType,
     ContextType,
-    RequireFields<TenantQueriesGetManyArgs, never>
+    Partial<TenantQueriesGetManyArgs>
   >
   getRootTopics?: Resolver<
     Maybe<Array<Maybe<ResolversTypes['Topic']>>>,
@@ -9495,6 +9801,7 @@ export type TopicResolvers<
     ParentType,
     ContextType
   >
+  childCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>
   children?: Resolver<
     Maybe<Array<ResolversTypes['Topic']>>,
     ParentType,
@@ -9695,16 +10002,17 @@ export type TreeNodeResolvers<
     Maybe<ResolversTypes['Item']>,
     ParentType,
     ContextType,
-    RequireFields<TreeNodeItemArgs, 'language'>
+    Partial<TreeNodeItemArgs>
   >
   itemId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
+  language?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   parent?: Resolver<Maybe<ResolversTypes['TreeNode']>, ParentType, ContextType>
   parentId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>
   path?: Resolver<
     Maybe<ResolversTypes['String']>,
     ParentType,
     ContextType,
-    RequireFields<TreeNodePathArgs, 'language'>
+    Partial<TreeNodePathArgs>
   >
   position?: Resolver<
     Maybe<ResolversTypes['PositiveInt']>,
@@ -9789,6 +10097,12 @@ export type UserResolvers<
     ParentType,
     ContextType
   >
+  preferences?: Resolver<
+    Maybe<ResolversTypes['Preferences']>,
+    ParentType,
+    ContextType,
+    Partial<UserPreferencesArgs>
+  >
   role?: Resolver<
     Maybe<ResolversTypes['UserTenantRole']>,
     ParentType,
@@ -9817,7 +10131,7 @@ export type UserMetricsResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<UserMetricsCountArgs, never>
+    Partial<UserMetricsCountArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -9885,7 +10199,7 @@ export type UserQueriesResolvers<
     Maybe<Array<ResolversTypes['User']>>,
     ParentType,
     ContextType,
-    RequireFields<UserQueriesDev_SearchArgs, never>
+    Partial<UserQueriesDev_SearchArgs>
   >
   get?: Resolver<
     Maybe<ResolversTypes['User']>,
@@ -10137,7 +10451,7 @@ export type WebhookMetricsResolvers<
     ResolversTypes['Int'],
     ParentType,
     ContextType,
-    RequireFields<WebhookMetricsCountArgs, never>
+    Partial<WebhookMetricsCountArgs>
   >
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
@@ -10225,6 +10539,7 @@ export type Resolvers<ContextType = any> = {
   DocumentMutations?: DocumentMutationsResolvers<ContextType>
   DocumentQueries?: DocumentQueriesResolvers<ContextType>
   EmailAddress?: GraphQLScalarType
+  ExperimentalPreferences?: ExperimentalPreferencesResolvers<ContextType>
   File?: FileResolvers<ContextType>
   FileContent?: FileContentResolvers<ContextType>
   FileQueries?: FileQueriesResolvers<ContextType>
@@ -10234,6 +10549,7 @@ export type Resolvers<ContextType = any> = {
   Folder?: FolderResolvers<ContextType>
   FolderMutations?: FolderMutationsResolvers<ContextType>
   FolderQueries?: FolderQueriesResolvers<ContextType>
+  GenericSuggestSearchResult?: GenericSuggestSearchResultResolvers<ContextType>
   Grid?: GridResolvers<ContextType>
   GridColumn?: GridColumnResolvers<ContextType>
   GridColumnLayout?: GridColumnLayoutResolvers<ContextType>
@@ -10258,6 +10574,7 @@ export type Resolvers<ContextType = any> = {
   ItemQueries?: ItemQueriesResolvers<ContextType>
   ItemRelationsComponentConfig?: ItemRelationsComponentConfigResolvers<ContextType>
   ItemRelationsContent?: ItemRelationsContentResolvers<ContextType>
+  ItemSuggestSearchResult?: ItemSuggestSearchResultResolvers<ContextType>
   JSON?: GraphQLScalarType
   KeyValuePair?: KeyValuePairResolvers<ContextType>
   KlarnaPayment?: KlarnaPaymentResolvers<ContextType>
@@ -10266,6 +10583,7 @@ export type Resolvers<ContextType = any> = {
   LocationContent?: LocationContentResolvers<ContextType>
   MeMutations?: MeMutationsResolvers<ContextType>
   Mutation?: MutationResolvers<ContextType>
+  NerdyViewPreferences?: NerdyViewPreferencesResolvers<ContextType>
   NonNegativeFloat?: GraphQLScalarType
   NonNegativeInt?: GraphQLScalarType
   NumericComponentConfig?: NumericComponentConfigResolvers<ContextType>
@@ -10295,6 +10613,7 @@ export type Resolvers<ContextType = any> = {
   PipelineQueries?: PipelineQueriesResolvers<ContextType>
   PipelineStage?: PipelineStageResolvers<ContextType>
   PositiveInt?: GraphQLScalarType
+  Preferences?: PreferencesResolvers<ContextType>
   PresignedUploadRequest?: PresignedUploadRequestResolvers<ContextType>
   Price?: PriceResolvers<ContextType>
   PriceVariant?: PriceVariantResolvers<ContextType>
@@ -10385,8 +10704,11 @@ export type Resolvers<ContextType = any> = {
   Tenant?: TenantResolvers<ContextType>
   TenantAuthenticationMethod?: TenantAuthenticationMethodResolvers<ContextType>
   TenantDefaults?: TenantDefaultsResolvers<ContextType>
+  TenantFrontend?: TenantFrontendResolvers<ContextType>
+  TenantFrontendAuthentication?: TenantFrontendAuthenticationResolvers<ContextType>
   TenantMetrics?: TenantMetricsResolvers<ContextType>
   TenantMutations?: TenantMutationsResolvers<ContextType>
+  TenantPreferences?: TenantPreferencesResolvers<ContextType>
   TenantQueries?: TenantQueriesResolvers<ContextType>
   TenantReports?: TenantReportsResolvers<ContextType>
   Topic?: TopicResolvers<ContextType>

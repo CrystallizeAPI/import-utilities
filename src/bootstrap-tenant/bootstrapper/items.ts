@@ -1322,6 +1322,14 @@ export async function setItems({
           onUpdate,
         })
       }
+      if (jsonVariant.videos) {
+        variant.videos = await createVideosInput({
+          videos: jsonVariant.videos,
+          language,
+          context,
+          onUpdate,
+        })
+      }
 
       return variant
     }

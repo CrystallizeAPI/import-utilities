@@ -1,4 +1,4 @@
-import { KeyValuePairInput } from '..'
+import { KeyValuePairInput, VideoContentInput } from '..'
 import { StockLocationReferenceInput } from '../../generated/graphql'
 
 export interface CreateProductVariantInput {
@@ -13,6 +13,7 @@ export interface CreateProductVariantInput {
     mimeType?: string
     altText?: string
   }[]
+  videos?: VideoContentInput[]
   priceVariants?: {
     identifier: string
     price?: number

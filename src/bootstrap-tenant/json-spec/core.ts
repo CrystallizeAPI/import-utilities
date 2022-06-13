@@ -268,6 +268,7 @@ export interface JSONProductVariant {
   sku: string
   price?: JSONProductVariantPriceVariants | number
   images?: JSONImage[]
+  videos?: JSONVideo[]
   stock?: JSONProductVariantStockLocations | number
   attributes?: Record<string, string>
   externalReference?: string
