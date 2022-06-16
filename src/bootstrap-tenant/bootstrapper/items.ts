@@ -231,7 +231,7 @@ async function createImagesInput(
   const { images, language, onUpdate, context } = props
   const imgs: ImageComponentContentInput[] = []
 
-  for (let i = 0; i < images.length; i++) {
+  for (let i = 0; i < images?.length; i++) {
     const image = images[i]
     let { key, mimeType } = image
 
@@ -282,7 +282,7 @@ async function createVideosInput(
 
   const vids: VideoContentInput[] = []
 
-  for (let i = 0; i < videos.length; i++) {
+  for (let i = 0; i < videos?.length; i++) {
     const video = videos[i]
     let { key } = video
 
@@ -334,7 +334,7 @@ async function createFilesInput(
 
   const fs: FileInput[] = []
 
-  for (let i = 0; i < files.length; i++) {
+  for (let i = 0; i < files?.length; i++) {
     const file = files[i]
     let { key } = file
 
@@ -550,7 +550,7 @@ async function createComponentsInput(
         }
 
         const paragraphs = component as JSONParagraphCollection[]
-        for (let i = 0; i < paragraphs.length; i++) {
+        for (let i = 0; i < paragraphs?.length; i++) {
           const { title, body, images, videos } = paragraphs[i]
 
           inp.paragraphCollection.paragraphs.push({
@@ -676,7 +676,7 @@ async function createComponentsInput(
           },
         }
 
-        for (let i = 0; i < chunks.length; i++) {
+        for (let i = 0; i < chunks?.length; i++) {
           const newChunk: ComponentContentInput[] = []
           const chunk = chunks[i]
           const chunkKeys = Object.keys(chunk)
