@@ -1480,10 +1480,14 @@ export async function setItems({
               externalReference,
               tree: { path },
             } = response?.data?.[shape?.type]?.update
-            context.itemCataloguePathToIDMap.set(path, id)
+            context.itemCataloguePathToIDMap.set(item.cataloguePath || path, {
+              itemId: id,
+            })
 
             if (externalReference) {
-              context.itemExternalReferenceToIDMap.set(externalReference, id)
+              context.itemExternalReferenceToIDMap.set(externalReference, {
+                itemId: id,
+              })
             }
           }
         })
@@ -1529,9 +1533,13 @@ export async function setItems({
           externalReference,
           tree: { path },
         } = response?.data?.[shape?.type]?.create
-        context.itemCataloguePathToIDMap.set(path, id)
+        context.itemCataloguePathToIDMap.set(item.cataloguePath || path, {
+          itemId: id,
+        })
         if (externalReference) {
-          context.itemExternalReferenceToIDMap.set(externalReference, id)
+          context.itemExternalReferenceToIDMap.set(externalReference, {
+            itemId: id,
+          })
         }
         itemId = id
       }
@@ -1568,12 +1576,11 @@ export async function setItems({
     }
 
     const itemAndParentId = await getItemId({
+      context,
       externalReference: item.externalReference,
       cataloguePath: item.cataloguePath,
-      context,
-      language: context.defaultLanguage.code,
-      tenantId: context.tenantId,
       shapeIdentifier: item.shape,
+      language: context.defaultLanguage.code,
     })
 
     item.id = itemAndParentId.itemId
@@ -1581,11 +1588,11 @@ export async function setItems({
 
     if (item.parentExternalReference || item.parentCataloguePath) {
       const parentItemAndParentId = await getItemId({
+        context,
         externalReference: item.parentExternalReference,
         cataloguePath: item.parentCataloguePath,
-        context,
+        shapeIdentifier: item.shape,
         language: context.defaultLanguage.code,
-        tenantId: context.tenantId,
       })
       parentId = parentItemAndParentId.itemId
     }
@@ -1684,11 +1691,11 @@ export async function setItems({
         itemRelations.map(async (itemRelation) => {
           if (typeof itemRelation === 'object') {
             const { itemId } = await getItemId({
+              context,
               externalReference: itemRelation.externalReference,
               cataloguePath: itemRelation.cataloguePath,
-              context,
+              shapeIdentifier: item.shape,
               language: context.defaultLanguage.code,
-              tenantId: context.tenantId,
             })
 
             if (itemId) {
