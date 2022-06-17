@@ -138,29 +138,16 @@ export async function setTopics({
 
   async function handleLevel(level: JSONTopic, parentId?: string) {
     try {
-      const language = context.defaultLanguage.code
-
-      const existingTopicId = await getTopicId({
-        topic: level.path
-          ? { path: getTranslation(level.path, language) }
-          : level.name,
-        language,
-        context,
-        useCache: false,
-      })
-
-      if (existingTopicId) {
-        level.id = existingTopicId
-      }
+      const exists = Boolean(level.id)
 
       // Can't find this topic, let's create it
-      if (!existingTopicId) {
+      if (!exists) {
         level.id = await createTopic(level, context, parentId)
       }
 
       for (let i = 0; i < languages.length; i++) {
         // Due to a race condition in the PIM, we need to sleep for a bit
-        sleep(25)
+        await sleep(25)
 
         const language = languages[i]
         const name = getTranslation(level.name, language) || ''
@@ -191,7 +178,7 @@ export async function setTopics({
         message: `${getTranslation(
           level.name,
           context.defaultLanguage.code
-        )}: ${existingTopicId ? 'updated' : 'created'}`,
+        )}: ${!exists ? 'updated' : 'created'}`,
       })
 
       if (level.children) {
@@ -210,6 +197,39 @@ export async function setTopics({
     }
   }
 
+  async function getIdForLevel(level: JSONTopic) {
+    try {
+      const language = context.defaultLanguage.code
+
+      const existingTopicId = await getTopicId({
+        topic: level.path
+          ? { path: getTranslation(level.path, language) }
+          : level.name,
+        language,
+        context,
+        useCache: false,
+      })
+
+      if (existingTopicId) {
+        level.id = existingTopicId
+      }
+
+      if (level.children) {
+        for (let i = 0; i < level.children.length; i++) {
+          await getIdForLevel(level.children[i])
+        }
+      }
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  // Pull ids for all topics before modifying them
+  for (let i = 0; i < spec.topicMaps.length; i++) {
+    await getIdForLevel(spec.topicMaps[i])
+  }
+
+  // Create/update topics
   for (let i = 0; i < spec.topicMaps.length; i++) {
     await handleLevel(spec.topicMaps[i])
   }
