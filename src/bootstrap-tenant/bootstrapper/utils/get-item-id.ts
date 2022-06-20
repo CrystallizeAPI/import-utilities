@@ -1,114 +1,115 @@
 import gql from 'graphql-tag'
 import { BootstrapperContext } from '.'
+import { JSONItem } from '../../json-spec'
 
-const cache = new Map()
+const externalReferenceQuery = gql`
+  query GET_ID_FROM_EXTERNAL_REFERENCE(
+    $externalReferences: [String!]
+    $language: String!
+    $tenantId: ID!
+  ) {
+    item {
+      getMany(
+        externalReferences: $externalReferences
+        language: $language
+        tenantId: $tenantId
+      ) {
+        id
+        shape {
+          identifier
+        }
+        tree {
+          path
+          parentId
+        }
+      }
+    }
+  }
+`
+
+const cataloguePathQuery = gql`
+  query GET_ID_FROM_PATH($path: String, $language: String) {
+    catalogue(path: $path, language: $language) {
+      id
+      parent {
+        id
+      }
+    }
+  }
+`
 
 export interface ItemAndParentId {
   itemId?: string
   parentId?: string
 }
 
-export function clearCache() {
-  cache.clear()
+export interface IGetItemIdProps {
+  context: BootstrapperContext
+  cataloguePath?: string
+  externalReference?: string
+  shapeIdentifier?: string
+  language: string
 }
 
-export async function getItemId(props: {
-  externalReference?: string
-  cataloguePath?: string
-  language: string
-  tenantId: string
-  context: BootstrapperContext
-  shapeIdentifier?: string
-}): Promise<ItemAndParentId> {
-  const {
-    externalReference,
-    cataloguePath,
-    language,
-    tenantId,
-    shapeIdentifier,
-    context,
-  } = props
-
+export const getItemId = async ({
+  context,
+  cataloguePath,
+  externalReference,
+  shapeIdentifier,
+  language,
+}: IGetItemIdProps): Promise<ItemAndParentId> => {
   let idAndParent: ItemAndParentId = {}
 
-  if (externalReference) {
-    idAndParent = await getItemIdFromExternalReference({
-      externalReference,
-      language,
-      tenantId,
-      useCache: context.useReferenceCache,
-      shapeIdentifier,
+  if (cataloguePath) {
+    idAndParent = context.itemCataloguePathToIDMap.get(cataloguePath) || {}
+    if (idAndParent.itemId) {
+      return idAndParent
+    }
+
+    idAndParent = await fetchItemIdFromCataloguePath({
       context,
+      cataloguePath,
+      language,
     })
+    if (idAndParent.itemId) {
+      return idAndParent
+    }
   }
 
-  if (!idAndParent.itemId && cataloguePath) {
-    idAndParent = await getItemIdFromCataloguePath({
-      path: cataloguePath,
-      language,
-      useCache: context.useReferenceCache,
-      context,
-    })
-
-    if (!idAndParent.itemId) {
-      idAndParent =
-        context.itemJSONCataloguePathToIDMap.get(cataloguePath) || {}
+  if (externalReference) {
+    idAndParent =
+      context.itemExternalReferenceToIDMap.get(externalReference) || {}
+    if (idAndParent?.itemId) {
+      return idAndParent
     }
+    return fetchItemIdFromExternalReference({
+      context,
+      externalReference,
+      shapeIdentifier,
+      language,
+    })
   }
 
   return idAndParent
 }
 
-async function getItemIdFromExternalReference({
-  externalReference,
-  language,
-  tenantId,
-  useCache,
-  shapeIdentifier,
+const fetchItemIdFromExternalReference = async ({
   context,
+  externalReference,
+  shapeIdentifier,
+  language,
 }: {
-  externalReference: string
-  language: string
-  tenantId: string
-  useCache: boolean
   context: BootstrapperContext
+  externalReference: string
   shapeIdentifier?: string
-}): Promise<ItemAndParentId> {
-  if (useCache) {
-    const cacheItem = cache.get(`externalReference:${externalReference}`)
-    if (cacheItem) {
-      return cacheItem
-    }
-  }
-
+  language: string
+}): Promise<ItemAndParentId> => {
   const response = await context.callPIM({
-    query: gql`
-      query GET_ID_FROM_EXTERNAL_REFERENCE(
-        $externalReferences: [String!]
-        $language: String!
-        $tenantId: ID!
-      ) {
-        item {
-          getMany(
-            externalReferences: $externalReferences
-            language: $language
-            tenantId: $tenantId
-          ) {
-            id
-            shape {
-              identifier
-            }
-            tree {
-              parentId
-            }
-          }
-        }
-      }
-    `,
+    query: externalReferenceQuery,
     variables: {
       externalReferences: [externalReference],
       language,
-      tenantId,
+      tenantId: context.tenantId,
     },
   })
 
@@ -122,49 +123,26 @@ async function getItemIdFromExternalReference({
   if (!item) {
     return {}
   }
-  const idAndParent = {
+
+  return {
     itemId: item.id,
     parentId: item.tree?.parentId,
   }
-
-  if (useCache) {
-    cache.set(`externalReference:${externalReference}`, idAndParent)
-  }
-
-  return idAndParent
 }
 
-async function getItemIdFromCataloguePath({
-  path,
-  language,
-  useCache,
+const fetchItemIdFromCataloguePath = async ({
   context,
+  cataloguePath,
+  language,
 }: {
-  path: string
-  language: string
-  useCache: boolean
   context: BootstrapperContext
-}): Promise<ItemAndParentId> {
-  if (useCache) {
-    const cacheItem = cache.get(`path:${path}`)
-    if (cacheItem) {
-      return cacheItem
-    }
-  }
-
+  cataloguePath: string
+  language: string
+}): Promise<ItemAndParentId> => {
   const response = await context.callCatalogue({
-    query: gql`
-      query GET_ID_FROM_PATH($path: String, $language: String) {
-        catalogue(path: $path, language: $language) {
-          id
-          parent {
-            id
-          }
-        }
-      }
-    `,
+    query: cataloguePathQuery,
     variables: {
-      path,
+      path: cataloguePath,
       language,
     },
   })
@@ -176,10 +154,6 @@ async function getItemIdFromCataloguePath({
   const idAndParent = {
     itemId: item.id,
     parentId: item.parent?.id,
-  }
-
-  if (useCache) {
-    cache.set(`path:${path}`, idAndParent)
   }
 
   return idAndParent

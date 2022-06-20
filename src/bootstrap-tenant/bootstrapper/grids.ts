@@ -29,11 +29,10 @@ async function setItemIds(
       await Promise.all(
         row.columns.map(async (column) => {
           const { itemId } = await getItemId({
+            context,
             externalReference: column.item?.externalReference,
             cataloguePath: column.item?.cataloguePath,
-            context,
             language: context.defaultLanguage.code,
-            tenantId: context.tenantId,
           })
           if (itemId) {
             column.itemId = itemId
@@ -97,7 +96,7 @@ async function publishGrid(
 ) {
   return context.callPIM({
     query: gql`
-      mutation($id: ID!, $language: String!) {
+      mutation ($id: ID!, $language: String!) {
         grid {
           publish(id: $id, language: $language) {
             id

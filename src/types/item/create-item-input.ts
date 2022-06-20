@@ -10,5 +10,6 @@ export interface CreateItemInput {
   }
   tree?: {
     parentId: string
+    position?: number
   }
 }

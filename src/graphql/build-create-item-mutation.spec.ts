@@ -62,6 +62,10 @@ test('create mutation for product', (t) => {
         ) {
           id
           name
+          externalReference
+          tree {
+            path
+          }
         }
       }
     }
@@ -97,6 +101,10 @@ test('create mutation for document', (t) => {
         ) {
           id
           name
+          externalReference
+          tree {
+            path
+          }
         }
       }
     }
@@ -132,6 +140,10 @@ test('create mutation for folder', (t) => {
         ) {
           id
           name
+          externalReference
+          tree {
+            path
+          }
         }
       }
     }
@@ -218,6 +230,10 @@ test('create mutation for items with components', (t) => {
         ) {
           id
           name
+          externalReference
+          tree {
+            path
+          }
         }
       }
     }
@@ -298,6 +314,10 @@ test('create mutation for items with content chunk component', (t) => {
         ) {
           id
           name
+          externalReference
+          tree {
+            path
+          }
         }
       }
     }

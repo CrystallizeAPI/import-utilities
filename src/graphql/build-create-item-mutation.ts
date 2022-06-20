@@ -28,6 +28,10 @@ export const buildCreateItemMutation = (
       },
       id: true,
       name: true,
+      externalReference: true,
+      tree: {
+        path: true,
+      },
     },
   }
 
@@ -84,6 +88,10 @@ export function buildCreateItemQueryAndVariables(
         ${topFieldName} {
           create (language: $language, input: $input) {
             id
+            externalReference
+            tree {
+              path
+            }
           }
         }
       }

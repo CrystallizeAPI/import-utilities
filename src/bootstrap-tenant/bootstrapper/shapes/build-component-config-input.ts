@@ -4,7 +4,7 @@ import { Shape, Component } from '../../../types'
 import { getComponentType } from './get-component-type'
 
 export interface ComponentConfigInputSettings {
-  config?: ComponentConfigInput
+  config: ComponentConfigInput
   deferUpdate?: boolean
 }
 
@@ -12,15 +12,21 @@ const buildItemRelationsComponentConfigInput = (
   component: Component,
   existingShapes: Shape[],
   isDeferred: boolean
-): ComponentConfigInputSettings => {
+): ComponentConfigInputSettings | null => {
+  if (!component.config) {
+    return null
+  }
+
   const conf: ComponentConfigInputSettings = {
     config: {
-      itemRelations: component.config,
+      itemRelations: {
+        ...component.config,
+      },
     },
   }
 
   if (!component.config?.acceptedShapeIdentifiers?.length) {
-    delete component.config?.itemRelations?.acceptedShapeIdentifiers
+    delete conf.config?.itemRelations?.acceptedShapeIdentifiers
     return conf
   }
 
@@ -53,7 +59,7 @@ export const buildComponentConfigInput = (
   component: Component,
   existingShapes: Shape[],
   isDeferred: boolean
-): ComponentConfigInputSettings => {
+): ComponentConfigInputSettings | null => {
   switch (component.type) {
     case 'propertiesTable': {
       // When updating an existing shape, we get "sections"
@@ -80,7 +86,7 @@ export const buildComponentConfigInput = (
           },
         }
       }
-      return {}
+      return null
     }
     case 'selection': {
       return {
@@ -96,34 +102,64 @@ export const buildComponentConfigInput = (
         isDeferred
       )
     case 'componentChoice': {
+      let shouldDefer
       return {
         config: {
           componentChoice: {
             ...component.config,
-            choices: component.config?.choices?.map((c: any) => ({
-              ...c,
-              type: getComponentType(c.type),
-              ...buildComponentConfigInput(c, existingShapes, isDeferred),
-            })),
+            choices: component.config?.choices?.map((c: any) => {
+              const conf = buildComponentConfigInput(
+                c,
+                existingShapes,
+                isDeferred
+              )
+              const cmp = {
+                ...c,
+                type: getComponentType(c.type),
+              }
+              if (conf?.config) {
+                cmp.config = conf.config
+              }
+              if (conf?.deferUpdate) {
+                shouldDefer = true
+              }
+              return cmp
+            }),
           },
         },
+        deferUpdate: shouldDefer,
       }
     }
     case 'contentChunk': {
+      let shouldDefer
       return {
         config: {
           contentChunk: {
             ...component.config,
-            components: component.config?.components?.map((c: any) => ({
-              ...c,
-              type: getComponentType(c.type),
-              ...buildComponentConfigInput(c, existingShapes, isDeferred),
-            })),
+            components: component.config?.components?.map((c: any) => {
+              const conf = buildComponentConfigInput(
+                c,
+                existingShapes,
+                isDeferred
+              )
+              const cmp = {
+                ...c,
+                type: getComponentType(c.type),
+              }
+              if (conf?.config) {
+                cmp.config = conf.config
+              }
+              if (conf?.deferUpdate) {
+                shouldDefer = true
+              }
+              return cmp
+            }),
           },
         },
+        deferUpdate: shouldDefer,
       }
     }
   }
 
-  return {}
+  return null
 }

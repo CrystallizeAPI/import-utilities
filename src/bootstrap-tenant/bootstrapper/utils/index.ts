@@ -51,6 +51,7 @@ export interface AreaWarning {
     | 'SHAPE_ID_TRUNCATED'
     | 'CANNOT_HANDLE_ITEM'
     | 'CANNOT_HANDLE_PRODUCT'
+    | 'CANNOT_HANDLE_ITEM_RELATION'
     | 'OTHER'
 }
 
@@ -66,7 +67,7 @@ export interface Config {
   logLevel?: LogLevel
   multilingual?: boolean
   experimental: {
-    parallelize?: boolean
+    parallelize?: boolean // Deprecated
   }
 }
 
@@ -82,12 +83,14 @@ export interface BootstrapperContext {
   config: Config
   useReferenceCache: boolean
   stockLocations?: JSONStockLocation[]
-  itemJSONCataloguePathToIDMap: Map<string, ItemAndParentId>
+  itemCataloguePathToIDMap: Map<string, ItemAndParentId>
+  itemExternalReferenceToIDMap: Map<string, ItemAndParentId>
   itemVersions: Map<string, ItemVersionsForLanguages>
   fileUploader: FileUploadManager
   uploadFileFromUrl: (url: string) => Promise<RemoteFileUploadResult | null>
   callPIM: (props: IcallAPI) => Promise<IcallAPIResult>
   callCatalogue: (props: IcallAPI) => Promise<IcallAPIResult>
+  callSearch: (props: IcallAPI) => Promise<IcallAPIResult>
   callOrders: (props: IcallAPI) => Promise<IcallAPIResult>
   emitError: (error: string) => void
 }
