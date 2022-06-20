@@ -1,8 +1,8 @@
 import gql from 'graphql-tag'
 import { Shape, Component, ComponentInput } from '../../../types'
 import {
-  buildCreateShapeMutation,
-  buildUpdateShapeMutation,
+  buildCreateShapeQueryAndVariables,
+  buildUpdateShapeQueryAndVariables,
 } from '../../../graphql'
 
 import { JSONShape, JsonSpec } from '../../json-spec'
@@ -223,28 +223,32 @@ async function createOrUpdateShape(
         )
       }
 
+      const { query, variables } = buildUpdateShapeQueryAndVariables({
+        id: identifier,
+        identifier,
+        tenantId,
+        input: {
+          components,
+          ...(shape.name && { name: shape.name }),
+        },
+      })
       const r = await context.callPIM({
-        query: buildUpdateShapeMutation({
-          id: identifier,
-          identifier,
-          tenantId,
-          input: {
-            components,
-            ...(shape.name && { name: shape.name }),
-          },
-        }),
+        query,
+        variables,
       })
 
       status = r?.data?.shape?.update ? Status.updated : Status.error
     } else {
+      const { query, variables } = buildCreateShapeQueryAndVariables({
+        identifier: shape.identifier,
+        type: getShapeType(shape.type),
+        name: shape.name,
+        tenantId: context.tenantId,
+        components,
+      })
       const r = await context.callPIM({
-        query: buildCreateShapeMutation({
-          identifier: shape.identifier,
-          type: getShapeType(shape.type),
-          name: shape.name,
-          tenantId: context.tenantId,
-          components,
-        }),
+        query,
+        variables,
       })
       status = r?.data?.shape?.create ? Status.created : Status.error
     }
