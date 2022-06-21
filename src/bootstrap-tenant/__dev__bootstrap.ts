@@ -15,10 +15,10 @@ import {
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'my-awesome-commerce'
+    const tenantIdentifier = 'photofinder-clone'
     const jsonSpec = JSON.parse(
       await readFile(
-        resolve(__dirname, '../../json-spec/my-awesome-commerce-clone.json'),
+        resolve(__dirname, '../../json-spec/photofinder.json'),
         'utf-8'
       )
     )
@@ -39,8 +39,8 @@ async function bootstrap() {
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 
     bootstrapper.setAccessToken(
-      '6321ca3cf17b22fda623',
-      'ff10cf09bf717fc572547d757878170beff8638a'
+      process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
+      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
     )
 
     bootstrapper.setSpec(jsonSpec)
@@ -97,6 +97,7 @@ async function bootstrap() {
 
     bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
       console.log(error)
+      process.exit(1)
     })
 
     // bootstrapper.config.itemTopics = 'amend'

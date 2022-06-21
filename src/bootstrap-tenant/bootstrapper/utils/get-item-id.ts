@@ -29,7 +29,13 @@ const externalReferenceQuery = gql`
 
 const cataloguePathQuery = gql`
   query GET_ID_FROM_PATH($path: String, $language: String) {
-    catalogue(path: $path, language: $language) {
+    published: catalogue(path: $path, language: $language, version: published) {
+      id
+      parent {
+        id
+      }
+    }
+    draft: catalogue(path: $path, language: $language, version: draft) {
       id
       parent {
         id
@@ -147,7 +153,8 @@ const fetchItemIdFromCataloguePath = async ({
     },
   })
 
-  const item = response.data?.catalogue
+  // Favor published version over draft
+  const item = response.data?.published || response.data?.draft
   if (!item) {
     return {}
   }

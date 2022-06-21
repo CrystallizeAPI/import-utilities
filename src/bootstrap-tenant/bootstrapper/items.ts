@@ -1643,23 +1643,6 @@ export async function setItems({
         }
       }
     }
-
-    for (let i = 0; i < context.languages.length; i++) {
-      const versionsInfo = context.itemVersions.get(item.id)
-      const passedPublishConfig = item._options?.publish
-      if (typeof passedPublishConfig === 'boolean') {
-        if (passedPublishConfig) {
-          await publishItem(context.languages[i].code, item.id, context)
-        }
-      } else if (
-        context.config.itemPublish === 'publish' ||
-        !versionsInfo ||
-        versionsInfo[context.languages[i].code] ===
-          ItemVersionDescription.Published
-      ) {
-        await publishItem(context.languages[i].code, item.id, context)
-      }
-    }
   }
 
   async function handleItemRelationsAndPublish(item: JSONItem) {
