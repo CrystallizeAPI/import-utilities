@@ -333,6 +333,8 @@ export class Bootstrapper extends EventEmitter {
       variables: {
         identifier,
       },
+      // No need to report for this query, as it will error out if the tenant does not exist
+      suppressErrors: true,
     })
 
     const match = resultGetTenant?.data?.tenant?.get || null

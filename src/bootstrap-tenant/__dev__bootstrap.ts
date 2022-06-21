@@ -15,13 +15,13 @@ import {
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'hkn-files-demo-with-excel'
-    // const jsonSpec = JSON.parse(
-    //   await readFile(
-    //     resolve(__dirname, '../../json-spec/photofinder.json'),
-    //     'utf-8'
-    //   )
-    // )
+    const tenantIdentifier = 'my-awesome-commerce'
+    const jsonSpec = JSON.parse(
+      await readFile(
+        resolve(__dirname, '../../json-spec/my-awesome-commerce-clone.json'),
+        'utf-8'
+      )
+    )
 
     if (
       !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
@@ -39,51 +39,11 @@ async function bootstrap() {
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 
     bootstrapper.setAccessToken(
-      process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
-      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
+      '6321ca3cf17b22fda623',
+      'ff10cf09bf717fc572547d757878170beff8638a'
     )
 
-    bootstrapper.setSpec({
-      shapes: [
-        {
-          identifier: 'example-files',
-          name: 'Example files',
-          type: 'document',
-          components: [
-            {
-              id: 'some-files',
-              name: 'Some files',
-              type: 'files',
-              config: {
-                acceptedContentTypes: [
-                  {
-                    contentType:
-                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                  },
-                ],
-                max: 1,
-              } as JSONShapeComponentFilesConfig,
-            },
-          ],
-        },
-      ],
-      items: [
-        {
-          name: 'files',
-          cataloguePath: '/files',
-          shape: 'example-files',
-          components: {
-            files: [
-              {
-                src:
-                  'https://media.crystallize.com/hkn-files-demo/22/2/3/1/efaktura.pdf',
-                title: '',
-              },
-            ],
-          },
-        },
-      ],
-    })
+    bootstrapper.setSpec(jsonSpec)
 
     // const ProgressBar = new Progress.MultiBar({
     //   clearOnComplete: false,

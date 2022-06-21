@@ -6,6 +6,7 @@ import { LogLevel } from './types'
 export interface IcallAPI {
   query: DocumentNode | string
   variables?: any
+  suppressErrors?: boolean
 }
 
 export interface IcallAPIResult {
@@ -75,8 +76,9 @@ export class ApiManager {
 
     const maxRequests = 20
 
-    const errors = this.lastRequestsStatuses.filter((r) => r === 'error')
-      ?.length
+    const errors = this.lastRequestsStatuses.filter(
+      (r) => r === 'error'
+    )?.length
     if (errors > 5) {
       this.maxWorkers--
       this.lastRequestsStatuses.length = 0
@@ -137,8 +139,8 @@ export class ApiManager {
         item.props.variables,
         {
           'X-Crystallize-Access-Token-Id': this.CRYSTALLIZE_ACCESS_TOKEN_ID,
-          'X-Crystallize-Access-Token-Secret': this
-            .CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+          'X-Crystallize-Access-Token-Secret':
+            this.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
           'X-Crystallize-Static-Auth-Token': this.CRYSTALLIZE_STATIC_AUTH_TOKEN,
         }
       )
@@ -154,10 +156,11 @@ export class ApiManager {
       if (e?.type === 'system') {
         otherError = e.message || JSON.stringify(e, null, 1)
 
-        // Always report these errors
-        this.errorNotifier({
-          error: otherError,
-        })
+        if (!item.props.suppressErrors) {
+          this.errorNotifier({
+            error: otherError,
+          })
+        }
       } else {
         /**
          * The API might stumble and throw an internal error "reason: socket hang up".
@@ -190,7 +193,7 @@ export class ApiManager {
       await sleep(item.failCount * 1000)
 
       // Start reporting this as an error after a while
-      if (item.failCount > 10) {
+      if (item.failCount > 10 && !item.props.suppressErrors) {
         this.errorNotifier({
           error: err,
         })
@@ -202,9 +205,11 @@ export class ApiManager {
 
       // Report errors in usage of the API
       if (queryError) {
-        this.errorNotifier({
-          error: queryError,
-        })
+        if (!item.props.suppressErrors) {
+          this.errorNotifier({
+            error: queryError,
+          })
+        }
         resolveWith({ data: null, errors: [{ error: queryError }] })
       } else {
         resolveWith({ data: response })
