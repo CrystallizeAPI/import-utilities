@@ -16,15 +16,15 @@ const testCases: testCase[] = [
       context: {
         itemCataloguePathToIDMap: new Map<string, ItemAndParentId>().set(
           '/foo/bar/baz',
-          { itemId: 'some-id', parentId: 'some-parent-id' }
+          { itemId: 'some-id-1', parentId: 'some-parent-id-1' }
         ),
       } as BootstrapperContext,
       language: 'en',
       cataloguePath: '/foo/bar/baz',
     },
     expected: {
-      itemId: 'some-id',
-      parentId: 'some-parent-id',
+      itemId: 'some-id-1',
+      parentId: 'some-parent-id-1',
     },
   },
   {
@@ -34,7 +34,7 @@ const testCases: testCase[] = [
         callCatalogue: async (_) =>
           ({
             data: {
-              catalogue: {
+              published: {
                 id: 'some-id',
                 parent: {
                   id: 'some-parent-id',
