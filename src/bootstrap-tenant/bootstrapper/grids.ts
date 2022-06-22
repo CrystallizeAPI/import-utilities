@@ -49,7 +49,9 @@ async function createGrid(
   language: string,
   context: BootstrapperContext
 ): Promise<string | null> {
-  await setItemIds(grid, language, context)
+  // Do NOT set item ids here. This will be done later in the
+  // updateGrid mutation
+  // await setItemIds(grid, language, context)
 
   const r = await context.callPIM({
     query: buildCreateGridMutation({
@@ -57,7 +59,11 @@ async function createGrid(
       input: {
         tenantId: context.tenantId,
         name: getTranslation(grid.name, language),
-        rows: grid.rows as GridRow[],
+        rows: (grid.rows as GridRow[]).map(function removeItemField(row) {
+          return {
+            columns: row.columns.map(({ layout }) => ({ layout })),
+          } as GridRow
+        }),
       },
     }),
   })
@@ -140,7 +146,8 @@ export async function setGrids(props: ISetGrids) {
       if (id) {
         grid.id = id
 
-        await publishGrid(id, language, context)
+        // No need to publish now. It will happen in the update phase later
+        // await publishGrid(id, language, context)
         finishedGrids++
         onUpdate({
           progress: finishedGrids / missingGrids.length,

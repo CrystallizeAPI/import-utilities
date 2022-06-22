@@ -4,3 +4,4 @@ dist
 .env
 examples/*/yarn.lock
 examples/*/package-lock.json
+json-spec/*.json

@@ -498,9 +498,9 @@ export class Bootstrapper extends EventEmitter {
       if (props.stockLocations) {
         spec.stockLocations = await getExistingStockLocations(this.context)
       }
-    } catch (e) {
+    } catch (error) {
       this.emit(EVENT_NAMES.ERROR, {
-        error: JSON.stringify(e, null, 1),
+        error,
       })
     }
 
@@ -540,9 +540,9 @@ export class Bootstrapper extends EventEmitter {
         duration: new Duration(start, end).toString(1),
         spec: this.SPEC,
       })
-    } catch (e) {
+    } catch (error) {
       this.emit(EVENT_NAMES.ERROR, {
-        error: JSON.stringify(e, null, 1),
+        error,
       })
     }
   }
