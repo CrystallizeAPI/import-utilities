@@ -86,7 +86,7 @@ export interface BootstrapperContext {
   stockLocations?: JSONStockLocation[]
   itemCataloguePathToIDMap: Map<string, ItemAndParentId>
   itemExternalReferenceToIDMap: Map<string, ItemAndParentId>
-  topicPathToIDMap: Map<string, TopicAndTenantId>
+  topicPathToIDMap: Map<string, string>
   itemVersions: Map<string, ItemVersionsForLanguages>
   fileUploader: FileUploadManager
   uploadFileFromUrl: (url: string) => Promise<RemoteFileUploadResult | null>

@@ -35,11 +35,9 @@ export async function getTopicId(
   }
 
   if (useCache) {
-    const cacheItem = context.topicPathToIDMap.get(searchTerm)
-
-    // Filter by tenant id in case the context is not clean from a previous run
-    if (cacheItem && context.tenantId === cacheItem.tenantId) {
-      return cacheItem.topicId
+    const topicId = context.topicPathToIDMap.get(searchTerm)
+    if (topicId) {
+      return topicId
     }
   }
 
@@ -117,10 +115,7 @@ export async function getTopicId(
 
   if (id) {
     if (useCache) {
-      context.topicPathToIDMap.set(searchTerm, {
-        topicId: id,
-        tenantId: context.tenantId,
-      })
+      context.topicPathToIDMap.set(searchTerm, id)
     }
   }
 
