@@ -1,6 +1,5 @@
 import gql from 'graphql-tag'
 import { BootstrapperContext } from '.'
-import { JSONItem } from '../../json-spec'
 
 const externalReferenceQuery = gql`
   query GET_ID_FROM_EXTERNAL_REFERENCE(

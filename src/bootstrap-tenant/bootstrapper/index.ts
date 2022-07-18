@@ -17,6 +17,7 @@ import {
   sleep,
   FileUploadManager,
   removeUnwantedFieldsFromThing,
+  ItemAndParentId,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -30,15 +31,15 @@ import {
 } from './utils/get-all-catalogue-items'
 import { getAllGrids } from './utils/get-all-grids'
 import { setGrids } from './grids'
-import { clearCache as clearTopicCache } from './utils/get-topic-id'
 import { setStockLocations, getExistingStockLocations } from './stock-locations'
 import {
   getExistingSubscriptionPlans,
   setSubscriptionPlans,
 } from './subscription-plans'
-import { createAPICaller, IcallAPI, IcallAPIResult } from './utils/api'
+import { createAPICaller } from './utils/api'
 import { setOrders } from './orders'
 import { setCustomers } from './customers'
+import { TopicAndTenantId } from './utils/get-topic-id'
 
 export interface ICreateSpec {
   language?: string
@@ -120,13 +121,13 @@ export class Bootstrapper extends EventEmitter {
      * A map keeping a reference of all of the items in
      * the current spec and their (possible) item id
      */
-    itemCataloguePathToIDMap: new Map(),
+    itemCataloguePathToIDMap: new Map<string, ItemAndParentId>(),
 
     /**
      * A map keeping a reference of all of the items in
      * the current spec and their (possible) item id
      */
-    itemExternalReferenceToIDMap: new Map(),
+    itemExternalReferenceToIDMap: new Map<string, ItemAndParentId>(),
 
     /**
      * A map keeping a reference of all of the items in
@@ -136,6 +137,12 @@ export class Bootstrapper extends EventEmitter {
 
     tenantId: '',
     tenantIdentifier: '',
+
+    /**
+     * A map keeping a reference of all of the topics in the current
+     * spec and their id.
+     */
+    topicPathToIDMap: new Map<string, string>(),
 
     fileUploader: new FileUploadManager(),
     uploadFileFromUrl: (url: string) =>
@@ -221,11 +228,14 @@ export class Bootstrapper extends EventEmitter {
   setTenantIdentifier = async (tenantIdentifier: string) => {
     this.context.tenantIdentifier = tenantIdentifier
     this.tenantIdentifier = tenantIdentifier
-  }
 
-  constructor() {
-    super()
-    clearTopicCache()
+    // Clear existing maps if the tenant is changed
+    this.context.itemCataloguePathToIDMap = new Map<string, ItemAndParentId>()
+    this.context.itemExternalReferenceToIDMap = new Map<
+      string,
+      ItemAndParentId
+    >()
+    this.context.topicPathToIDMap = new Map<string, string>()
   }
 
   getTenantBasics = async () => {
