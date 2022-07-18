@@ -3,21 +3,24 @@ import { BootstrapperContext } from '.'
 import { JSONItemTopic } from '../../json-spec'
 import { IcallAPI, IcallAPIResult } from './api'
 
-const cache = new Map()
-
-export function clearCache() {
-  cache.clear()
+export interface TopicAndTenantId {
+  topicId: string
+  tenantId: string
 }
 
-export type ApiFN = (props: IcallAPI) => Promise<IcallAPIResult>
-
-export async function getTopicId(props: {
+export interface IGetTopicIdProps {
   topic: JSONItemTopic
   language: string
   useCache: boolean
   context: BootstrapperContext
   apiFn?: ApiFN
-}): Promise<string | null> {
+}
+
+export type ApiFN = (props: IcallAPI) => Promise<IcallAPIResult>
+
+export async function getTopicId(
+  props: IGetTopicIdProps
+): Promise<string | null> {
   const { topic, language, useCache, context, apiFn = context.callPIM } = props
   let searchTerm: string | undefined = ''
 
@@ -32,9 +35,11 @@ export async function getTopicId(props: {
   }
 
   if (useCache) {
-    const cacheItem = cache.get(searchTerm)
-    if (cacheItem) {
-      return cacheItem
+    const cacheItem = context.topicPathToIDMap.get(searchTerm)
+
+    // Filter by tenant id in case the context is not clean from a previous run
+    if (cacheItem && context.tenantId === cacheItem.tenantId) {
+      return cacheItem.topicId
     }
   }
 
@@ -112,7 +117,10 @@ export async function getTopicId(props: {
 
   if (id) {
     if (useCache) {
-      cache.set(searchTerm, id)
+      context.topicPathToIDMap.set(searchTerm, {
+        topicId: id,
+        tenantId: context.tenantId,
+      })
     }
   }
 

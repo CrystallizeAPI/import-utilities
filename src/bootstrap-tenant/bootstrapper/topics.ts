@@ -6,7 +6,6 @@ import { getTranslation, AreaUpdate, BootstrapperContext, sleep } from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
 import { getTopicId } from './utils/get-topic-id'
-import gql from 'graphql-tag'
 
 export { getAllTopicsForSpec } from './utils/get-all-topics'
 
