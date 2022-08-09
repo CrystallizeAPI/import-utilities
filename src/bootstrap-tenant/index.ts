@@ -47,13 +47,13 @@ export async function createJSONSpec(
 export function bootstrapTenant(props: BootstrapperProps): Bootstrapper {
   const bootstrapper = new Bootstrapper()
 
+  bootstrapper.setTenantIdentifier(props.tenantIdentifier)
   bootstrapper.setAccessToken(
     props.CRYSTALLIZE_ACCESS_TOKEN_ID,
     props.CRYSTALLIZE_ACCESS_TOKEN_SECRET
   )
 
   bootstrapper.setSpec(props.jsonSpec)
-  bootstrapper.setTenantIdentifier(props.tenantIdentifier)
 
   // Allow for event listeners to be registered
   setTimeout(() => {
