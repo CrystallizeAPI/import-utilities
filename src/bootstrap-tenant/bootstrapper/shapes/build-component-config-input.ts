@@ -2,6 +2,7 @@ import { ComponentConfigInput } from '../../../generated/graphql'
 import { InvalidItemRelationShapeIdentifier } from '../errors'
 import { Shape, Component } from '../../../types'
 import { getComponentType } from './get-component-type'
+import { EnumType } from 'json-to-graphql-query'
 
 export interface ComponentConfigInputSettings {
   config: ComponentConfigInput
@@ -82,7 +83,15 @@ export const buildComponentConfigInput = (
       if (component.config) {
         return {
           config: {
-            files: component.config,
+            files: {
+              ...component.config,
+              maxFileSize: component.config.maxFileSize
+                ? {
+                    size: component.config.maxFileSize.size,
+                    unit: new EnumType(component.config.maxFileSize.unit),
+                  }
+                : undefined,
+            },
           },
         }
       }
