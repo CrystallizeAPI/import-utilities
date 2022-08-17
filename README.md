@@ -7,7 +7,7 @@ to:
 - [Backup a tenant](https://github.com/CrystallizeAPI/examples/tree/main/backup-tenant)
 - [Transfer data from one tenant to another tenant](https://github.com/CrystallizeAPI/examples/tree/main/duplicate-tenant)
 
-[Examples](https://github.com/CrystallizeAPI/examples/tree/main/backup-tenant)
+[Examples](https://github.com/CrystallizeAPI/examples)
 ---
 
 ```typescript
