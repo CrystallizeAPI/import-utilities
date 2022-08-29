@@ -1678,7 +1678,6 @@ export async function setItems({
               context,
               externalReference: itemRelation.externalReference,
               cataloguePath: itemRelation.cataloguePath,
-              shapeIdentifier: item.shape,
               language: context.defaultLanguage.code,
             })
 
