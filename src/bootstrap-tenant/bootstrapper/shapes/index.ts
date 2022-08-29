@@ -197,24 +197,26 @@ async function createOrUpdateShape(
         return input
       }) || []
 
-    if (existingShape?.components) {
-      existingShape.components.forEach((component) => {
-        if (
-          !components.some(
-            (existingComponent) => existingComponent.id === component.id
-          )
-        ) {
-          const { input, deferUpdate } = buildcomponentInput(
-            component,
-            existingShapes,
-            isDeferred
-          )
-          if (deferUpdate) {
-            shouldDefer = true
+    if (existingShape) {
+      if (existingShape?.components) {
+        existingShape.components.forEach((component) => {
+          if (
+            !components.some(
+              (existingComponent) => existingComponent.id === component.id
+            )
+          ) {
+            const { input, deferUpdate } = buildcomponentInput(
+              component,
+              existingShapes,
+              isDeferred
+            )
+            if (deferUpdate) {
+              shouldDefer = true
+            }
+            components.push(input)
           }
-          components.push(input)
-        }
-      })
+        })
+      }
 
       const identifier = existingShape.identifier || existingShape.id
       if (!identifier) {
