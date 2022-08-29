@@ -1441,7 +1441,8 @@ export async function setItems({
       } else if (
         item._exists &&
         item._parentId !== parentId &&
-        itemId !== parentId
+        itemId !== parentId &&
+        parentId !== rootItemId // Do not move items to root unless _moveToRoot is set
       ) {
         /**
          * Move the item if it is a part of a children array,
