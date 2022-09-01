@@ -219,9 +219,9 @@ export function validShapeIdentifier(
   str: string,
   onUpdate: (t: AreaUpdate) => any
 ) {
-  if (str.length <= 24) return str
+  if (str.length <= 64) return str
 
-  const validIdentifier = str.substr(0, 11) + '-' + str.substr(str.length - 12)
+  const validIdentifier = str.substr(0, 31) + '-' + str.substr(str.length - 32)
   onUpdate({
     warning: {
       code: 'SHAPE_ID_TRUNCATED',
