@@ -108,7 +108,7 @@ async function handleFileBuffer(fileBuffer: Buffer) {
   }
 }
 
-const mimeArray = {
+const imageMimes = {
   'image/jpeg': '.jpeg',
   'image/png': '.png',
   'image/gif': '.gif',
@@ -190,10 +190,8 @@ export async function remoteFileUpload({
   }
 
   // Extract what we need for upload
-  const {
-    fields,
-    url,
-  } = signedUploadResponse.data?.fileUpload.generatePresignedRequest
+  const { fields, url } =
+    signedUploadResponse.data?.fileUpload.generatePresignedRequest
 
   const formData = new FormData()
   fields.forEach((field: any) => formData.append(field.name, field.value))
@@ -216,8 +214,34 @@ export async function remoteFileUpload({
     value: el.elements[0].text,
   }))
 
+  const mimeType = contentType as string
+  const key = attrs.find((a: any) => a.name === 'Key').value
+
+  /**
+   * Register all images at once. This will kick start the image
+   * variants generation, making pusing items to a complete state
+   * much quicker
+   */
+  if (Object.keys(imageMimes).includes(mimeType)) {
+    await context.callPIM({
+      variables: {
+        tenantId: context.tenantId,
+        key,
+      },
+      query: gql`
+        mutation registerImage($tenantId: ID!, $key: String!) {
+          image {
+            registerImage(tenantId: $tenantId, key: $key) {
+              key
+            }
+          }
+        }
+      `,
+    })
+  }
+
   return {
-    mimeType: contentType as string,
-    key: attrs.find((a: any) => a.name === 'Key').value,
+    mimeType,
+    key,
   }
 }
