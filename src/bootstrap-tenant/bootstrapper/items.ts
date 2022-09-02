@@ -1004,10 +1004,9 @@ export async function setItems({
 
   /**
    * First off, let's start uploading all the images
-   * in parallel with all the other PIM mutations
    */
   const allMediaUrls = getAllMediaUrls(spec.items)
-  allMediaUrls.forEach(context.uploadFileFromUrl)
+  const allMediaUplods = allMediaUrls.map(context.uploadFileFromUrl)
 
   // Pull the status every second
   const getFileuploaderStatusInterval = setInterval(() => {
@@ -1028,6 +1027,8 @@ export async function setItems({
   onUpdate({
     message: `Initiating upload of ${allMediaUrls.length} media item(s)`,
   })
+
+  await Promise.all(allMediaUplods)
 
   // Get a total item count
   let totalItems = 0
