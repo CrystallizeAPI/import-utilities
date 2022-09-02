@@ -131,7 +131,17 @@ export class ApiManager {
     let response: any
     try {
       if (this.logLevel === 'verbose') {
-        console.log(JSON.stringify(item.props, null, 1))
+        const { query, ...rest } = item.props
+
+        let printout = item.props
+        if (typeof query !== 'string' && query.loc && query.loc.source.body) {
+          printout = {
+            query: query.loc.source.body,
+            ...rest,
+          }
+        }
+
+        console.log(JSON.stringify(printout, null, 1))
       }
       response = await request(
         this.url,
