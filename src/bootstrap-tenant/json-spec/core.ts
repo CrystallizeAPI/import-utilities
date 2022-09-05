@@ -303,6 +303,7 @@ export interface JSONShape {
   name: string
   type: 'document' | 'folder' | 'product'
   components?: JSONShapeComponent[]
+  variantComponents?: JSONShapeComponent[]
 }
 
 export interface JSONShapeComponent {

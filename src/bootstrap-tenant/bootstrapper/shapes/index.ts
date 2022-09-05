@@ -1,13 +1,23 @@
-import gql from 'graphql-tag'
-import { Shape, Component, ComponentInput } from '../../../types'
 import {
-  buildCreateShapeMutation,
-  buildUpdateShapeMutation,
-} from '../../../graphql'
+  Shape,
+  ShapeComponent,
+  ShapeComponentConfig,
+} from '@crystallize/schema/shape'
+import {
+  shape as shapeOperation,
+  getManyShapesQuery,
+} from '@crystallize/import-export-sdk/shape'
+import { MassClientInterface } from '@crystallize/js-api-client'
 
-import { JSONShape, JsonSpec } from '../../json-spec'
-import { AreaUpdate, BootstrapperContext, validShapeIdentifier } from '../utils'
-import { getShapeType } from './get-shape-type'
+import {
+  JSONShape,
+  JSONShapeComponent,
+  JSONShapeComponentComponentChoiceConfig,
+  JSONShapeComponentConfig,
+  JSONShapeComponentContentChunkConfig,
+  JsonSpec,
+} from '../../json-spec'
+import { AreaUpdate, BootstrapperContext } from '../utils'
 import { buildcomponentInput } from './build-component-input'
 
 enum Status {
@@ -17,14 +27,97 @@ enum Status {
   deferred = 'deferred',
 }
 
+const toImportSdkShapeComponent = (
+  data: JSONShapeComponent
+): ShapeComponent => {
+  if (!data.config) {
+    return data as ShapeComponent
+  }
+
+  if (data.type === 'contentChunk') {
+    const config = {
+      contentChunk: {
+        ...data.config,
+        components: (
+          data.config as JSONShapeComponentContentChunkConfig
+        ).components.map(toImportSdkShapeComponent),
+      },
+    }
+    return {
+      ...data,
+      config,
+    }
+  }
+
+  if (data.type === 'componentChoice') {
+    const config = {
+      componentChoice: {
+        ...data.config,
+        choices: (
+          data.config as JSONShapeComponentComponentChoiceConfig
+        ).choices.map(toImportSdkShapeComponent),
+      },
+    }
+    return {
+      ...data,
+      config,
+    }
+  }
+
+  return {
+    ...data,
+    config: {
+      [data.type]: data.config,
+    },
+  }
+}
+
+const toJSONShapeComponent = (data: ShapeComponent): JSONShapeComponent =>
+  data.config
+    ? {
+        ...data,
+        /** @ts-ignore */
+        config: data.config[data.type] as JSONShapeComponentConfig,
+      }
+    : (data as JSONShapeComponent)
+
+const toImportSdkShape = (data: JSONShape): Shape => {
+  if (!data.components?.length && !data.variantComponents?.length) {
+    return data as Shape
+  }
+
+  return {
+    ...data,
+    components: data.components?.map(toImportSdkShapeComponent),
+    variantComponents: data.variantComponents?.map(toImportSdkShapeComponent),
+  }
+}
+
+const toJSONShape = (data: Shape): JSONShape => {
+  if (!data.components?.length && !data.variantComponents?.length) {
+    return data as JSONShape
+  }
+
+  return {
+    ...data,
+    components: data.components?.map(toJSONShapeComponent),
+    variantComponents: data.variantComponents?.map(toJSONShapeComponent),
+  }
+}
+
 export async function getExistingShapesForSpec(
   context: BootstrapperContext,
   onUpdate: (t: AreaUpdate) => any
-): Promise<Shape[]> {
-  const existingShapes = await getExistingShapes(context)
+): Promise<JSONShape[]> {
+  const { query, variables } = getManyShapesQuery({
+    tenantId: context.tenantId,
+  })
+  const existingShapes: Shape[] = await context.client
+    ?.pimApi(query, variables)
+    .then((res) => res?.shape?.getMany)
 
   function handleComponent(cmp: any) {
-    const base: Component = {
+    const base: ShapeComponent = {
       id: cmp.id,
       name: cmp.name,
       type: cmp.type,
@@ -52,126 +145,19 @@ export async function getExistingShapesForSpec(
     return base
   }
 
-  return existingShapes.map((eShape) => {
-    let identifier
-    if (eShape.identifier) {
-      identifier = validShapeIdentifier(eShape.identifier, onUpdate)
-    } else if (eShape.id) {
-      identifier = validShapeIdentifier(eShape.id, onUpdate)
-    }
-    if (!identifier) {
-      throw new Error(
-        'Cannot handle shape without identifier (' + eShape.name + ')'
-      )
-    }
-
+  return existingShapes.map((eShape): JSONShape => {
     const shape: Shape = {
       name: eShape.name,
-      id: identifier,
-      identifier,
+      identifier: eShape.identifier,
       type: eShape.type,
       components: eShape?.components?.map(handleComponent),
     }
-    return shape
+    return toJSONShape(shape)
   })
-}
-
-async function getExistingShapes(
-  context: BootstrapperContext
-): Promise<Shape[]> {
-  const tenantId = context.tenantId
-  const r = await context.callPIM({
-    query: gql`
-      query GET_TENANT_SHAPES($tenantId: ID!) {
-        shape {
-          getMany(tenantId: $tenantId) {
-            id
-            identifier
-            type
-            name
-            components {
-              ...componentBase
-              config {
-                ...primitiveComponentConfig
-                ... on ContentChunkComponentConfig {
-                  repeatable
-                  components {
-                    ...componentBase
-                    config {
-                      ...primitiveComponentConfig
-                    }
-                  }
-                }
-                ... on ComponentChoiceComponentConfig {
-                  choices {
-                    ...componentBase
-                    config {
-                      ...primitiveComponentConfig
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      fragment componentBase on ShapeComponent {
-        id
-        name
-        type
-        description
-      }
-
-      fragment primitiveComponentConfig on ComponentConfig {
-        ... on NumericComponentConfig {
-          decimalPlaces
-          units
-        }
-        ... on PropertiesTableComponentConfig {
-          sections {
-            title
-            keys
-          }
-        }
-        ... on SelectionComponentConfig {
-          min
-          max
-          options {
-            key
-            value
-            isPreselected
-          }
-        }
-        ... on FilesComponentConfig {
-          acceptedContentTypes {
-            contentType
-            extensionLabel
-          }
-          min
-          max
-          maxFileSize {
-            size
-            unit
-          }
-        }
-        ... on ItemRelationsComponentConfig {
-          acceptedShapeIdentifiers
-          min
-          max
-        }
-      }
-    `,
-    variables: {
-      tenantId,
-    },
-  })
-
-  return r.data?.shape?.getMany || []
 }
 
 async function createOrUpdateShape(
-  shape: Shape,
+  data: Shape,
   existingShapes: Shape[],
   onUpdate: (t: AreaUpdate) => {},
   context: BootstrapperContext,
@@ -180,12 +166,11 @@ async function createOrUpdateShape(
   let shouldDefer
   let status
   try {
-    const tenantId = context.tenantId
     const existingShape = existingShapes.find(
-      (s) => s.identifier === shape.identifier
+      (s) => s.identifier === data.identifier
     )
     const components =
-      shape.components?.map((component) => {
+      data.components?.map((component) => {
         const { input, deferUpdate } = buildcomponentInput(
           component,
           existingShapes,
@@ -218,37 +203,22 @@ async function createOrUpdateShape(
         })
       }
 
-      const identifier = existingShape.identifier || existingShape.id
+      const identifier = existingShape.identifier
       if (!identifier) {
         throw new Error(
-          'Cannot update shape without identifier (' + existingShape.name + ')'
+          `Cannot update shape without identifier: ${existingShape.name}`
         )
       }
 
-      const r = await context.callPIM({
-        query: buildUpdateShapeMutation({
-          id: identifier,
-          identifier,
-          tenantId,
-          input: {
-            components,
-            ...(shape.name && { name: shape.name }),
-          },
-        }),
-      })
-
-      status = r?.data?.shape?.update ? Status.updated : Status.error
+      const result = await shapeOperation(data).execute(
+        context.client as MassClientInterface
+      )
+      status = result ? Status.updated : Status.error
     } else {
-      const r = await context.callPIM({
-        query: buildCreateShapeMutation({
-          identifier: shape.identifier,
-          type: getShapeType(shape.type),
-          name: shape.name,
-          tenantId: context.tenantId,
-          components,
-        }),
-      })
-      status = r?.data?.shape?.create ? Status.created : Status.error
+      const result = await shapeOperation(data).execute(
+        context.client as MassClientInterface
+      )
+      status = result ? Status.created : Status.error
     }
   } catch (err) {
     console.error(err)
@@ -268,14 +238,33 @@ export interface Props {
   context: BootstrapperContext
 }
 
+const getExistingShapes = async (
+  context: BootstrapperContext
+): Promise<Shape[]> => {
+  if (!context.client) {
+    return []
+  }
+
+  const { query, variables } = getManyShapesQuery({
+    tenantId: context.tenantId,
+  })
+  return context.client
+    .pimApi(query, variables)
+    .then((res) => res?.shape?.getMany)
+}
+
 export async function setShapes({
   spec,
   onUpdate,
   context,
 }: Props): Promise<Shape[]> {
+  if (!context.client) {
+    throw new Error('missing @crystallize/js-api-client instace')
+  }
+
   // Get all the shapes from the tenant
-  const existingShapes = await getExistingShapes(context)
-  const deferredShapes: JSONShape[] = []
+  const existingShapes: Shape[] = await getExistingShapes(context)
+  const deferredShapes: Shape[] = []
 
   if (!spec?.shapes) {
     return existingShapes
@@ -283,22 +272,22 @@ export async function setShapes({
 
   let finished = 0
   for (let i = 0; i < spec.shapes.length; i++) {
-    const shape = spec.shapes[i]
+    const data: Shape = toImportSdkShape(spec.shapes[i])
     const result = await createOrUpdateShape(
-      shape,
+      data,
       existingShapes,
       onUpdate,
       context
     )
     if (result === 'deferred') {
-      deferredShapes.push(shape)
+      deferredShapes.push(data)
     } else {
       finished++
     }
 
     onUpdate({
       progress: finished / spec.shapes.length,
-      message: `${shape.name} (${shape.identifier}): ${result}`,
+      message: `${data.name} (${data.identifier}): ${result}`,
     })
   }
 
