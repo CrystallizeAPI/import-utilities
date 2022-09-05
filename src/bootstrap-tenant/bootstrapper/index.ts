@@ -18,6 +18,7 @@ import {
   FileUploadManager,
   removeUnwantedFieldsFromThing,
   ItemAndParentId,
+  EVENT_NAMES_VALUES,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -151,6 +152,9 @@ export class Bootstrapper extends EventEmitter {
     callCatalogue: () => Promise.resolve({ data: {} }),
     callSearch: () => Promise.resolve({ data: {} }),
     callOrders: () => Promise.resolve({ data: {} }),
+    emit: (name: EVENT_NAMES_VALUES, message: any) => {
+      this.emit(name, message)
+    },
     emitError: (error) => {
       this.emit(EVENT_NAMES.ERROR, { error })
     },

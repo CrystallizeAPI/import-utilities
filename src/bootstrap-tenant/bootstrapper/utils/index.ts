@@ -34,6 +34,8 @@ export const EVENT_NAMES = {
   TOPICS_DONE: 'BOOTSTRAPPER_TOPICS_DONE',
   GRIDS_UPDATE: 'BOOTSTRAPPER_GRIDS_UPDATE',
   GRIDS_DONE: 'BOOTSTRAPPER_GRIDS_DONE',
+  ITEM_CREATED: 'BOOTSTRAPPER_ITEM_CREATED',
+  ITEM_UPDATED: 'BOOTSTRAPPER_ITEM_UPDATED',
   ITEMS_UPDATE: 'BOOTSTRAPPER_ITEMS_UPDATE',
   ITEMS_DONE: 'BOOTSTRAPPER_ITEMS_DONE',
   ORDERS_UPDATE: 'BOOTSTRAPPER_ORDERS_UPDATE',
@@ -43,6 +45,9 @@ export const EVENT_NAMES = {
   STOCK_LOCATIONS_UPDATE: 'BOOTSTRAPPER_STOCK_LOCATIONS_UPDATE',
   STOCK_LOCATIONS_DONE: 'BOOTSTRAPPER_STOCK_LOCATIONS_DONE',
 }
+
+export type EVENT_NAMES_KEYS = keyof typeof EVENT_NAMES
+export type EVENT_NAMES_VALUES = typeof EVENT_NAMES[EVENT_NAMES_KEYS]
 
 export interface AreaWarning {
   message: string
@@ -94,7 +99,13 @@ export interface BootstrapperContext {
   callCatalogue: (props: IcallAPI) => Promise<IcallAPIResult>
   callSearch: (props: IcallAPI) => Promise<IcallAPIResult>
   callOrders: (props: IcallAPI) => Promise<IcallAPIResult>
+  emit: (name: EVENT_NAMES_VALUES, message: any) => void
   emitError: (error: string) => void
+}
+
+export type ItemCreatedOrUpdated = {
+  id: string
+  language: string
 }
 
 export function getTranslation(translation?: any, language?: string): string {

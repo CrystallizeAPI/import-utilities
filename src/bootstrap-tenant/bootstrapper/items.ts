@@ -71,6 +71,8 @@ import {
   ItemVersionDescription,
   getItemVersionsForLanguages,
   getItemId,
+  ItemCreatedOrUpdated,
+  EVENT_NAMES,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
@@ -1218,7 +1220,15 @@ export async function setItems({
         )
       }
 
-      return Promise.all(updates)
+      const responses = await Promise.all(updates)
+
+      const payload: ItemCreatedOrUpdated = {
+        id: itemId,
+        language,
+      }
+      context.emit(EVENT_NAMES.ITEM_UPDATED, payload)
+
+      return responses
     }
 
     function createProductBaseInfo() {
@@ -1544,6 +1554,12 @@ export async function setItems({
           })
         }
         itemId = id
+
+        const payload: ItemCreatedOrUpdated = {
+          id,
+          language: context.defaultLanguage.code,
+        }
+        context.emit(EVENT_NAMES.ITEM_CREATED, payload)
       }
     }
 
