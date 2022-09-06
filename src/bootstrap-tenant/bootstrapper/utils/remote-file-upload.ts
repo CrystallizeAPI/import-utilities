@@ -237,6 +237,9 @@ export async function remoteFileUpload({
           }
         }
       `,
+      // No need to error out on this mutation. It is only useful for speeding up
+      // image variants processing ahead of time.
+      suppressErrors: true,
     })
   }
 
