@@ -1,5 +1,5 @@
 import gql from 'graphql-tag'
-import { SubscriptionPlan } from '../../../generated/graphql'
+import { ShapeType, SubscriptionPlan } from '../../../generated/graphql'
 import { Shape } from '../../../types'
 import {
   JSONLanguage,
@@ -106,6 +106,10 @@ export interface BootstrapperContext {
 export type ItemCreatedOrUpdated = {
   id: string
   language: string
+  shape: {
+    type: 'product' | 'document' | 'folder'
+    identifier: string
+  }
 }
 
 export function getTranslation(translation?: any, language?: string): string {

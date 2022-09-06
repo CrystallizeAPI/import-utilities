@@ -1225,6 +1225,10 @@ export async function setItems({
       const payload: ItemCreatedOrUpdated = {
         id: itemId,
         language,
+        shape: {
+          type: shape.type,
+          identifier: shape.identifier,
+        },
       }
       context.emit(EVENT_NAMES.ITEM_UPDATED, payload)
 
@@ -1558,6 +1562,10 @@ export async function setItems({
         const payload: ItemCreatedOrUpdated = {
           id,
           language: context.defaultLanguage.code,
+          shape: {
+            type: shape.type,
+            identifier: shape.identifier,
+          },
         }
         context.emit(EVENT_NAMES.ITEM_CREATED, payload)
       }
