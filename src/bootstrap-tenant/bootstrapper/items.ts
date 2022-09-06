@@ -1776,30 +1776,32 @@ export async function setItems({
 
                     if (componentData) {
                       if (def.type === 'componentChoice') {
-                        const selectedDef = def.config.choices.find(
-                          (c: any) =>
-                            c.id === componentData.componentChoice.componentId
-                        )
-                        if (selectedDef?.type === 'itemRelations') {
-                          const chosenComponentId =
-                            componentData.componentChoice.componentId
-                          const component = jsonItem as Record<
-                            string,
-                            JSONItemReference[]
-                          >
-                          componentData.componentChoice
-                          mutationInput = {
-                            componentId,
-                            componentChoice: {
-                              componentId: chosenComponentId,
-                              itemRelations: {
-                                itemIds: await getItemIdsForItemRelation(
-                                  component[
-                                    chosenComponentId
-                                  ] as JSONItemReference[]
-                                ),
+                        if (componentData.componentChoice?.componentId) {
+                          const selectedDef = def.config.choices.find(
+                            (c: any) =>
+                              c.id === componentData.componentChoice.componentId
+                          )
+                          if (selectedDef?.type === 'itemRelations') {
+                            const chosenComponentId =
+                              componentData.componentChoice.componentId
+                            const component = jsonItem as Record<
+                              string,
+                              JSONItemReference[]
+                            >
+                            componentData.componentChoice
+                            mutationInput = {
+                              componentId,
+                              componentChoice: {
+                                componentId: chosenComponentId,
+                                itemRelations: {
+                                  itemIds: await getItemIdsForItemRelation(
+                                    component[
+                                      chosenComponentId
+                                    ] as JSONItemReference[]
+                                  ),
+                                },
                               },
-                            },
+                            }
                           }
                         }
                       } else if (def.type === 'contentChunk') {
