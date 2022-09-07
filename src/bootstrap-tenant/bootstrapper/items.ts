@@ -1396,12 +1396,13 @@ export async function setItems({
         )
 
         if (existingProductVariant) {
-          inp.variants[
-            inp.variants.findIndex(
-              (v) =>
-                v.sku === vr.sku || v.externalReference === vr.externalReference
-            )
-          ] = variant
+          const index = inp.variants.findIndex(
+            (v) =>
+              v.sku === vr.sku ||
+              (v.externalReference &&
+                v.externalReference === vr.externalReference)
+          )
+          inp.variants[index] = variant
         } else {
           inp.variants.push(variant)
         }
