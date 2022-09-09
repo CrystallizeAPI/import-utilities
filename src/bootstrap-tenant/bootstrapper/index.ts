@@ -475,10 +475,7 @@ export class Bootstrapper extends EventEmitter {
 
       // Shapes
       if (props.shapes) {
-        spec.shapes = await getExistingShapesForSpec(
-          this.context,
-          props.onUpdate
-        )
+        spec.shapes = await getExistingShapesForSpec(this.context)
       }
 
       // Grids

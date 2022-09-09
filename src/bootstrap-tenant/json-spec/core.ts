@@ -1,4 +1,3 @@
-import { SelectionOption } from '../../types'
 import {
   SubscriptionPeriodUnit,
   SubscriptionPlanPeriod,
@@ -296,94 +295,6 @@ export interface JSONGrid {
   id?: string
   name: JSONStringTranslated
   rows: JSONGridRow[]
-}
-
-export interface JSONShape {
-  identifier: string
-  name: string
-  type: 'document' | 'folder' | 'product'
-  components?: JSONShapeComponent[]
-  variantComponents?: JSONShapeComponent[]
-}
-
-export interface JSONShapeComponent {
-  id: string
-  name: string
-  type:
-    | 'boolean'
-    | 'componentChoice'
-    | 'contentChunk'
-    | 'datetime'
-    | 'gridRelations'
-    | 'images'
-    | 'itemRelations'
-    | 'location'
-    | 'numeric'
-    | 'paragraphCollection'
-    | 'propertiesTable'
-    | 'richText'
-    | 'selection'
-    | 'singleLine'
-    | 'videos'
-    | 'files'
-  description?: string
-  config?: JSONShapeComponentConfig
-}
-
-export type JSONShapeComponentConfig =
-  | JSONShapeComponentSelectionConfig
-  | JSONShapeComponentComponentChoiceConfig
-  | JSONShapeComponentContentChunkConfig
-  | JSONShapeComponentItemRelationsConfig
-  | JSONShapeComponentNumericConfig
-  | JSONShapeComponentPropertiesTableConfig
-  | JSONShapeComponentFilesConfig
-
-interface JSONShapeComponentConfigMinMax {
-  min?: number | null
-  max?: number | null
-}
-export interface JSONShapeComponentSelectionConfig
-  extends JSONShapeComponentConfigMinMax {
-  options?: SelectionOption[]
-}
-
-export interface JSONShapeComponentComponentChoiceConfig {
-  choices: JSONShapeComponent[]
-}
-
-export interface JSONShapeComponentContentChunkConfig {
-  repeatable?: boolean
-  components: JSONShapeComponent[]
-}
-
-export interface JSONShapeComponentItemRelationsConfig
-  extends JSONShapeComponentConfigMinMax {
-  acceptedShapeIdentifiers?: string[]
-}
-
-export interface JSONShapeComponentNumericConfig {
-  decimalPlaces?: number
-  units?: string[]
-}
-
-export interface JSONShapeComponentPropertiesTableConfig {
-  sections: {
-    title?: string
-    keys: string[]
-  }[]
-}
-
-export interface JSONShapeComponentFilesConfig
-  extends JSONShapeComponentConfigMinMax {
-  acceptedContentTypes?: {
-    contentType: string
-    extensionLabel?: string
-  }[]
-  maxFileSize: {
-    size: number
-    unit: 'Bytes' | 'GiB' | 'KiB' | 'MiB'
-  }
 }
 
 export interface JSONAddress {

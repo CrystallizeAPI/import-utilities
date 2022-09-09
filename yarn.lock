@@ -477,15 +477,15 @@
     ow "^0.4.0"
     parse5 "^6.0.1"
 
-"@crystallize/import-export-sdk@^0.0.1-2":
-  version "0.0.1-2"
-  resolved "https://registry.yarnpkg.com/@crystallize/import-export-sdk/-/import-export-sdk-0.0.1-2.tgz#ec629aa73c4ca23bb693f42c217f9f09aa6e5bb8"
-  integrity sha512-higgK0sVso4QPD+Ges4RiPwjgo/jwu751AEeL1xTkgqVq4ZC4rJzSmKLJJ+bhg+52wY9KnFPBxez5e48XQnliQ==
+"@crystallize/import-export-sdk@^0.0.1-3":
+  version "0.0.1-3"
+  resolved "https://registry.yarnpkg.com/@crystallize/import-export-sdk/-/import-export-sdk-0.0.1-3.tgz#98cfbc67ac6a3c19367bb83f4a284b83acc7c490"
+  integrity sha512-55mFsgtvhzcxn/C1JDigOr1BhohkTn7EPZudBSWeJE8LGpTK3Zf2KrDs+ND4r/vX88mRpsKAZAB8vFUCzlCTeQ==
   dependencies:
-    "@crystallize/js-api-client" "^1.3.0"
-    "@crystallize/schema" "^0.0.1-1"
+    "@crystallize/js-api-client" "*"
+    "@crystallize/schema" "^0.0.1-3"
 
-"@crystallize/js-api-client@^1.2.0", "@crystallize/js-api-client@^1.3.0":
+"@crystallize/js-api-client@*", "@crystallize/js-api-client@^1.2.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@crystallize/js-api-client/-/js-api-client-1.3.0.tgz#9e7dd9cd5c75c4947a87f32b746d4609a2ef5919"
   integrity sha512-UyuucJkaf2CvfffhIfXQLQbqwBApcEDQJMbz4RHnfoiFLGsv/lZPc3zFCNrWuLDV4lAhwXuhxzO5Xhm80wxXbQ==
@@ -497,10 +497,10 @@
     typescript "^4.6.3"
     zod "^3.14.3"
 
-"@crystallize/schema@^0.0.1-1":
-  version "0.0.1-1"
-  resolved "https://registry.yarnpkg.com/@crystallize/schema/-/schema-0.0.1-1.tgz#339146066e2f4c75c8ac073357ac5ca509bec780"
-  integrity sha512-uZSCIVnvayIUuqFfvBl87rJCGiDyyx3Je1bMBKbm42EpgyUdn17+z6qvzRB6qQ1x/J6/DOnOYwDk6424yj4lng==
+"@crystallize/schema@^0.0.1-3":
+  version "0.0.1-3"
+  resolved "https://registry.yarnpkg.com/@crystallize/schema/-/schema-0.0.1-3.tgz#c5e171622dd502e981a53405c3ae8504a738d5e2"
+  integrity sha512-v1vQHvzW/liF0xmntiVMkRrdkGEfl9fgDbPbbOLrtNrql1pghcGZTeieEJ2cvfsQMEAavFfA5YOA3gSTzZtPtA==
   dependencies:
     zod "^3.17.9"
 

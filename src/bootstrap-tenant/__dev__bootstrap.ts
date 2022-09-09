@@ -5,13 +5,7 @@ import { readFile } from 'fs/promises'
 import { resolve } from 'path'
 // import Progress from 'cli-progress'
 
-import { Bootstrapper, EVENT_NAMES, Status } from './bootstrapper'
-import {
-  JSONImages,
-  JSONParagraphCollection,
-  JSONProduct,
-  JSONShapeComponentFilesConfig,
-} from './json-spec'
+import { Bootstrapper, EVENT_NAMES } from './bootstrapper'
 
 async function bootstrap() {
   try {

@@ -1,9 +1,9 @@
+import { Shape } from '@crystallize/schema/shape'
 import {
   JSONGrid,
   JSONItem,
   JSONLanguage,
   JSONPriceVariant,
-  JSONShape,
   JSONStockLocation,
   JSONSubscriptionPlan,
   JSONTopic,
@@ -13,7 +13,7 @@ import {
 import { JSONOrder } from './orders'
 
 export interface JsonSpec {
-  shapes?: JSONShape[]
+  shapes?: Shape[]
   priceVariants?: JSONPriceVariant[]
   stockLocations?: JSONStockLocation[]
   subscriptionPlans?: JSONSubscriptionPlan[]

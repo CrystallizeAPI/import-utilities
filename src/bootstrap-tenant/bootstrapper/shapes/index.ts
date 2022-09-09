@@ -1,18 +1,17 @@
-import { Shape, ShapeComponent } from '@crystallize/schema/shape'
+import {
+  ComponentChoiceComponentConfig,
+  ContentChunkComponentConfig,
+  ItemRelationsComponentConfig,
+  Shape,
+  ShapeComponent,
+} from '@crystallize/schema/shape'
 import {
   shape as shapeOperation,
   getManyShapesQuery,
 } from '@crystallize/import-export-sdk/shape'
 import { MassClientInterface } from '@crystallize/js-api-client'
 
-import {
-  JSONShape,
-  JSONShapeComponent,
-  JSONShapeComponentComponentChoiceConfig,
-  JSONShapeComponentConfig,
-  JSONShapeComponentContentChunkConfig,
-  JsonSpec,
-} from '../../json-spec'
+import { JsonSpec } from '../../json-spec'
 import { AreaUpdate, BootstrapperContext } from '../utils'
 
 enum Status {
@@ -22,116 +21,47 @@ enum Status {
   deferred = 'deferred',
 }
 
-const toImportSdkShapeComponent = (
-  data: JSONShapeComponent
-): ShapeComponent => {
-  if (!data.config) {
-    return data as ShapeComponent
-  }
-
-  if (data.type === 'contentChunk') {
-    const config = {
-      contentChunk: {
-        ...data.config,
-        components: (
-          data.config as JSONShapeComponentContentChunkConfig
-        ).components.map(toImportSdkShapeComponent),
-      },
-    }
-    return {
-      ...data,
-      config,
-    }
-  }
-
-  if (data.type === 'componentChoice') {
-    const config = {
-      componentChoice: {
-        ...data.config,
-        choices: (
-          data.config as JSONShapeComponentComponentChoiceConfig
-        ).choices.map(toImportSdkShapeComponent),
-      },
-    }
-    return {
-      ...data,
-      config,
-    }
-  }
-
-  return {
-    ...data,
-    config: {
-      [data.type]: data.config,
-    },
-  }
-}
-
-const toJSONShapeComponent = (data: ShapeComponent): JSONShapeComponent =>
-  data.config
-    ? {
-        ...data,
-        /** @ts-ignore */
-        config: data.config[data.type] as JSONShapeComponentConfig,
-      }
-    : (data as JSONShapeComponent)
-
-const toImportSdkShape = (data: JSONShape): Shape => {
-  if (!data.components?.length && !data.variantComponents?.length) {
-    return data as Shape
-  }
-
-  return {
-    ...data,
-    components: data.components?.map(toImportSdkShapeComponent),
-    variantComponents: data.variantComponents?.map(toImportSdkShapeComponent),
-  }
-}
-
-const toJSONShape = (data: Shape): JSONShape => {
-  if (!data.components?.length && !data.variantComponents?.length) {
-    return data as JSONShape
-  }
-
-  return {
-    ...data,
-    components: data.components?.map(toJSONShapeComponent),
-    variantComponents: data.variantComponents?.map(toJSONShapeComponent),
-  }
-}
-
 export async function getExistingShapesForSpec(
-  context: BootstrapperContext,
-  onUpdate: (t: AreaUpdate) => any
-): Promise<JSONShape[]> {
+  context: BootstrapperContext
+): Promise<Shape[]> {
   const { query, variables } = getManyShapesQuery({
     tenantId: context.tenantId,
   })
   const existingShapes: Shape[] = await context.client
     ?.pimApi(query, variables)
     .then((res) => res?.shape?.getMany)
-
-  return existingShapes.map((eShape): JSONShape => {
-    const shape: Shape = {
-      name: eShape.name,
-      identifier: eShape.identifier,
-      type: eShape.type,
-    }
-    return toJSONShape(shape)
-  })
+  return existingShapes
 }
 
 const shouldDefer = (data: Shape): boolean => {
-  const filterCmp = (cmp: ShapeComponent) =>
+  const filterRelations = (cmp: ShapeComponent) =>
     cmp.type === 'itemRelations' &&
-    cmp.config?.itemRelations?.acceptedShapeIdentifiers?.length
+    (cmp.config as ItemRelationsComponentConfig)?.acceptedShapeIdentifiers
+      ?.length
+
+  const filterChunks = (cmp: ShapeComponent) =>
+    cmp.type === 'contentChunk' &&
+    (cmp.config as ContentChunkComponentConfig).components.filter(
+      filterRelations
+    )?.length
+
+  const filterChoices = (cmp: ShapeComponent) =>
+    cmp.type === 'componentChoice' &&
+    (cmp.config as ComponentChoiceComponentConfig).choices.filter(
+      filterRelations
+    )?.length
+
   return (
-    !!data.components?.filter(filterCmp).length ||
-    !!data.variantComponents?.filter(filterCmp).length
+    !!data.components?.filter(filterRelations).length ||
+    !!data.components?.filter(filterChunks).length ||
+    !!data.components?.filter(filterChoices).length ||
+    !!data.variantComponents?.filter(filterRelations).length ||
+    !!data.variantComponents?.filter(filterChunks).length ||
+    !!data.variantComponents?.filter(filterChoices).length
   )
 }
 
-async function createOrUpdateShape(
+async function handleShape(
   data: Shape,
   context: BootstrapperContext,
   isDeferred: boolean = false
@@ -175,9 +105,14 @@ const getExistingShapes = async (
     return []
   }
 
-  const { query, variables } = getManyShapesQuery({
-    tenantId: context.tenantId,
-  })
+  const { query, variables } = getManyShapesQuery(
+    {
+      tenantId: context.tenantId,
+    },
+    {
+      includeComponents: true,
+    }
+  )
   return context.client
     .pimApi(query, variables)
     .then((res) => res?.shape?.getMany)
@@ -202,8 +137,8 @@ export async function setShapes({
 
   let finished = 0
   for (let i = 0; i < spec.shapes.length; i++) {
-    const data: Shape = toImportSdkShape(spec.shapes[i])
-    const result = await createOrUpdateShape(data, context)
+    const data = spec.shapes[i] as Shape
+    const result = await handleShape(data, context)
     if (result === 'deferred') {
       deferredShapes.push(data)
     } else {
@@ -218,7 +153,7 @@ export async function setShapes({
 
   for (let i = 0; i < deferredShapes.length; i++) {
     const shape = deferredShapes[i]
-    const result = await createOrUpdateShape(shape, context, true)
+    const result = await handleShape(shape, context, true)
     finished++
     onUpdate({
       progress: finished / spec.shapes.length,

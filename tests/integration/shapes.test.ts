@@ -6,7 +6,7 @@ import {
   tenant,
 } from '@crystallize/import-export-sdk/tenant'
 import { Tenant } from '@crystallize/schema/tenant'
-import { Bootstrapper, EVENT_NAMES, JSONShape } from '../../src/index'
+import { Bootstrapper, EVENT_NAMES } from '../../src/index'
 import {
   ClientInterface,
   createClient,
@@ -14,7 +14,7 @@ import {
 } from '@crystallize/js-api-client'
 import { fail } from 'assert'
 import { getManyShapesQuery } from '@crystallize/import-export-sdk/shape'
-import { Shape } from '@crystallize/schema/shape'
+import { Shape, ShapeComponent } from '@crystallize/schema/shape'
 
 const { CRYSTALLIZE_ACCESS_TOKEN_ID, CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
   process.env
@@ -25,7 +25,7 @@ if (!CRYSTALLIZE_ACCESS_TOKEN_ID || !CRYSTALLIZE_ACCESS_TOKEN_SECRET) {
 
 interface TestCase {
   name: string
-  shapes: JSONShape[]
+  shapes: Shape[]
 }
 
 interface TestContext {
@@ -60,6 +60,7 @@ const testCases: TestCase[] = [
           {
             id: 'text',
             name: 'Text',
+            description: 'A single line component',
             type: 'singleLine',
           },
           {
@@ -69,6 +70,57 @@ const testCases: TestCase[] = [
             config: {
               decimalPlaces: 5,
               units: ['g', 'kg'],
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Creates a shape with structural components',
+    shapes: [
+      {
+        identifier: 'test-folder',
+        name: 'Test Folder',
+        type: 'folder',
+        components: [
+          {
+            id: 'chunk',
+            name: 'Chunk',
+            type: 'contentChunk',
+            config: {
+              repeatable: true,
+              components: [
+                {
+                  id: 'text',
+                  name: 'Text',
+                  description: 'A single line component',
+                  type: 'singleLine',
+                },
+              ],
+            },
+          },
+          {
+            id: 'choice',
+            name: 'Choice',
+            type: 'componentChoice',
+            config: {
+              choices: [
+                {
+                  id: 'number',
+                  name: 'Number',
+                  type: 'numeric',
+                  config: {
+                    decimalPlaces: 5,
+                    units: ['g', 'kg'],
+                  },
+                },
+                {
+                  id: 'text',
+                  name: 'Text',
+                  type: 'singleLine',
+                },
+              ],
             },
           },
         ],
@@ -135,6 +187,64 @@ const testCases: TestCase[] = [
       },
     ],
   },
+  {
+    name: 'Creates a shape with relations in structural components',
+    shapes: [
+      {
+        identifier: 'test-folder',
+        name: 'Test Folder',
+        type: 'folder',
+        components: [
+          {
+            id: 'chunk',
+            name: 'Chunk',
+            type: 'contentChunk',
+            config: {
+              components: [
+                {
+                  id: 'relation',
+                  name: 'relation',
+                  type: 'itemRelations',
+                  config: {
+                    acceptedShapeIdentifiers: ['test-product'],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        identifier: 'test-product',
+        name: 'Test Product',
+        type: 'product',
+        components: [
+          {
+            id: 'choice',
+            name: 'Choice',
+            type: 'componentChoice',
+            config: {
+              choices: [
+                {
+                  id: 'relation',
+                  name: 'relation',
+                  type: 'itemRelations',
+                  config: {
+                    acceptedShapeIdentifiers: ['test-folder'],
+                  },
+                },
+                {
+                  id: 'text',
+                  name: 'Text',
+                  type: 'singleLine',
+                },
+              ],
+            },
+          },
+        ],
+      },
+    ],
+  },
 ]
 
 test.beforeEach(async (t) => {
@@ -173,6 +283,15 @@ test.afterEach.always(async (t) => {
 
 testCases.forEach((tc) => {
   test(tc.name, async (t) => {
+    const validateObject = (actual: any, input: any) => {
+      Object.keys(input).map((key: string) => {
+        if (typeof input[key] === 'object') {
+          return validateObject(actual[key] as any, input[key] as any)
+        }
+        t.is(actual[key], input[key])
+      })
+    }
+
     const ctx = t.context as TestContext
 
     const bootstrapper = new Bootstrapper()
@@ -215,9 +334,20 @@ testCases.forEach((tc) => {
       t.is(shape.identifier, input.identifier)
       t.is(shape.name, input.name)
 
-      // TODO: Better component testing
       t.is(shape.components?.length, input.components?.length)
       t.is(shape.variantComponents?.length, input.variantComponents?.length)
+
+      const validateComponent = (input: ShapeComponent) => {
+        const actual = shape.components?.find(({ id }) => input.id === id)
+        if (!actual) {
+          fail(`missing component ${input.id} in the response`)
+        }
+
+        validateObject(actual, input)
+      }
+
+      input.components?.forEach(validateComponent)
+      input.variantComponents?.forEach(validateComponent)
     })
   })
 })
