@@ -1,8 +1,4 @@
-import {
-  Shape,
-  ShapeComponent,
-  ShapeComponentConfig,
-} from '@crystallize/schema/shape'
+import { Shape, ShapeComponent } from '@crystallize/schema/shape'
 import {
   shape as shapeOperation,
   getManyShapesQuery,
@@ -18,7 +14,6 @@ import {
   JsonSpec,
 } from '../../json-spec'
 import { AreaUpdate, BootstrapperContext } from '../utils'
-import { buildcomponentInput } from './build-component-input'
 
 enum Status {
   created = 'created',
@@ -116,120 +111,55 @@ export async function getExistingShapesForSpec(
     ?.pimApi(query, variables)
     .then((res) => res?.shape?.getMany)
 
-  function handleComponent(cmp: any) {
-    const base: ShapeComponent = {
-      id: cmp.id,
-      name: cmp.name,
-      type: cmp.type,
-      description: cmp.description,
-      config: cmp.config,
-    }
-
-    switch (cmp.type) {
-      case 'componentChoice': {
-        base.config = {
-          ...cmp.config,
-          choices: cmp.config.choices.map(handleComponent),
-        }
-        break
-      }
-      case 'contentChunk': {
-        base.config = {
-          ...cmp.config,
-          components: cmp.config.components.map(handleComponent),
-        }
-        break
-      }
-    }
-
-    return base
-  }
-
   return existingShapes.map((eShape): JSONShape => {
     const shape: Shape = {
       name: eShape.name,
       identifier: eShape.identifier,
       type: eShape.type,
-      components: eShape?.components?.map(handleComponent),
     }
     return toJSONShape(shape)
   })
 }
 
+const shouldDefer = (data: Shape): boolean => {
+  const filterCmp = (cmp: ShapeComponent) =>
+    cmp.type === 'itemRelations' &&
+    cmp.config?.itemRelations?.acceptedShapeIdentifiers?.length
+  return (
+    !!data.components?.filter(filterCmp).length ||
+    !!data.variantComponents?.filter(filterCmp).length
+  )
+}
+
 async function createOrUpdateShape(
   data: Shape,
-  existingShapes: Shape[],
-  onUpdate: (t: AreaUpdate) => {},
   context: BootstrapperContext,
   isDeferred: boolean = false
-): Promise<string> {
-  let shouldDefer
-  let status
+): Promise<Status> {
+  const s = { ...data }
+  let defer = false
+
+  if (!isDeferred && shouldDefer(data)) {
+    delete s.components
+    delete s.variantComponents
+    defer = true
+  }
+
   try {
-    const existingShape = existingShapes.find(
-      (s) => s.identifier === data.identifier
+    const result = await shapeOperation(s).execute(
+      context.client as MassClientInterface
     )
-    const components =
-      data.components?.map((component) => {
-        const { input, deferUpdate } = buildcomponentInput(
-          component,
-          existingShapes,
-          isDeferred
-        )
-        if (deferUpdate) {
-          shouldDefer = true
-        }
-        return input
-      }) || []
-
-    if (existingShape) {
-      if (existingShape?.components) {
-        existingShape.components.forEach((component) => {
-          if (
-            !components.some(
-              (existingComponent) => existingComponent.id === component.id
-            )
-          ) {
-            const { input, deferUpdate } = buildcomponentInput(
-              component,
-              existingShapes,
-              isDeferred
-            )
-            if (deferUpdate) {
-              shouldDefer = true
-            }
-            components.push(input)
-          }
-        })
-      }
-
-      const identifier = existingShape.identifier
-      if (!identifier) {
-        throw new Error(
-          `Cannot update shape without identifier: ${existingShape.name}`
-        )
-      }
-
-      const result = await shapeOperation(data).execute(
-        context.client as MassClientInterface
-      )
-      status = result ? Status.updated : Status.error
-    } else {
-      const result = await shapeOperation(data).execute(
-        context.client as MassClientInterface
-      )
-      status = result ? Status.created : Status.error
+    if (!result) {
+      return Status.error
     }
+    if (defer) {
+      return Status.deferred
+    }
+    return Status.updated
   } catch (err) {
     console.error(err)
     return Status.error
   }
-
-  if (shouldDefer && status !== Status.error) {
-    status = Status.deferred
-  }
-
-  return status
 }
 
 export interface Props {
@@ -273,12 +203,7 @@ export async function setShapes({
   let finished = 0
   for (let i = 0; i < spec.shapes.length; i++) {
     const data: Shape = toImportSdkShape(spec.shapes[i])
-    const result = await createOrUpdateShape(
-      data,
-      existingShapes,
-      onUpdate,
-      context
-    )
+    const result = await createOrUpdateShape(data, context)
     if (result === 'deferred') {
       deferredShapes.push(data)
     } else {
@@ -292,15 +217,8 @@ export async function setShapes({
   }
 
   for (let i = 0; i < deferredShapes.length; i++) {
-    const existingShapes = await getExistingShapes(context)
     const shape = deferredShapes[i]
-    const result = await createOrUpdateShape(
-      shape,
-      existingShapes,
-      onUpdate,
-      context,
-      true
-    )
+    const result = await createOrUpdateShape(shape, context, true)
     finished++
     onUpdate({
       progress: finished / spec.shapes.length,
