@@ -11,6 +11,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CRYSTALLIZE_ACCESS_TOKEN_ID: ${{ secrets.CRYSTALLIZE_ACCESS_TOKEN_ID }}
+      CRYSTALLIZE_ACCESS_TOKEN_SECRET:
+        ${{ secrets.CRYSTALLIZE_ACCESS_TOKEN_SECRET }}
     strategy:
       matrix:
         node-version: [16.x, 18.x]
