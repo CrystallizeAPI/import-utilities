@@ -77,6 +77,59 @@ const testCases: TestCase[] = [
     ],
   },
   {
+    name: 'Creates a shape with basic variant components',
+    shapes: [
+      {
+        identifier: 'test-product',
+        name: 'Test Product',
+        type: 'product',
+        variantComponents: [
+          {
+            id: 'text',
+            name: 'Text',
+            description: 'A single line component',
+            type: 'singleLine',
+          },
+          {
+            id: 'number',
+            name: 'Number',
+            type: 'numeric',
+            config: {
+              decimalPlaces: 5,
+              units: ['g', 'kg'],
+            },
+          },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Creates a shape with both shape and variant components',
+    shapes: [
+      {
+        identifier: 'test-product',
+        name: 'Test Product',
+        type: 'product',
+        components: [
+          {
+            id: 'text',
+            name: 'Text',
+            description: 'A single line component',
+            type: 'singleLine',
+          },
+        ],
+        variantComponents: [
+          {
+            id: 'text',
+            name: 'Text',
+            description: 'A single line component',
+            type: 'singleLine',
+          },
+        ],
+      },
+    ],
+  },
+  {
     name: 'Creates a shape with structural components',
     shapes: [
       {
@@ -337,8 +390,11 @@ testCases.forEach((tc) => {
       t.is(shape.components?.length, input.components?.length)
       t.is(shape.variantComponents?.length, input.variantComponents?.length)
 
-      const validateComponent = (input: ShapeComponent) => {
-        const actual = shape.components?.find(({ id }) => input.id === id)
+      const validateComponent = (
+        input: ShapeComponent,
+        components: ShapeComponent[]
+      ) => {
+        const actual = components.find(({ id }) => input.id === id)
         if (!actual) {
           fail(`missing component ${input.id} in the response`)
         }
@@ -346,8 +402,12 @@ testCases.forEach((tc) => {
         validateObject(actual, input)
       }
 
-      input.components?.forEach(validateComponent)
-      input.variantComponents?.forEach(validateComponent)
+      input.components?.forEach((cmp) =>
+        validateComponent(cmp, input.components as ShapeComponent[])
+      )
+      input.variantComponents?.forEach((cmp) =>
+        validateComponent(cmp, input.variantComponents as ShapeComponent[])
+      )
     })
   })
 })
