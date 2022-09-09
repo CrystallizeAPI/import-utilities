@@ -1,6 +1,6 @@
 {
   "name": "@crystallize/import-utilities",
-  "version": "0.106.1",
+  "version": "1.0.0-0",
   "main": "dist/index.js",
   "author": "Crystallize <hello@crystallize.com>",
   "contributors": [
@@ -73,5 +73,8 @@
   "repository": {
     "type": "git",
     "url": "git@github.com:CrystallizeAPI/import-utilities.git"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
