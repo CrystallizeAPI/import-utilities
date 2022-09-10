@@ -1317,14 +1317,16 @@ export async function setItems({
       }
 
       jsonVariant._componentsData = {}
-      jsonVariant._componentsData[language] = await createComponentsInput({
-        components: jsonVariant.components,
-        componentDefinitions: shape.variantComponents,
-        language,
-        grids: allGrids,
-        context,
-        onUpdate,
-      })
+      if (jsonVariant.components) {
+        jsonVariant._componentsData[language] = await createComponentsInput({
+          components: jsonVariant.components,
+          componentDefinitions: shape.variantComponents,
+          language,
+          grids: allGrids,
+          context,
+          onUpdate,
+        })
+      }
 
       const {
         priceVariants: existingProductVariantPriceVariants,
@@ -1345,13 +1347,13 @@ export async function setItems({
           jsonPrice: jsonVariant.price,
           existingProductVariantPriceVariants,
         }),
-        components: Object.keys(jsonVariant._componentsData[language]).map(
-          (componentId: string) => ({
-            // @ts-ignore
-            ...jsonVariant._componentsData[language][componentId],
-            componentId,
-          })
-        ),
+        components: Object.keys(
+          jsonVariant._componentsData?.[language] || {}
+        ).map((componentId: string) => ({
+          // @ts-ignore
+          ...jsonVariant._componentsData[language][componentId],
+          componentId,
+        })),
         ...(attributes && { attributes }),
       }
 
