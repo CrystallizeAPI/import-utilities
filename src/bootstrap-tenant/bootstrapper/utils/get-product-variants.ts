@@ -61,6 +61,139 @@ query GET_PRODUCT_INFO($language: String!, $itemId: ID!) {
             value
           }
         }
+        components {
+          ...componentContent
+        }
+      }
+    }
+  }
+}
+
+fragment componentContent on Component {
+  componentId
+  type
+  content {
+    ... on BooleanContent {
+      value
+    }
+    ... on ComponentChoiceContent {
+      selectedComponent {
+        componentId
+        type
+      }
+    }
+    ... on DatetimeContent {
+      datetime
+    }
+    ... on GridRelationsContent {
+      grids {
+        id
+      }
+    }
+    ... on ImageContent {
+      images {
+        key
+      }
+    }
+    ... on ItemRelationsContent {
+      items {
+        id
+      }
+    }
+    ... on LocationContent {
+      lat
+      long
+    }
+    ... on NumericContent {
+      number
+      unit
+    }
+    ... on PropertiesTableContent {
+      sections {
+        title
+        properties {
+          key
+          value
+        }
+      }
+    }
+    ... on RichTextContent {
+      json
+      html
+    }
+    ... on SingleLineContent {
+      text
+    }
+    ... on VideoContent {
+      videos {
+        id
+        title
+      }
+    }
+
+    ... on ContentChunkContent {
+      chunks {
+        componentId
+        type
+        content {
+          ... on BooleanContent {
+            value
+          }
+          ... on ComponentChoiceContent {
+            selectedComponent {
+              componentId
+              type
+            }
+          }
+          ... on DatetimeContent {
+            datetime
+          }
+          ... on GridRelationsContent {
+            grids {
+              id
+            }
+          }
+          ... on ImageContent {
+            images {
+              key
+            }
+          }
+          ... on ItemRelationsContent {
+            items {
+              id
+            }
+          }
+          ... on LocationContent {
+            lat
+            long
+          }
+          ... on NumericContent {
+            number
+            unit
+          }
+          ... on PropertiesTableContent {
+            sections {
+              title
+              properties {
+                key
+                value
+              }
+            }
+          }
+          ... on RichTextContent {
+            json
+            html
+          }
+          ... on SingleLineContent {
+            text
+          }
+          ... on VideoContent {
+            videos {
+              id
+              title
+            }
+          }
+        }
       }
     }
   }

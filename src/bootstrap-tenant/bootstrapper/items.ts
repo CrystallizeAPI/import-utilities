@@ -44,7 +44,6 @@ import {
   JSONNumeric,
   JSONLocation,
   JSONDateTime,
-  JSONImage,
   JSONComponentContent,
   JSONComponentChoice,
   JSONContentChunk,
@@ -52,7 +51,6 @@ import {
   JSONItemRelation,
   JSONSelection,
   JSONVideos,
-  JSONVideo,
   JSONGrid,
   JSONProductVariant,
   JSONProductSubscriptionPlanPricing,
@@ -77,10 +75,10 @@ import {
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
 import {
-  ComponentChoiceContent,
   CreateProductVariantInput,
   FileContentInput,
   FileInput,
+  Maybe,
   PriceVariantReferenceInput,
   ProductPriceVariant,
   ProductStockLocation,
@@ -97,6 +95,7 @@ import {
   ComponentChoiceComponentConfig,
   ContentChunkComponentConfig,
 } from '@crystallize/schema/shape'
+import { buildUpdateVariantComponentQueryAndVariables } from '../../graphql/build-update-variant-component-mutation'
 
 export interface Props {
   spec: JsonSpec | null
@@ -374,9 +373,14 @@ async function createFilesInput(
   return fs
 }
 
+type ItemComponents = Record<
+  string,
+  JSONComponentContent | JSONComponentChoice
+> | null
+
 interface ICreateComponentsInput {
-  item: JSONItem
-  shape: Shape
+  components?: ItemComponents
+  componentDefinitions?: ShapeComponent[]
   language: string
   grids: JSONGrid[]
   context: BootstrapperContext
@@ -386,22 +390,22 @@ interface ICreateComponentsInput {
 async function createComponentsInput(
   props: ICreateComponentsInput
 ): Promise<Record<string, ComponentContentInput> | null | undefined> {
-  const { item, shape, language, grids, context, onUpdate } = props
+  const {
+    components,
+    componentDefinitions,
+    language,
+    grids,
+    context,
+    onUpdate,
+  } = props
 
-  /**
-   * If you pass null, then we assume you want to
-   * clear all the components data
-   */
-
-  if (item.components === null) {
+  // Explicit `null` clears all components data
+  if (components === null) {
     return null
   }
 
-  /**
-   * Returing undefined here leaves the
-   * existing components untouched
-   */
-  if (!item.components) {
+  // Undefined implies no action to be taken on components
+  if (!components) {
     return undefined
   }
 
@@ -716,7 +720,7 @@ async function createComponentsInput(
     }
   }
 
-  const componentIds = Object.keys(item.components)
+  const componentIds = Object.keys(components)
 
   /**
    * If you don't supply any components, let's not continue.
@@ -729,12 +733,12 @@ async function createComponentsInput(
 
   for (let i = 0; i < componentIds.length; i++) {
     const componentId = componentIds[i]
-    const componentDefinition = shape.components?.find(
+    const componentDefinition = componentDefinitions?.find(
       (c) => c.id === componentId
     )
-    if (componentDefinition && item.components) {
-      if (componentId in item.components) {
-        const component = item.components?.[componentId]
+    if (componentDefinition && components) {
+      if (componentId in components) {
+        const component = components?.[componentId]
         /**
          * Make sure we don't just do a truthy check here,
          * because true & "" & 0 are all valid content
@@ -1083,8 +1087,8 @@ export async function setItems({
 
       // @ts-ignore
       item._componentsData[language] = await createComponentsInput({
-        item,
-        shape,
+        components: item.components,
+        componentDefinitions: shape.components,
         language,
         grids: allGrids,
         context,
@@ -1143,8 +1147,8 @@ export async function setItems({
 
       // @ts-ignore
       item._componentsData[language] = await createComponentsInput({
-        item,
-        shape,
+        components: item.components,
+        componentDefinitions: shape.components,
         language,
         grids: allGrids,
         context,
@@ -1223,6 +1227,42 @@ export async function setItems({
         )
       }
 
+      if ((item as JSONProduct).variants?.length) {
+        const product = item as JSONProduct
+        for (const variant of product.variants) {
+          // @ts-ignore
+          variant._componentsData[language] = await createComponentsInput({
+            components: variant.components,
+            componentDefinitions: shape.variantComponents,
+            language,
+            grids: allGrids,
+            context,
+            onUpdate,
+          })
+
+          Object.keys(variant._componentsData?.[language]).forEach(
+            (componentId: string) => {
+              const componentContent: ComponentContentInput =
+                variant._componentsData?.[language][componentId]
+
+              updates.push(
+                context.callPIM(
+                  buildUpdateVariantComponentQueryAndVariables({
+                    productId: itemId,
+                    sku: variant.sku,
+                    language,
+                    input: {
+                      componentId,
+                      ...componentContent,
+                    },
+                  })
+                )
+              )
+            }
+          )
+        }
+      }
+
       const responses = await Promise.all(updates)
 
       const payload: ItemCreatedOrUpdated = {
@@ -1262,6 +1302,8 @@ export async function setItems({
     async function createProductVariant(
       jsonVariant: JSONProductVariant,
       language: string,
+      shape: Shape,
+      allGrids: JSONGrid[],
       existingProductVariant?: ProductVariant
     ): Promise<CreateProductVariantInput> {
       let attributes: undefined | ProductVariantAttributeInput[]
@@ -1273,6 +1315,16 @@ export async function setItems({
           })
         )
       }
+
+      jsonVariant._componentsData = {}
+      jsonVariant._componentsData[language] = await createComponentsInput({
+        components: jsonVariant.components,
+        componentDefinitions: shape.variantComponents,
+        language,
+        grids: allGrids,
+        context,
+        onUpdate,
+      })
 
       const {
         priceVariants: existingProductVariantPriceVariants,
@@ -1293,6 +1345,13 @@ export async function setItems({
           jsonPrice: jsonVariant.price,
           existingProductVariantPriceVariants,
         }),
+        components: Object.keys(jsonVariant._componentsData[language]).map(
+          (componentId: string) => ({
+            // @ts-ignore
+            ...jsonVariant._componentsData[language][componentId],
+            componentId,
+          })
+        ),
         ...(attributes && { attributes }),
       }
 
@@ -1395,6 +1454,8 @@ export async function setItems({
         const variant = await createProductVariant(
           vr,
           language,
+          context.shapes?.find((s) => s.identifier === item.shape) as Shape,
+          allGrids,
           existingProductVariant
         )
 

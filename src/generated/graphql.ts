@@ -7,15 +7,16 @@ export type Maybe<T> = T | null
 export type Exact<T extends { [key: string]: unknown }> = {
   [K in keyof T]: T[K]
 }
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> &
-  { [SubKey in K]?: Maybe<T[SubKey]> }
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> &
-  { [SubKey in K]: Maybe<T[SubKey]> }
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>
+}
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>
+}
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 export type RequireFields<T, K extends keyof T> = {
   [X in Exclude<keyof T, K>]?: T[X]
-} &
-  { [P in K]-?: NonNullable<T[P]> }
+} & { [P in K]-?: NonNullable<T[P]> }
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string
@@ -548,6 +549,7 @@ export type CreateProductVariantInput = {
   stock?: Maybe<Scalars['Int']>
   stockLocations?: Maybe<Array<StockLocationReferenceInput>>
   subscriptionPlans?: Maybe<Array<SubscriptionPlanReferenceInput>>
+  components?: Maybe<Array<Component>>
 }
 
 export type CreateShapeInput = {
@@ -2321,29 +2323,32 @@ export type ProductSubscriptionHistoryEvent = {
   type: ProductSubscriptionHistoryEventType
 }
 
-export type ProductSubscriptionHistoryEventCancellation = ProductSubscriptionHistoryEvent & {
-  __typename?: 'ProductSubscriptionHistoryEventCancellation'
-  activeUntil?: Maybe<Scalars['DateTime']>
-  cancelledAt: Scalars['DateTime']
-  deactivated: Scalars['Boolean']
-  type: ProductSubscriptionHistoryEventType
-}
+export type ProductSubscriptionHistoryEventCancellation =
+  ProductSubscriptionHistoryEvent & {
+    __typename?: 'ProductSubscriptionHistoryEventCancellation'
+    activeUntil?: Maybe<Scalars['DateTime']>
+    cancelledAt: Scalars['DateTime']
+    deactivated: Scalars['Boolean']
+    type: ProductSubscriptionHistoryEventType
+  }
 
-export type ProductSubscriptionHistoryEventRenewal = ProductSubscriptionHistoryEvent & {
-  __typename?: 'ProductSubscriptionHistoryEventRenewal'
-  activeUntil?: Maybe<Scalars['DateTime']>
-  currency: Scalars['String']
-  price: Scalars['Float']
-  renewedAt: Scalars['DateTime']
-  type: ProductSubscriptionHistoryEventType
-}
+export type ProductSubscriptionHistoryEventRenewal =
+  ProductSubscriptionHistoryEvent & {
+    __typename?: 'ProductSubscriptionHistoryEventRenewal'
+    activeUntil?: Maybe<Scalars['DateTime']>
+    currency: Scalars['String']
+    price: Scalars['Float']
+    renewedAt: Scalars['DateTime']
+    type: ProductSubscriptionHistoryEventType
+  }
 
-export type ProductSubscriptionHistoryEventRenewalDueBroadcast = ProductSubscriptionHistoryEvent & {
-  __typename?: 'ProductSubscriptionHistoryEventRenewalDueBroadcast'
-  broadcastAt: Scalars['DateTime']
-  renewAt: Scalars['DateTime']
-  type: ProductSubscriptionHistoryEventType
-}
+export type ProductSubscriptionHistoryEventRenewalDueBroadcast =
+  ProductSubscriptionHistoryEvent & {
+    __typename?: 'ProductSubscriptionHistoryEventRenewalDueBroadcast'
+    broadcastAt: Scalars['DateTime']
+    renewAt: Scalars['DateTime']
+    type: ProductSubscriptionHistoryEventType
+  }
 
 export enum ProductSubscriptionHistoryEventType {
   Cancellation = 'CANCELLATION',
@@ -2459,6 +2464,7 @@ export type ProductVariant = {
   stock?: Maybe<Scalars['Int']>
   stockLocations?: Maybe<Array<ProductStockLocation>>
   subscriptionPlans?: Maybe<Array<ProductVariantSubscriptionPlan>>
+  components?: Maybe<Array<Component>>
 }
 
 export type ProductVariantPriceArgs = {
@@ -3121,13 +3127,14 @@ export type SubscriptionContractQueriesGetManyArgs = {
   tenantId: Scalars['ID']
 }
 
-export type SubscriptionContractRenewalDueBroadcastEvent = SubscriptionContractEvent & {
-  __typename?: 'SubscriptionContractRenewalDueBroadcastEvent'
-  createdAt: Scalars['DateTime']
-  data: SubscriptionContractRenewalDueBroadcastEventData
-  id: Scalars['ID']
-  type: SubscriptionContractEventType
-}
+export type SubscriptionContractRenewalDueBroadcastEvent =
+  SubscriptionContractEvent & {
+    __typename?: 'SubscriptionContractRenewalDueBroadcastEvent'
+    createdAt: Scalars['DateTime']
+    data: SubscriptionContractRenewalDueBroadcastEventData
+    id: Scalars['ID']
+    type: SubscriptionContractEventType
+  }
 
 export type SubscriptionContractRenewalDueBroadcastEventData = {
   __typename?: 'SubscriptionContractRenewalDueBroadcastEventData'
@@ -3160,12 +3167,13 @@ export type SubscriptionContractUsage = {
   quantity?: Maybe<Scalars['Float']>
 }
 
-export type SubscriptionContractUsageTrackedEvent = SubscriptionContractEvent & {
-  __typename?: 'SubscriptionContractUsageTrackedEvent'
-  createdAt: Scalars['DateTime']
-  id: Scalars['ID']
-  type: SubscriptionContractEventType
-}
+export type SubscriptionContractUsageTrackedEvent =
+  SubscriptionContractEvent & {
+    __typename?: 'SubscriptionContractUsageTrackedEvent'
+    createdAt: Scalars['DateTime']
+    id: Scalars['ID']
+    type: SubscriptionContractEventType
+  }
 
 export enum SubscriptionPeriodUnit {
   Day = 'day',
