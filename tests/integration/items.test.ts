@@ -369,7 +369,6 @@ testCases.forEach((tc) => {
 
     bootstrapper.on(EVENT_NAMES.ERROR, (err) => {
       console.error(err)
-      fail('bootstrapper error occured')
     })
     await bootstrapper.start()
 
