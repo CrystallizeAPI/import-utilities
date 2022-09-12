@@ -21,7 +21,7 @@ import {
 } from '@crystallize/js-api-client'
 import { fail } from 'assert'
 import { Shape } from '@crystallize/schema/shape'
-import { validateObject } from './utils'
+import { validateObject } from './_utils'
 
 const { CRYSTALLIZE_ACCESS_TOKEN_ID, CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
   process.env
@@ -362,8 +362,6 @@ testCases.forEach((tc) => {
       CRYSTALLIZE_ACCESS_TOKEN_ID,
       CRYSTALLIZE_ACCESS_TOKEN_SECRET
     )
-    bootstrapper.config.logLevel = 'verbose'
-
     bootstrapper.setSpec({
       shapes: tc.shapes,
       items: tc.items,
@@ -375,9 +373,7 @@ testCases.forEach((tc) => {
     })
     await bootstrapper.start()
 
-    bootstrapper.config.logLevel = 'silent'
     const spec = await bootstrapper.createSpec()
-    console.log(spec.items)
 
     tc.items.forEach((input) => {
       // @ts-ignore

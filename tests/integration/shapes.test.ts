@@ -15,7 +15,7 @@ import {
 import { fail } from 'assert'
 import { getManyShapesQuery } from '@crystallize/import-export-sdk/shape'
 import { Shape, ShapeComponent } from '@crystallize/schema/shape'
-import { validateObject } from './utils'
+import { validateObject } from './_utils'
 
 const { CRYSTALLIZE_ACCESS_TOKEN_ID, CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
   process.env
