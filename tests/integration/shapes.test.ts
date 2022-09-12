@@ -15,6 +15,7 @@ import {
 import { fail } from 'assert'
 import { getManyShapesQuery } from '@crystallize/import-export-sdk/shape'
 import { Shape, ShapeComponent } from '@crystallize/schema/shape'
+import { validateObject } from './utils'
 
 const { CRYSTALLIZE_ACCESS_TOKEN_ID, CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
   process.env
@@ -336,15 +337,6 @@ test.afterEach.always(async (t) => {
 
 testCases.forEach((tc) => {
   test(tc.name, async (t) => {
-    const validateObject = (actual: any, input: any) => {
-      Object.keys(input).map((key: string) => {
-        if (typeof input[key] === 'object') {
-          return validateObject(actual[key] as any, input[key] as any)
-        }
-        t.is(actual[key], input[key])
-      })
-    }
-
     const ctx = t.context as TestContext
 
     const bootstrapper = new Bootstrapper()
@@ -399,7 +391,7 @@ testCases.forEach((tc) => {
           fail(`missing component ${input.id} in the response`)
         }
 
-        validateObject(actual, input)
+        validateObject(t, actual, input)
       }
 
       input.components?.forEach((cmp) =>

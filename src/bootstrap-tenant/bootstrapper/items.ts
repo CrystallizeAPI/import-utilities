@@ -78,7 +78,6 @@ import {
   CreateProductVariantInput,
   FileContentInput,
   FileInput,
-  Maybe,
   PriceVariantReferenceInput,
   ProductPriceVariant,
   ProductStockLocation,
@@ -1334,6 +1333,16 @@ export async function setItems({
         ...restOfExistingProductVariant
       } = existingProductVariant || {}
 
+      const components = jsonVariant.components
+        ? Object.keys(jsonVariant._componentsData?.[language] || {}).map(
+            (componentId: string) => ({
+              // @ts-ignore
+              ...jsonVariant._componentsData[language][componentId],
+              componentId,
+            })
+          )
+        : undefined
+
       const variant: CreateProductVariantInput = {
         ...(restOfExistingProductVariant as CreateProductVariantInput),
         name: getTranslation(jsonVariant.name, language),
@@ -1347,13 +1356,7 @@ export async function setItems({
           jsonPrice: jsonVariant.price,
           existingProductVariantPriceVariants,
         }),
-        components: Object.keys(
-          jsonVariant._componentsData?.[language] || {}
-        ).map((componentId: string) => ({
-          // @ts-ignore
-          ...jsonVariant._componentsData[language][componentId],
-          componentId,
-        })),
+        components,
         ...(attributes && { attributes }),
       }
 
@@ -1794,176 +1797,278 @@ export async function setItems({
       return ids
     }
 
+    /**
+     * Fetches the mutation input for a component update mutation.
+     *
+     * @param { ShapeComponent, componentContent, componentId }
+     * @returns Promise with mutation object or null
+     */
+    const getComponentUpdateMutationInput = async ({
+      shapeComponent,
+      componentContent,
+      componentsData,
+      componentId,
+    }: {
+      shapeComponent?: ShapeComponent
+      componentContent: JSONComponentContent
+      componentsData?: Record<string, any>
+      componentId: string
+    }): Promise<object | null> => {
+      if (!shapeComponent) {
+        return null
+      }
+
+      let mutationInput = null
+
+      switch (shapeComponent?.type) {
+        case 'itemRelations': {
+          mutationInput = {
+            componentId,
+            itemRelations: {
+              itemIds: await getItemIdsForItemRelation(
+                componentContent as JSONItemRelations
+              ),
+            },
+          }
+          break
+        }
+        case 'componentChoice':
+        case 'contentChunk': {
+          const { choices } =
+            shapeComponent.config as ComponentChoiceComponentConfig
+          const { components } =
+            shapeComponent.config as ContentChunkComponentConfig
+          const itemRelationIds = (choices || components)
+            .filter((s: any) => s.type === 'itemRelations')
+            .map((s: any) => s.id)
+
+          // Get existing data for component
+          if (itemRelationIds.length > 0) {
+            const existingComponentsData =
+              componentsData?.[context.defaultLanguage.code]
+            const componentData = existingComponentsData[componentId]
+
+            if (componentData) {
+              if (shapeComponent.type === 'componentChoice') {
+                if (componentData.componentChoice?.componentId) {
+                  const selectedDef = choices.find(
+                    (c: any) =>
+                      c.id === componentData.componentChoice.componentId
+                  )
+                  if (selectedDef?.type === 'itemRelations') {
+                    const chosenComponentId =
+                      componentData.componentChoice.componentId
+                    const component = componentContent as Record<
+                      string,
+                      JSONItemReference[]
+                    >
+                    componentData.componentChoice
+                    mutationInput = {
+                      componentId,
+                      componentChoice: {
+                        componentId: chosenComponentId,
+                        itemRelations: {
+                          itemIds: await getItemIdsForItemRelation(
+                            component[chosenComponentId] as JSONItemReference[]
+                          ),
+                        },
+                      },
+                    }
+                  }
+                }
+              } else if (shapeComponent.type === 'contentChunk') {
+                mutationInput = {
+                  componentId,
+                  ...componentData,
+                }
+                await Promise.all(
+                  mutationInput.contentChunk.chunks.map(
+                    async (chunk: any, chunkIndex: number) => {
+                      const jsonChunk = (componentContent as JSONContentChunk)[
+                        chunkIndex
+                      ]
+
+                      // Update all potential itemRelation components
+                      await Promise.all(
+                        itemRelationIds.map(async (itemRelationId: string) => {
+                          const itemRelationComponentIndex = chunk.findIndex(
+                            (c: any) => c.componentId === itemRelationId
+                          )
+
+                          if (itemRelationComponentIndex !== -1) {
+                            chunk[
+                              itemRelationComponentIndex
+                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
+                              jsonChunk[itemRelationId] as JSONItemRelation[]
+                            )
+                          }
+                        })
+                      )
+                    }
+                  )
+                )
+              }
+            }
+          }
+          break
+        }
+      }
+
+      return mutationInput
+    }
+
     if (item.id) {
       // Pull the item info from the cache
       const versionsInfo = context.itemVersions.get(item.id)
 
-      if (item.components && item.id) {
-        await Promise.all(
-          Object.keys(item.components).map(async (componentId) => {
-            const jsonItem = item.components?.[
-              componentId
-            ] as JSONComponentContent
+      if (item.id) {
+        if (item.components) {
+          await Promise.all(
+            Object.keys(item.components).map(async (componentId) => {
+              const jsonItem = item.components?.[
+                componentId
+              ] as JSONComponentContent
 
-            if (jsonItem) {
-              const shape = context.shapes?.find(
-                (s) => s.identifier === item.shape
-              )
-              const def = shape?.components?.find(
-                (c: any) => c.id === componentId
-              )
+              if (jsonItem) {
+                const shape = context.shapes?.find(
+                  (s) => s.identifier === item.shape
+                )
+                const def = shape?.components?.find(
+                  (c: any) => c.id === componentId
+                )
 
-              let mutationInput = null
+                const mutationInput = await getComponentUpdateMutationInput({
+                  shapeComponent: def,
+                  componentContent: jsonItem,
+                  componentsData: item._componentsData,
+                  componentId,
+                })
 
-              switch (def?.type) {
-                case 'itemRelations': {
-                  mutationInput = {
-                    componentId,
-                    itemRelations: {
-                      itemIds: await getItemIdsForItemRelation(
-                        jsonItem as JSONItemRelations
-                      ),
-                    },
-                  }
-                  break
-                }
-                case 'componentChoice':
-                case 'contentChunk': {
-                  const nestedComponents =
-                    def.type === 'componentChoice'
-                      ? (def.config as ComponentChoiceComponentConfig).choices
-                      : (def.config as ContentChunkComponentConfig).components
-                  const itemRelationIds = nestedComponents
-                    .filter((s: any) => s.type === 'itemRelations')
-                    .map((s: any) => s.id)
-
-                  // Get existing data for component
-                  if (itemRelationIds.length > 0) {
-                    const existingComponentsData =
-                      item._componentsData?.[context.defaultLanguage.code]
-                    const componentData = existingComponentsData[componentId]
-
-                    if (componentData) {
-                      if (def.type === 'componentChoice') {
-                        const config =
-                          def.config as ComponentChoiceComponentConfig
-                        if (componentData.componentChoice?.componentId) {
-                          const selectedDef = config?.choices?.find(
-                            (c: any) =>
-                              c.id === componentData.componentChoice.componentId
-                          )
-                          if (selectedDef?.type === 'itemRelations') {
-                            const chosenComponentId =
-                              componentData.componentChoice.componentId
-                            const component = jsonItem as Record<
-                              string,
-                              JSONItemReference[]
-                            >
-                            componentData.componentChoice
-                            mutationInput = {
-                              componentId,
-                              componentChoice: {
-                                componentId: chosenComponentId,
-                                itemRelations: {
-                                  itemIds: await getItemIdsForItemRelation(
-                                    component[
-                                      chosenComponentId
-                                    ] as JSONItemReference[]
-                                  ),
-                                },
-                              },
+                // Update the component
+                if (mutationInput) {
+                  try {
+                    const r = await context.callPIM({
+                      query: gql`
+                        mutation UPDATE_RELATIONS_COMPONENT(
+                          $itemId: ID!
+                          $language: String!
+                          $input: ComponentInput!
+                        ) {
+                          item {
+                            updateComponent(
+                              itemId: $itemId
+                              language: $language
+                              input: $input
+                            ) {
+                              id
                             }
                           }
                         }
-                      } else if (def.type === 'contentChunk') {
-                        mutationInput = {
-                          componentId,
-                          ...componentData,
-                        }
-                        await Promise.all(
-                          mutationInput.contentChunk.chunks.map(
-                            async (chunk: any, chunkIndex: number) => {
-                              const jsonChunk = (jsonItem as JSONContentChunk)[
-                                chunkIndex
-                              ]
+                      `,
+                      variables: {
+                        itemId: item.id,
+                        language: context.defaultLanguage.code,
+                        input: mutationInput,
+                      },
+                    })
 
-                              // Update all potential itemRelation components
-                              await Promise.all(
-                                itemRelationIds.map(
-                                  async (itemRelationId: string) => {
-                                    const itemRelationComponentIndex =
-                                      chunk.findIndex(
-                                        (c: any) =>
-                                          c.componentId === itemRelationId
-                                      )
+                    if (r.errors) {
+                      throw r.errors
+                    }
+                  } catch (err) {
+                    onUpdate({
+                      warning: {
+                        code: 'CANNOT_HANDLE_ITEM_RELATION',
+                        message: `Unable to update relation for item "${
+                          item.id
+                        }" with input ${JSON.stringify(mutationInput)} `,
+                      },
+                    })
+                  }
+                }
+              }
+            })
+          )
+        }
 
-                                    if (itemRelationComponentIndex !== -1) {
-                                      chunk[
-                                        itemRelationComponentIndex
-                                      ].itemRelations.itemIds = await getItemIdsForItemRelation(
-                                        jsonChunk[
-                                          itemRelationId
-                                        ] as JSONItemRelation[]
-                                      )
-                                    }
-                                  }
-                                )
-                              )
+        const product = item as JSONProduct
+        if (product.variants?.length) {
+          for (const variant of product.variants) {
+            if (!variant.components) {
+              continue
+            }
+
+            await Promise.all(
+              Object.keys(variant.components).map(async (componentId) => {
+                const jsonItem = variant.components?.[
+                  componentId
+                ] as JSONComponentContent
+
+                if (jsonItem) {
+                  const shape = context.shapes?.find(
+                    (s) => s.identifier === item.shape
+                  )
+                  const def = shape?.variantComponents?.find(
+                    (c: any) => c.id === componentId
+                  )
+
+                  const mutationInput = await getComponentUpdateMutationInput({
+                    shapeComponent: def,
+                    componentContent: jsonItem,
+                    componentsData: variant._componentsData,
+                    componentId,
+                  })
+
+                  // Update the component
+                  if (mutationInput) {
+                    try {
+                      const r = await context.callPIM({
+                        query: gql`
+                          mutation UPDATE_VARIANT_RELATIONS_COMPONENT(
+                            $productId: ID!
+                            $sku: String!
+                            $language: String!
+                            $input: ComponentInput!
+                          ) {
+                            product {
+                              updateVariantComponent(
+                                productId: $productId
+                                sku: $sku
+                                language: $language
+                                input: $input
+                              ) {
+                                id
+                              }
                             }
-                          )
-                        )
+                          }
+                        `,
+                        variables: {
+                          productId: item.id,
+                          sku: variant.sku,
+                          language: context.defaultLanguage.code,
+                          input: mutationInput,
+                        },
+                      })
+
+                      if (r.errors) {
+                        throw r.errors
                       }
+                    } catch (err) {
+                      onUpdate({
+                        warning: {
+                          code: 'CANNOT_HANDLE_ITEM_RELATION',
+                          message: `Unable to update relation for variant "${
+                            variant.sku
+                          }" with input ${JSON.stringify(mutationInput)} `,
+                        },
+                      })
                     }
                   }
-                  break
                 }
-              }
-
-              // Update the component
-              if (mutationInput) {
-                try {
-                  const r = await context.callPIM({
-                    query: gql`
-                      mutation UPDATE_RELATIONS_COMPONENT(
-                        $itemId: ID!
-                        $language: String!
-                        $input: ComponentInput!
-                      ) {
-                        item {
-                          updateComponent(
-                            itemId: $itemId
-                            language: $language
-                            input: $input
-                          ) {
-                            id
-                          }
-                        }
-                      }
-                    `,
-                    variables: {
-                      itemId: item.id,
-                      language: context.defaultLanguage.code,
-                      input: mutationInput,
-                    },
-                  })
-
-                  if (r.errors) {
-                    throw r.errors
-                  }
-                } catch (err) {
-                  onUpdate({
-                    warning: {
-                      code: 'CANNOT_HANDLE_ITEM_RELATION',
-                      message: `Unable to update relation for item "${
-                        item.id
-                      }" with input ${JSON.stringify(mutationInput)} `,
-                    },
-                  })
-                }
-              }
-            }
-          })
-        )
+              })
+            )
+          }
+        }
       }
 
       // Publish if needed
