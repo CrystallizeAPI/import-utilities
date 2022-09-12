@@ -9,11 +9,12 @@ import {
   JSONTopic,
   JSONVatType,
   JSONCustomer,
+  JSONShape,
 } from './core'
 import { JSONOrder } from './orders'
 
 export interface JsonSpec {
-  shapes?: Shape[]
+  shapes?: JSONShape[]
   priceVariants?: JSONPriceVariant[]
   stockLocations?: JSONStockLocation[]
   subscriptionPlans?: JSONSubscriptionPlan[]
