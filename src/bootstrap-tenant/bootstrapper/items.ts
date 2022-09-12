@@ -1,5 +1,6 @@
 // @ts-ignore
 import fromHTML from '@crystallize/content-transformer/fromHTML'
+import { Shape, ShapeComponent } from '@crystallize/schema/shape'
 import gql from 'graphql-tag'
 
 import {
@@ -21,7 +22,6 @@ import {
   PropertiesTableComponentContentInput,
   RichTextContentInput,
   SelectionComponentContentInput,
-  Shape,
   SingleLineComponentContentInput,
   VideoContentInput,
   VideosComponentContentInput,
@@ -93,6 +93,10 @@ import {
 } from '../../generated/graphql'
 import { getProductVariants } from './utils/get-product-variants'
 import { getTopicIds } from './utils/get-topic-id'
+import {
+  ComponentChoiceComponentConfig,
+  ContentChunkComponentConfig,
+} from '@crystallize/schema/shape'
 
 export interface Props {
   spec: JsonSpec | null
@@ -404,7 +408,7 @@ async function createComponentsInput(
   const input: Record<string, ComponentContentInput> = {}
 
   async function createComponentInput(
-    componentDefinition: Component,
+    componentDefinition: ShapeComponent,
     component: JSONComponentContent,
     context: BootstrapperContext
   ) {
@@ -684,10 +688,9 @@ async function createComponentsInput(
           const chunkKeys = Object.keys(chunk)
           for (let x = 0; x < chunkKeys.length; x++) {
             const componentId = chunkKeys[x]
-            const selectedComponentDefinition =
-              componentDefinition.config.components.find(
-                (c: any) => c.id === componentId
-              )
+            const selectedComponentDefinition = (
+              componentDefinition.config as ContentChunkComponentConfig
+            )?.components?.find((c: any) => c.id === componentId)
 
             if (selectedComponentDefinition) {
               const content: any = await createComponentInput(
@@ -1763,9 +1766,11 @@ export async function setItems({
                 }
                 case 'componentChoice':
                 case 'contentChunk': {
-                  const itemRelationIds = (
-                    def.config.choices || def.config.components
-                  )
+                  const nestedComponents =
+                    def.type === 'componentChoice'
+                      ? (def.config as ComponentChoiceComponentConfig).choices
+                      : (def.config as ContentChunkComponentConfig).components
+                  const itemRelationIds = nestedComponents
                     .filter((s: any) => s.type === 'itemRelations')
                     .map((s: any) => s.id)
 
@@ -1777,8 +1782,10 @@ export async function setItems({
 
                     if (componentData) {
                       if (def.type === 'componentChoice') {
+                        const config =
+                          def.config as ComponentChoiceComponentConfig
                         if (componentData.componentChoice?.componentId) {
-                          const selectedDef = def.config.choices.find(
+                          const selectedDef = config?.choices?.find(
                             (c: any) =>
                               c.id === componentData.componentChoice.componentId
                           )
