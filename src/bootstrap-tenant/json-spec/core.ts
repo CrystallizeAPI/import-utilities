@@ -1,4 +1,16 @@
 import {
+  ComponentChoiceComponentConfig,
+  ContentChunkComponentConfig,
+  FileComponentConfig,
+  ItemRelationsComponentConfig,
+  NumericComponentConfig,
+  PropertiesTableComponentConfig,
+  SelectionComponentConfig,
+  Shape,
+  ShapeComponent,
+  ShapeComponentConfig,
+} from '@crystallize/schema/shape'
+import {
   SubscriptionPeriodUnit,
   SubscriptionPlanPeriod,
   TierType,
@@ -296,6 +308,19 @@ export interface JSONGrid {
   name: JSONStringTranslated
   rows: JSONGridRow[]
 }
+
+export type JSONShape = Shape
+export type JSONShapeComponent = ShapeComponent
+export type JSONShapeComponentConfig = ShapeComponentConfig
+export type JSONShapeComponentSelectionConfig = SelectionComponentConfig
+export type JSONShapeComponentComponentChoiceConfig =
+  ComponentChoiceComponentConfig
+export type JSONShapeComponentContentChunkConfig = ContentChunkComponentConfig
+export type JSONShapeComponentItemRelationsConfig = ItemRelationsComponentConfig
+export type JSONShapeComponentNumericConfig = NumericComponentConfig
+export type JSONShapeComponentPropertiesTableConfig =
+  PropertiesTableComponentConfig
+export type JSONShapeComponentFilesConfig = FileComponentConfig
 
 export interface JSONAddress {
   type: 'delivery' | 'billing' | 'other'
