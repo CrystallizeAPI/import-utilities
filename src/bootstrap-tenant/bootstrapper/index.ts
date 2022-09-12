@@ -24,7 +24,7 @@ import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
 import { setLanguages, getTenantSettings } from './languages'
 import { setVatTypes, getExistingVatTypes } from './vat-types'
-import { getAllTopicsForSpec, removeTopicId, setTopics } from './topics'
+import { getAllTopicsForSpec, setTopics } from './topics'
 import { setItems } from './items'
 import {
   getAllCatalogueItems,
@@ -40,7 +40,7 @@ import {
 import { createAPICaller } from './utils/api'
 import { setOrders } from './orders'
 import { setCustomers } from './customers'
-import { TopicAndTenantId } from './utils/get-topic-id'
+import { createClient, createMassCallClient } from '@crystallize/js-api-client'
 
 export interface ICreateSpec {
   language?: string
@@ -288,6 +288,15 @@ export class Bootstrapper extends EventEmitter {
           : 'api.crystallize.com'
       }/${this.context.tenantIdentifier}`
 
+      const client = createClient({
+        tenantIdentifier: this.context.tenantIdentifier,
+        tenantId: this.context.tenantId,
+        accessTokenId: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID,
+        accessTokenSecret: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+      })
+
+      this.context.client = createMassCallClient(client, {})
+
       // Catalogue
       this.catalogueAPIManager = createAPICaller({
         uri: `${baseUrl}/catalogue`,
@@ -466,10 +475,7 @@ export class Bootstrapper extends EventEmitter {
 
       // Shapes
       if (props.shapes) {
-        spec.shapes = await getExistingShapesForSpec(
-          this.context,
-          props.onUpdate
-        )
+        spec.shapes = await getExistingShapesForSpec(this.context)
       }
 
       // Grids

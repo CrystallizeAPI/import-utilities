@@ -1,5 +1,6 @@
 import gql from 'graphql-tag'
-import { ShapeType, SubscriptionPlan } from '../../../generated/graphql'
+import { MassClientInterface } from '@crystallize/js-api-client'
+import { SubscriptionPlan } from '../../../generated/graphql'
 import { Shape } from '../../../types'
 import {
   JSONLanguage,
@@ -9,7 +10,6 @@ import {
 } from '../../json-spec'
 import { IcallAPI, IcallAPIResult } from './api'
 import { ItemAndParentId } from './get-item-id'
-import { TopicAndTenantId } from './get-topic-id'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
 import { LogLevel } from './types'
 
@@ -78,6 +78,7 @@ export interface Config {
 }
 
 export interface BootstrapperContext {
+  client?: MassClientInterface
   tenantId: string
   tenantIdentifier: string
   defaultLanguage: JSONLanguage

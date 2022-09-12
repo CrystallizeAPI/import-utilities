@@ -1,14 +1,15 @@
+import { Shape } from '@crystallize/schema/shape'
 import {
   JSONGrid,
   JSONItem,
   JSONLanguage,
   JSONPriceVariant,
-  JSONShape,
   JSONStockLocation,
   JSONSubscriptionPlan,
   JSONTopic,
   JSONVatType,
   JSONCustomer,
+  JSONShape,
 } from './core'
 import { JSONOrder } from './orders'
 

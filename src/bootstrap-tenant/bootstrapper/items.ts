@@ -1055,7 +1055,7 @@ export async function setItems({
     // Create the object to store the component data in
     item._componentsData = {}
 
-    // Ensure shape identifier is not too long (max 24 characters)
+    // Ensure shape identifier is not too long (max 64 characters)
     item.shape = validShapeIdentifier(item.shape, onUpdate)
 
     // Get the shape type
