@@ -99,6 +99,25 @@ export const buildGetItemsByShapeQuery = (
                 name: true,
                 sku: true,
                 price: true,
+                components: {
+                  componentId: true,
+                  type: true,
+                  content: {
+                    __on: [
+                      ...basicComponentContent,
+                      {
+                        __typeName: 'ContentChunkContent',
+                        chunks: {
+                          componentId: true,
+                          type: true,
+                          content: {
+                            __on: basicComponentContent,
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
               },
             },
             id: true,

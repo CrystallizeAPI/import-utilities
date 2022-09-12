@@ -7,98 +7,15 @@ test('get items with id and language', (t) => {
     ''
   )
   const want: string = `
-    query {
-      shape {
-        get (tenantId: "1234", identifier: "my-shape") {
-          identifier
+  query {
+    shape {
+      get(tenantId: "1234", identifier: "my-shape") {
+        identifier
+        name
+        items(language: "en") {
+          id
           name
-          items(language: "en") {
-            id
-            name
-            components {
-              ...componentContent
-            }
-            ... on Product {
-              variants {
-                id
-                isDefault
-                name
-                sku
-                price
-                components {
-                  ...componentContent
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    fragment componentContent on Component {
-      componentId
-      type
-      content {
-        ... on BooleanContent {
-          value
-        }
-        ... on ComponentChoiceContent {
-          selectedComponent {
-            componentId
-            type
-          }
-        }
-        ... on DatetimeContent {
-          datetime
-        }
-        ... on GridRelationsContent {
-          grids {
-            id
-          }
-        }
-        ... on ImageContent {
-          images {
-            key
-          }
-        }
-        ... on ItemRelationsContent {
-          items {
-            id
-          }
-        }
-        ... on LocationContent {
-          lat
-          long
-        }
-        ... on NumericContent {
-          number
-          unit
-        }
-        ... on PropertiesTableContent {
-          sections {
-            title
-            properties {
-              key
-              value
-            }
-          }
-        }
-        ... on RichTextContent {
-          json
-          html
-        }
-        ... on SingleLineContent {
-          text
-        }
-        ... on VideoContent {
-          videos {
-            id
-            title
-          }
-        }
-
-        ... on ContentChunkContent {
-          chunks {
+          components {
             componentId
             type
             content {
@@ -159,11 +76,214 @@ test('get items with id and language', (t) => {
                   title
                 }
               }
+              ... on ContentChunkContent {
+                chunks {
+                  componentId
+                  type
+                  content {
+                    ... on BooleanContent {
+                      value
+                    }
+                    ... on ComponentChoiceContent {
+                      selectedComponent {
+                        componentId
+                        type
+                      }
+                    }
+                    ... on DatetimeContent {
+                      datetime
+                    }
+                    ... on GridRelationsContent {
+                      grids {
+                        id
+                      }
+                    }
+                    ... on ImageContent {
+                      images {
+                        key
+                      }
+                    }
+                    ... on ItemRelationsContent {
+                      items {
+                        id
+                      }
+                    }
+                    ... on LocationContent {
+                      lat
+                      long
+                    }
+                    ... on NumericContent {
+                      number
+                      unit
+                    }
+                    ... on PropertiesTableContent {
+                      sections {
+                        title
+                        properties {
+                          key
+                          value
+                        }
+                      }
+                    }
+                    ... on RichTextContent {
+                      json
+                      html
+                    }
+                    ... on SingleLineContent {
+                      text
+                    }
+                    ... on VideoContent {
+                      videos {
+                        id
+                        title
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          ... on Product {
+            variants {
+              id
+              isDefault
+              name
+              sku
+              price
+              components {
+                componentId
+                type
+                content {
+                  ... on BooleanContent {
+                    value
+                  }
+                  ... on ComponentChoiceContent {
+                    selectedComponent {
+                      componentId
+                      type
+                    }
+                  }
+                  ... on DatetimeContent {
+                    datetime
+                  }
+                  ... on GridRelationsContent {
+                    grids {
+                      id
+                    }
+                  }
+                  ... on ImageContent {
+                    images {
+                      key
+                    }
+                  }
+                  ... on ItemRelationsContent {
+                    items {
+                      id
+                    }
+                  }
+                  ... on LocationContent {
+                    lat
+                    long
+                  }
+                  ... on NumericContent {
+                    number
+                    unit
+                  }
+                  ... on PropertiesTableContent {
+                    sections {
+                      title
+                      properties {
+                        key
+                        value
+                      }
+                    }
+                  }
+                  ... on RichTextContent {
+                    json
+                    html
+                  }
+                  ... on SingleLineContent {
+                    text
+                  }
+                  ... on VideoContent {
+                    videos {
+                      id
+                      title
+                    }
+                  }
+                  ... on ContentChunkContent {
+                    chunks {
+                      componentId
+                      type
+                      content {
+                        ... on BooleanContent {
+                          value
+                        }
+                        ... on ComponentChoiceContent {
+                          selectedComponent {
+                            componentId
+                            type
+                          }
+                        }
+                        ... on DatetimeContent {
+                          datetime
+                        }
+                        ... on GridRelationsContent {
+                          grids {
+                            id
+                          }
+                        }
+                        ... on ImageContent {
+                          images {
+                            key
+                          }
+                        }
+                        ... on ItemRelationsContent {
+                          items {
+                            id
+                          }
+                        }
+                        ... on LocationContent {
+                          lat
+                          long
+                        }
+                        ... on NumericContent {
+                          number
+                          unit
+                        }
+                        ... on PropertiesTableContent {
+                          sections {
+                            title
+                            properties {
+                              key
+                              value
+                            }
+                          }
+                        }
+                        ... on RichTextContent {
+                          json
+                          html
+                        }
+                        ... on SingleLineContent {
+                          text
+                        }
+                        ... on VideoContent {
+                          videos {
+                            id
+                            title
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
       }
     }
+  }
   `
     .replace(/\n/g, '')
     .replace(/ /g, '')
