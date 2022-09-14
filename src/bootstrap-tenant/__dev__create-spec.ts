@@ -8,25 +8,16 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'my-tech-blog'
-
-  if (
-    !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
-    !process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
-  ) {
-    throw new Error(
-      'CRYSTALLIZE_ACCESS_TOKEN_ID and CRYSTALLIZE_ACCESS_TOKEN_SECRET must be set'
-    )
-  }
+  const tenantIdentifier = 'hkn'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
   const bootstrapper = new Bootstrapper()
-  bootstrapper.env = 'dev'
+  // bootstrapper.env = 'prod'
 
   bootstrapper.setAccessToken(
-    process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
-    process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
+    process.env.CRYSTALLIZE_ACCESS_TOKEN_ID!,
+    process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
   )
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
@@ -39,15 +30,15 @@ async function createSpec() {
   })
 
   const spec = await bootstrapper.createSpec({
-    shapes: true,
-    grids: true,
+    shapes: false,
+    grids: false,
     items: true,
-    languages: true,
-    priceVariants: true,
-    stockLocations: true,
-    vatTypes: true,
-    subscriptionPlans: true,
-    topicMaps: true,
+    languages: false,
+    priceVariants: false,
+    stockLocations: false,
+    vatTypes: false,
+    subscriptionPlans: false,
+    topicMaps: false,
     onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 

@@ -17,15 +17,6 @@ async function bootstrap() {
       )
     )
 
-    if (
-      !process.env.CRYSTALLIZE_ACCESS_TOKEN_ID ||
-      !process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
-    ) {
-      throw new Error(
-        'CRYSTALLIZE_ACCESS_TOKEN_ID and CRYSTALLIZE_ACCESS_TOKEN_SECRET must be set'
-      )
-    }
-
     console.log(`✨ Bootstrapping ${tenantIdentifier} ✨`)
 
     const bootstrapper = new Bootstrapper()
@@ -34,8 +25,8 @@ async function bootstrap() {
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 
     bootstrapper.setAccessToken(
-      process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,
-      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET
+      process.env.CRYSTALLIZE_ACCESS_TOKEN_ID!,
+      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
     )
 
     bootstrapper.setSpec(jsonSpec)
