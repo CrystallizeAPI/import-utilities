@@ -30,6 +30,8 @@ if (!DEV_CRYSTALLIZE_ACCESS_TOKEN_ID || !DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET) {
   throw new Error('access token not set')
 }
 
+process.env.CRYSTALLIZE_ENV = 'test'
+
 interface TestCase {
   name: string
   shapes: Shape[]
