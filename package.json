@@ -21,7 +21,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc -p . --declaration",
-    "test": "ava",
+    "test": "ava --timeout 30s",
     "dev:spec": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__create-spec.ts\"",
     "dev:spec:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__create-spec.ts\"",
     "dev:bootstrapper": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",

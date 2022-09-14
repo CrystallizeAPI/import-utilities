@@ -22,6 +22,7 @@ import {
 import { fail } from 'assert'
 import { Shape } from '@crystallize/schema/shape'
 import { validateObject } from './_utils'
+import { BootstrapperError } from '../../src/bootstrap-tenant/bootstrapper'
 
 const { DEV_CRYSTALLIZE_ACCESS_TOKEN_ID, DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
   process.env
@@ -369,8 +370,10 @@ testCases.forEach((tc) => {
       items: tc.items,
     })
 
-    bootstrapper.on(EVENT_NAMES.ERROR, (err) => {
-      console.error(err)
+    bootstrapper.on(EVENT_NAMES.ERROR, (err: BootstrapperError) => {
+      if (!err.willRetry) {
+        console.error(err)
+      }
     })
     await bootstrapper.start()
 

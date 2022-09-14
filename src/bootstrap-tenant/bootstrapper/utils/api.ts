@@ -1,6 +1,7 @@
 import { DocumentNode } from 'graphql'
 import { request } from 'graphql-request'
 import { v4 as uuid } from 'uuid'
+import { BootstrapperError } from '.'
 import { LogLevel } from './types'
 
 export interface IcallAPI {
@@ -26,7 +27,7 @@ interface QueuedRequest {
   working?: boolean
 }
 
-type errorNotifierFn = (args: { error: string }) => void
+type errorNotifierFn = (args: BootstrapperError) => void
 
 type RequestStatus = 'ok' | 'error'
 
@@ -168,6 +169,7 @@ export class ApiManager {
 
         if (!item.props.suppressErrors) {
           this.errorNotifier({
+            willRetry: true,
             error: otherError,
           })
         }
@@ -206,6 +208,7 @@ export class ApiManager {
       if (item.failCount > 10 && !item.props.suppressErrors) {
         this.errorNotifier({
           error: err,
+          willRetry: true,
         })
       }
 
@@ -218,6 +221,7 @@ export class ApiManager {
         if (!item.props.suppressErrors) {
           this.errorNotifier({
             error: queryError,
+            willRetry: false,
           })
         }
         resolveWith({ data: null, errors: [{ error: queryError }] })

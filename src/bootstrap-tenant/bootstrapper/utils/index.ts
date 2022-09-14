@@ -77,6 +77,12 @@ export interface Config {
   }
 }
 
+export type BootstrapperError = {
+  willRetry: boolean
+  error: string
+  type?: 'error' | 'warning'
+}
+
 export interface BootstrapperContext {
   client?: MassClientInterface
   tenantId: string
@@ -101,7 +107,6 @@ export interface BootstrapperContext {
   callSearch: (props: IcallAPI) => Promise<IcallAPIResult>
   callOrders: (props: IcallAPI) => Promise<IcallAPIResult>
   emit: (name: EVENT_NAMES_VALUES, message: any) => void
-  emitError: (error: string) => void
 }
 
 export type ItemCreatedOrUpdated = {
@@ -193,7 +198,6 @@ export class FileUploadManager {
         const msg = e.message || JSON.stringify(e, null, 1)
         item.reject?.(msg)
         removeWorker(item)
-        // this.context.emitError(msg)
       } else {
         item.failCount++
         item.status = 'not-started'

@@ -1,7 +1,7 @@
 import { JsonSpec } from './json-spec'
 import { AreaUpdate, Bootstrapper } from './bootstrapper'
 
-export { Bootstrapper, AreaUpdate } from './bootstrapper'
+export { Bootstrapper, AreaUpdate, BootstrapperError } from './bootstrapper'
 export { EVENT_NAMES } from './bootstrapper/utils'
 
 interface BaseProps {

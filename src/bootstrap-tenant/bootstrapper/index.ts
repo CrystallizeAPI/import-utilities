@@ -19,6 +19,7 @@ import {
   removeUnwantedFieldsFromThing,
   ItemAndParentId,
   EVENT_NAMES_VALUES,
+  BootstrapperError,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -156,9 +157,6 @@ export class Bootstrapper extends EventEmitter {
     emit: (name: EVENT_NAMES_VALUES, message: any) => {
       this.emit(name, message)
     },
-    emitError: (error) => {
-      this.emit(EVENT_NAMES.ERROR, { error })
-    },
   }
 
   config: Config = {
@@ -193,8 +191,8 @@ export class Bootstrapper extends EventEmitter {
           ? 'pim-dev.crystallize.digital'
           : 'pim.crystallize.com'
       }/graphql`,
-      errorNotifier: ({ error }) => {
-        this.emit(EVENT_NAMES.ERROR, { error })
+      errorNotifier: (error: BootstrapperError) => {
+        this.emit(EVENT_NAMES.ERROR, error)
       },
     })
 
@@ -215,8 +213,8 @@ export class Bootstrapper extends EventEmitter {
             ? 'api-dev.crystallize.digital'
             : 'api.crystallize.com'
         }/${this.tenantIdentifier}/orders`,
-        errorNotifier: ({ error }) => {
-          this.emit(EVENT_NAMES.ERROR, { error })
+        errorNotifier: (error: BootstrapperError) => {
+          this.emit(EVENT_NAMES.ERROR, error)
         },
       })
       this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = ACCESS_TOKEN_ID
@@ -276,8 +274,11 @@ export class Bootstrapper extends EventEmitter {
     const tenant = r?.data?.tenant?.get
 
     if (!tenant) {
-      const error = `⛔️ You do not have access to tenant "${this.context.tenantIdentifier}" ⛔️`
-      this.emit(EVENT_NAMES.ERROR, { error })
+      const error: BootstrapperError = {
+        error: `⛔️ You do not have access to tenant "${this.context.tenantIdentifier}" ⛔️`,
+        willRetry: false,
+      }
+      this.emit(EVENT_NAMES.ERROR, error)
       return false
     } else {
       this.context.tenantId = tenant.id
@@ -303,8 +304,8 @@ export class Bootstrapper extends EventEmitter {
       // Catalogue
       this.catalogueAPIManager = createAPICaller({
         uri: `${baseUrl}/catalogue`,
-        errorNotifier: ({ error }) => {
-          this.emit(EVENT_NAMES.ERROR, { error })
+        errorNotifier: (error: BootstrapperError) => {
+          this.emit(EVENT_NAMES.ERROR, error)
         },
         logLevel: this.config.logLevel,
       })
@@ -315,8 +316,8 @@ export class Bootstrapper extends EventEmitter {
       // Search
       this.searchAPIManager = createAPICaller({
         uri: `${baseUrl}/search`,
-        errorNotifier: ({ error }) => {
-          this.emit(EVENT_NAMES.ERROR, { error })
+        errorNotifier: (error: BootstrapperError) => {
+          this.emit(EVENT_NAMES.ERROR, error)
         },
         logLevel: this.config.logLevel,
       })
@@ -522,9 +523,11 @@ export class Bootstrapper extends EventEmitter {
         spec.stockLocations = await getExistingStockLocations(this.context)
       }
     } catch (error) {
-      this.emit(EVENT_NAMES.ERROR, {
-        error,
-      })
+      const err: BootstrapperError = {
+        error: JSON.stringify(error),
+        willRetry: false,
+      }
+      this.emit(EVENT_NAMES.ERROR, err)
     }
 
     return spec
@@ -564,9 +567,11 @@ export class Bootstrapper extends EventEmitter {
         spec: this.SPEC,
       })
     } catch (error) {
-      this.emit(EVENT_NAMES.ERROR, {
-        error,
-      })
+      const err: BootstrapperError = {
+        error: JSON.stringify(error),
+        willRetry: false,
+      }
+      this.emit(EVENT_NAMES.ERROR, err)
     }
   }
   private areaUpdate(
@@ -600,9 +605,13 @@ export class Bootstrapper extends EventEmitter {
         immer(this.status, () => {})
       )
     } else if (areaUpdate.warning) {
-      this.emit(EVENT_NAMES.ERROR, {
+      const err: BootstrapperError = {
         error: JSON.stringify(areaUpdate.warning, null, 1),
-      })
+        willRetry: false,
+        type: 'warning',
+      }
+
+      this.emit(EVENT_NAMES.ERROR, err)
     }
   }
 

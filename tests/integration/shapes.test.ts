@@ -16,6 +16,7 @@ import { fail } from 'assert'
 import { getManyShapesQuery } from '@crystallize/import-export-sdk/shape'
 import { Shape, ShapeComponent } from '@crystallize/schema/shape'
 import { validateObject } from './_utils'
+import { BootstrapperError } from '../../src/bootstrap-tenant/bootstrapper'
 
 const { DEV_CRYSTALLIZE_ACCESS_TOKEN_ID, DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
   process.env
@@ -352,7 +353,11 @@ testCases.forEach((tc) => {
       shapes: tc.shapes,
     })
 
-    bootstrapper.on(EVENT_NAMES.ERROR, (err) => fail(err))
+    bootstrapper.on(EVENT_NAMES.ERROR, (err: BootstrapperError) => {
+      if (!err.willRetry) {
+        fail(err.error)
+      }
+    })
     await bootstrapper.start()
 
     const { query, variables } = getManyShapesQuery(

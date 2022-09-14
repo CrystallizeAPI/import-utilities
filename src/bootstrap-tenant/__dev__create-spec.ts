@@ -3,6 +3,7 @@ config()
 
 import { writeFileSync } from 'fs'
 import { resolve } from 'path'
+import { BootstrapperError } from './bootstrapper'
 
 import { Bootstrapper, EVENT_NAMES } from './index'
 
@@ -31,8 +32,10 @@ async function createSpec() {
   bootstrapper.setTenantIdentifier(tenantIdentifier)
   bootstrapper.config.multilingual = true
 
-  bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
-    console.log(error)
+  bootstrapper.on(EVENT_NAMES.ERROR, (error: BootstrapperError) => {
+    if (!error.willRetry) {
+      console.log(error)
+    }
   })
 
   const spec = await bootstrapper.createSpec({

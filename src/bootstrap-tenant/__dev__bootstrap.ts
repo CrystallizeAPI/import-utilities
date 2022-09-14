@@ -5,7 +5,7 @@ import { readFile } from 'fs/promises'
 import { resolve } from 'path'
 // import Progress from 'cli-progress'
 
-import { Bootstrapper, EVENT_NAMES } from './bootstrapper'
+import { Bootstrapper, BootstrapperError, EVENT_NAMES } from './bootstrapper'
 
 async function bootstrap() {
   try {
@@ -90,10 +90,15 @@ async function bootstrap() {
       }
     })
 
-    bootstrapper.on(EVENT_NAMES.ERROR, ({ error }) => {
-      console.log(error)
-      process.exit(1)
-    })
+    bootstrapper.on(
+      EVENT_NAMES.ERROR,
+      ({ error, willRetry }: BootstrapperError) => {
+        console.log(error)
+        if (!willRetry) {
+          process.exit(1)
+        }
+      }
+    )
 
     // bootstrapper.config.itemTopics = 'amend'
     // bootstrapper.config.logLevel = 'verbose'
