@@ -152,8 +152,8 @@ const fetchItemIdFromCataloguePath = async ({
     },
   })
 
-  // Favor published version over draft
-  const item = response.data?.published || response.data?.draft
+  // Favor draft version over published (draft is what we default to after all)
+  const item = response.data?.draft || response.data?.published
   if (!item) {
     return {}
   }
