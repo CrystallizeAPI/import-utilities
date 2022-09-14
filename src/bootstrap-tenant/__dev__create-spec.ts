@@ -21,6 +21,7 @@ async function createSpec() {
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
   const bootstrapper = new Bootstrapper()
+  bootstrapper.env = 'dev'
 
   bootstrapper.setAccessToken(
     process.env.CRYSTALLIZE_ACCESS_TOKEN_ID,

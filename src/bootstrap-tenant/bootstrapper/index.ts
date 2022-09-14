@@ -104,6 +104,7 @@ export class Bootstrapper extends EventEmitter {
   searchAPIManager: ApiManager | null = null
   ordersAPIManager: ApiManager | null = null
   tenantIdentifier = ''
+  env: 'prod' | 'dev' = 'prod'
 
   context: BootstrapperContext = {
     defaultLanguage: { code: 'en', name: 'English' },
@@ -188,7 +189,7 @@ export class Bootstrapper extends EventEmitter {
     // PIM
     this.PIMAPIManager = createAPICaller({
       uri: `https://${
-        process.env.CRYSTALLIZE_ENV === 'dev'
+        this.env === 'dev'
           ? 'pim-dev.crystallize.digital'
           : 'pim.crystallize.com'
       }/graphql`,
@@ -210,7 +211,7 @@ export class Bootstrapper extends EventEmitter {
     } else {
       this.ordersAPIManager = createAPICaller({
         uri: `https://${
-          process.env.CRYSTALLIZE_ENV === 'dev'
+          this.env === 'dev'
             ? 'api-dev.crystallize.digital'
             : 'api.crystallize.com'
         }/${this.tenantIdentifier}/orders`,
@@ -283,7 +284,7 @@ export class Bootstrapper extends EventEmitter {
       this.context.fileUploader.context = this.context
 
       const baseUrl = `https://${
-        process.env.CRYSTALLIZE_ENV === 'dev'
+        this.env === 'dev'
           ? 'api-dev.crystallize.digital'
           : 'api.crystallize.com'
       }/${this.context.tenantIdentifier}`
@@ -294,9 +295,7 @@ export class Bootstrapper extends EventEmitter {
         accessTokenId: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID,
         accessTokenSecret: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
         origin:
-          process.env.CRYSTALLIZE_ENV === 'dev'
-            ? '-dev.crystallize.digital'
-            : '.crystallize.com',
+          this.env === 'dev' ? '-dev.crystallize.digital' : '.crystallize.com',
       })
 
       this.context.client = createMassCallClient(client, {})

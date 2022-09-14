@@ -24,8 +24,6 @@ if (!DEV_CRYSTALLIZE_ACCESS_TOKEN_ID || !DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET) {
   throw new Error('access token not set')
 }
 
-process.env.CRYSTALLIZE_ENV = 'test'
-
 interface TestCase {
   name: string
   shapes: Shape[]
@@ -343,6 +341,7 @@ testCases.forEach((tc) => {
     const ctx = t.context as TestContext
 
     const bootstrapper = new Bootstrapper()
+    bootstrapper.env = 'dev'
     bootstrapper.setTenantIdentifier(ctx.tenant.identifier)
     bootstrapper.setAccessToken(
       DEV_CRYSTALLIZE_ACCESS_TOKEN_ID,
