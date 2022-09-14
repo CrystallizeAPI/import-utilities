@@ -24,9 +24,12 @@ enum Status {
 export async function getExistingShapesForSpec(
   context: BootstrapperContext
 ): Promise<Shape[]> {
-  const { query, variables } = getManyShapesQuery({
-    tenantId: context.tenantId,
-  })
+  const { query, variables } = getManyShapesQuery(
+    {
+      tenantId: context.tenantId,
+    },
+    { includeComponents: true }
+  )
   const existingShapes: Shape[] = await context.client
     ?.pimApi(query, variables)
     .then((res) => res?.shape?.getMany)
