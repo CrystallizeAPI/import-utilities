@@ -15,11 +15,12 @@ import {
 import { fail } from 'assert'
 import { getManyShapesQuery } from '@crystallize/import-export-sdk/shape'
 import { Shape, ShapeComponent } from '@crystallize/schema/shape'
+import { validateObject } from './_utils'
 
-const { CRYSTALLIZE_ACCESS_TOKEN_ID, CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
+const { DEV_CRYSTALLIZE_ACCESS_TOKEN_ID, DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
   process.env
 
-if (!CRYSTALLIZE_ACCESS_TOKEN_ID || !CRYSTALLIZE_ACCESS_TOKEN_SECRET) {
+if (!DEV_CRYSTALLIZE_ACCESS_TOKEN_ID || !DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET) {
   throw new Error('access token not set')
 }
 
@@ -305,8 +306,9 @@ test.beforeEach(async (t) => {
 
   const client = createClient({
     tenantIdentifier: identifier,
-    accessTokenId: CRYSTALLIZE_ACCESS_TOKEN_ID,
-    accessTokenSecret: CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+    accessTokenId: DEV_CRYSTALLIZE_ACCESS_TOKEN_ID,
+    accessTokenSecret: DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+    origin: '-dev.crystallize.digital',
   })
 
   const res = await tenant({
@@ -336,22 +338,14 @@ test.afterEach.always(async (t) => {
 
 testCases.forEach((tc) => {
   test(tc.name, async (t) => {
-    const validateObject = (actual: any, input: any) => {
-      Object.keys(input).map((key: string) => {
-        if (typeof input[key] === 'object') {
-          return validateObject(actual[key] as any, input[key] as any)
-        }
-        t.is(actual[key], input[key])
-      })
-    }
-
     const ctx = t.context as TestContext
 
     const bootstrapper = new Bootstrapper()
+    bootstrapper.env = 'dev'
     bootstrapper.setTenantIdentifier(ctx.tenant.identifier)
     bootstrapper.setAccessToken(
-      CRYSTALLIZE_ACCESS_TOKEN_ID,
-      CRYSTALLIZE_ACCESS_TOKEN_SECRET
+      DEV_CRYSTALLIZE_ACCESS_TOKEN_ID,
+      DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET
     )
 
     bootstrapper.setSpec({
@@ -399,7 +393,7 @@ testCases.forEach((tc) => {
           fail(`missing component ${input.id} in the response`)
         }
 
-        validateObject(actual, input)
+        validateObject(t, actual, input)
       }
 
       input.components?.forEach((cmp) =>

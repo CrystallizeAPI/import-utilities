@@ -29,6 +29,7 @@ async function bootstrap() {
     console.log(`✨ Bootstrapping ${tenantIdentifier} ✨`)
 
     const bootstrapper = new Bootstrapper()
+    bootstrapper.env = 'dev'
 
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 

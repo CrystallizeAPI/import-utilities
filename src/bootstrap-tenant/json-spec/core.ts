@@ -283,6 +283,8 @@ export interface JSONProductVariant {
   attributes?: Record<string, string>
   externalReference?: string
   subscriptionPlans?: JSONProductSubscriptionPlan[]
+  components?: Record<string, JSONComponentContent | JSONComponentChoice> | null
+  _componentsData?: Record<string, any>
 }
 
 export interface JSONProduct extends JSONItemBase {

@@ -19,87 +19,245 @@ export async function getProductVariants(
 
 const QUERY = `
 query GET_PRODUCT_INFO($language: String!, $itemId: ID!) {
-  product {
-    get(id: $itemId, language: $language) {
-      variants {
-        id
-        name
-        isDefault
-        externalReference
-        attributes {
-          attribute
-          value
+    product {
+      get(id: $itemId, language: $language) {
+        variants {
+          id
+          name
+          isDefault
+          externalReference
+          attributes {
+            attribute
+            value
+          }
+          priceVariants {
+            ...pr
+          }
+          stockLocations {
+            ...stockLocation
+          }
+          sku
+          subscriptionPlans {
+            identifier
+            name
+            periods {
+              id
+              initial {
+                ...planPricing
+              }
+              recurring {
+                ...planPricing
+              }
+            }
+          }
+          images {
+            key
+            altText
+            caption {
+              json
+            }
+            meta {
+              key
+              value
+            }
+          }
+          components {
+            componentId
+            name
+            type
+            content {
+              ...primitiveComponentContent
+              ... on ComponentChoiceContent {
+                selectedComponent {
+                  componentId
+                  name
+                  type
+                  content {
+                    ...primitiveComponentContent
+                  }
+                }
+              }
+              ... on ContentChunkContent {
+                chunks {
+                  componentId
+                  name
+                  type
+                  content {
+                    ...primitiveComponentContent
+                  }
+                }
+              }
+            }
+          }
         }
+      }
+    }
+  }
+  
+  fragment planPricing on ProductVariantSubscriptionPlanPricing {
+    period
+    unit
+    meteredVariables {
+      id
+      identifier
+      name
+      tierType
+      tiers {
+        threshold
         priceVariants {
           ...pr
         }
-        stockLocations {
-          ...stockLocation
-        }
-        sku
-        subscriptionPlans {
-          identifier
-          name
-          periods {
-            id
-            initial {
-              ...planPricing
-            }
-            recurring {
-              ...planPricing
-            }
-          }
-        }
-        images {
-          key
-          altText
-          caption {
-            json
-          }
-          meta {
-            key
-            value
-          }
-        }
       }
     }
+    priceVariants {
+      ...pr
+    }
   }
-}
-
-fragment planPricing on ProductVariantSubscriptionPlanPricing {
-  period
-  unit
-  meteredVariables {
-    id
+  
+  fragment pr on ProductPriceVariant {
+    currency
     identifier
     name
-    tierType
-    tiers {
-      threshold
-      priceVariants {
-        ...pr
+    price
+  }
+  
+  fragment stockLocation on ProductStockLocation {
+    identifier
+    name
+    settings {
+      minimum
+      unlimited
+    }
+    stock
+  }
+  
+  fragment primitiveComponentContent on ComponentContent {
+    ...singleLineContent
+    ...richTextContent
+    ...imageContent
+    ...videoContent
+    ...fileContent
+    ...paragraphCollectionContent
+    ...itemRelationsContent
+    ...gridRelationsContent
+    ...locationContent
+    ...selectionContent
+    ...booleanContent
+    ...propertiesTableContent
+    ...dateTimeContent
+    ...numericContent
+  }
+  
+  fragment dateTimeContent on DatetimeContent {
+    datetime
+  }
+  
+  fragment numericContent on NumericContent {
+    number
+    unit
+  }
+  
+  fragment propertiesTableContent on PropertiesTableContent {
+    sections {
+      title
+      properties {
+        key
+        value
       }
     }
   }
-  priceVariants {
-    ...pr
+  
+  fragment booleanContent on BooleanContent {
+    value
   }
-}
-
-fragment pr on ProductPriceVariant {
-  currency
-  identifier
-  name
-  price
-}
-
-fragment stockLocation on ProductStockLocation {
-  identifier
-  name
-  settings {
-    minimum
-    unlimited
+  
+  fragment selectionContent on SelectionContent {
+    options {
+      key
+      value
+    }
   }
-  stock
-}
+  
+  fragment imageContent on ImageContent {
+    images {
+      ...image
+    }
+  }
+  
+  fragment videoContent on VideoContent {
+    videos {
+      ...video
+    }
+  }
+  
+  fragment fileContent on FileContent {
+    files {
+      ...file
+    }
+  }
+  
+  fragment singleLineContent on SingleLineContent {
+    text
+  }
+  
+  fragment richTextContent on RichTextContent {
+    json
+  }
+  
+  fragment itemRelationsContent on ItemRelationsContent {
+    items {
+      tree {
+        path
+      }
+      externalReference
+    }
+  }
+  
+  fragment gridRelationsContent on GridRelationsContent {
+    grids {
+      name
+    }
+  }
+  
+  fragment locationContent on LocationContent {
+    lat
+    long
+  }
+  
+  fragment paragraphCollectionContent on ParagraphCollectionContent {
+    paragraphs {
+      title {
+        ...singleLineContent
+      }
+      body {
+        ...richTextContent
+      }
+      images {
+        ...image
+      }
+    }
+  }
+  
+  fragment image on Image {
+    url
+    altText
+    caption {
+      json
+    }
+  }
+  
+  fragment video on Video {
+    id
+    title
+    playlist(type: "m3u8")
+    thumbnails {
+      ...image
+    }
+  }
+  
+  fragment file on File {
+    url
+    title
+  }
+  
 `

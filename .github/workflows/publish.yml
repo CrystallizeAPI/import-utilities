@@ -9,9 +9,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      CRYSTALLIZE_ACCESS_TOKEN_ID: ${{ secrets.CRYSTALLIZE_ACCESS_TOKEN_ID }}
-      CRYSTALLIZE_ACCESS_TOKEN_SECRET:
-        ${{ secrets.CRYSTALLIZE_ACCESS_TOKEN_SECRET }}
+      DEV_CRYSTALLIZE_ACCESS_TOKEN_ID:
+        ${{ secrets.DEV_CRYSTALLIZE_ACCESS_TOKEN_ID }}
+      DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET:
+        ${{ secrets.DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET }}
     strategy:
       matrix:
         node-version: [16.x, 18.x]

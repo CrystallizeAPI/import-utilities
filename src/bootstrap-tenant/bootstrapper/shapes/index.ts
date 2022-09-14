@@ -87,7 +87,9 @@ async function handleShape(
     }
     return Status.updated
   } catch (err) {
-    console.error(err)
+    if (context.config.logLevel === 'verbose') {
+      console.error(err)
+    }
     return Status.error
   }
 }
