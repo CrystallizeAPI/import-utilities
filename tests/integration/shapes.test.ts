@@ -17,10 +17,10 @@ import { getManyShapesQuery } from '@crystallize/import-export-sdk/shape'
 import { Shape, ShapeComponent } from '@crystallize/schema/shape'
 import { validateObject } from './_utils'
 
-const { CRYSTALLIZE_ACCESS_TOKEN_ID, CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
+const { DEV_CRYSTALLIZE_ACCESS_TOKEN_ID, DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET } =
   process.env
 
-if (!CRYSTALLIZE_ACCESS_TOKEN_ID || !CRYSTALLIZE_ACCESS_TOKEN_SECRET) {
+if (!DEV_CRYSTALLIZE_ACCESS_TOKEN_ID || !DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET) {
   throw new Error('access token not set')
 }
 
@@ -306,8 +306,9 @@ test.beforeEach(async (t) => {
 
   const client = createClient({
     tenantIdentifier: identifier,
-    accessTokenId: CRYSTALLIZE_ACCESS_TOKEN_ID,
-    accessTokenSecret: CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+    accessTokenId: DEV_CRYSTALLIZE_ACCESS_TOKEN_ID,
+    accessTokenSecret: DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+    origin: '-dev.crystallize.digital',
   })
 
   const res = await tenant({
@@ -342,8 +343,8 @@ testCases.forEach((tc) => {
     const bootstrapper = new Bootstrapper()
     bootstrapper.setTenantIdentifier(ctx.tenant.identifier)
     bootstrapper.setAccessToken(
-      CRYSTALLIZE_ACCESS_TOKEN_ID,
-      CRYSTALLIZE_ACCESS_TOKEN_SECRET
+      DEV_CRYSTALLIZE_ACCESS_TOKEN_ID,
+      DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET
     )
 
     bootstrapper.setSpec({

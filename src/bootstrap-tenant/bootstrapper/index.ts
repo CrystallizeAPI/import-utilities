@@ -293,6 +293,10 @@ export class Bootstrapper extends EventEmitter {
         tenantId: this.context.tenantId,
         accessTokenId: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID,
         accessTokenSecret: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+        origin:
+          process.env.CRYSTALLIZE_ENV === 'dev'
+            ? '-dev.crystallize.digital'
+            : '.crystallize.com',
       })
 
       this.context.client = createMassCallClient(client, {})
