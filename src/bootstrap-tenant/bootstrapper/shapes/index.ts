@@ -33,7 +33,15 @@ export async function getExistingShapesForSpec(
   const existingShapes: Shape[] = await context.client
     ?.pimApi(query, variables)
     .then((res) => res?.shape?.getMany)
-  return existingShapes
+  return existingShapes.map(function removeVariantComponentsForNoneProducts(
+    shape
+  ) {
+    if (shape.type !== 'product') {
+      delete shape.variantComponents
+    }
+
+    return shape
+  })
 }
 
 const shouldDefer = (data: Shape): boolean => {
@@ -82,6 +90,7 @@ async function handleShape(
     const result = await shapeOperation(s).execute(
       context.client as MassClientInterface
     )
+
     if (!result) {
       return Status.error
     }
