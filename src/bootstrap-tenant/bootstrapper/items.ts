@@ -1584,7 +1584,7 @@ export async function setItems({
         onUpdate({
           warning: {
             code: 'CANNOT_HANDLE_ITEM',
-            message: `Item name cannot be empty for the default language`,
+            message: `Item name cannot be empty for the default language. Item id: "${item.id}"`,
           },
         })
 
@@ -1979,7 +1979,7 @@ export async function setItems({
                     onUpdate({
                       warning: {
                         code: 'CANNOT_HANDLE_ITEM_RELATION',
-                        message: `Unable to update relation for item "${
+                        message: `Unable to update relation for item id "${
                           item.id
                         }" with input ${JSON.stringify(mutationInput)} `,
                       },
@@ -2057,7 +2057,7 @@ export async function setItems({
                       onUpdate({
                         warning: {
                           code: 'CANNOT_HANDLE_ITEM_RELATION',
-                          message: `Unable to update relation for variant "${
+                          message: `Unable to update relation for variant with sku "${
                             variant.sku
                           }" with input ${JSON.stringify(mutationInput)} `,
                         },
