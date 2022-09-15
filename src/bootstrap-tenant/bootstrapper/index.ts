@@ -415,7 +415,7 @@ export class Bootstrapper extends EventEmitter {
           name: l.name,
           isDefault: l.code === tenantLanguageSettings.defaultLanguage,
         }))
-        .sort((a, b) => (a.isDefault ? 1 : 0))
+        .sort((a) => (a.isDefault ? -1 : 0))
 
       if (!availableLanguages.some((l) => l.isDefault)) {
         availableLanguages[0].isDefault = true
