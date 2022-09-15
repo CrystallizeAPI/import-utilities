@@ -1239,26 +1239,28 @@ export async function setItems({
             onUpdate,
           })
 
-          Object.keys(variant._componentsData?.[language]).forEach(
-            (componentId: string) => {
-              const componentContent: ComponentContentInput =
-                variant._componentsData?.[language][componentId]
+          if (variant._componentsData?.[language]) {
+            Object.keys(variant._componentsData?.[language]).forEach(
+              (componentId: string) => {
+                const componentContent: ComponentContentInput =
+                  variant._componentsData?.[language][componentId]
 
-              updates.push(
-                context.callPIM(
-                  buildUpdateVariantComponentQueryAndVariables({
-                    productId: itemId,
-                    sku: variant.sku,
-                    language,
-                    input: {
-                      componentId,
-                      ...componentContent,
-                    },
-                  })
+                updates.push(
+                  context.callPIM(
+                    buildUpdateVariantComponentQueryAndVariables({
+                      productId: itemId,
+                      sku: variant.sku,
+                      language,
+                      input: {
+                        componentId,
+                        ...componentContent,
+                      },
+                    })
+                  )
                 )
-              )
-            }
-          )
+              }
+            )
+          }
         }
       }
 
