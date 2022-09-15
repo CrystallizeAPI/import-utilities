@@ -17,6 +17,19 @@ import {
   trFactory,
 } from './multilingual'
 
+function byTreePosition(a: JSONItem, b: JSONItem) {
+  const aP = a.treePosition as number
+  const bP = b.treePosition as number
+
+  if (aP > bP) {
+    return 1
+  }
+  if (aP < bP) {
+    return -1
+  }
+  return 0
+}
+
 function handlePriceVariants(
   priceVariants: { identifier: string; price: number }[]
 ): JSONProductVariantPriceVariants {
@@ -123,7 +136,13 @@ export async function getAllCatalogueItems(
 
     const tr = trFactory(language)
 
-    async function getItem(path: string): Promise<JSONItem | null> {
+    async function getItem({
+      path,
+      id,
+    }: {
+      path: string
+      id: string
+    }): Promise<JSONItem | null> {
       /**
        * "/" represents the catalogue root and is not retrieved here.
        * If an item path is "/", then it is most likely not published
@@ -133,22 +152,39 @@ export async function getAllCatalogueItems(
         return null
       }
 
-      const itemResponse = await context.callCatalogue({
-        query: GET_ITEM_QUERY,
-        variables: {
-          language,
-          version,
-          path,
-        },
-      })
+      const [catalogueResponse, positionResponse] = await Promise.all([
+        context.callCatalogue({
+          query: GET_ITEM_QUERY,
+          variables: {
+            language,
+            version,
+            path,
+          },
+        }),
+        context.callPIM({
+          query: GET_ITEM_POSITION_QUERY,
+          variables: {
+            language,
+            id,
+          },
+          suppressErrors: true,
+        }),
+      ])
 
-      const rawData = itemResponse.data?.catalogue
+      const rawCatalogueData: JSONItem | null =
+        catalogueResponse.data?.catalogue
 
-      if (!rawData) {
+      if (!rawCatalogueData) {
         return null
       }
 
-      return handleItem(rawData)
+      // Extend with the position from PIM
+      const position = positionResponse?.data?.tree?.getNode?.position
+      if (position != null) {
+        rawCatalogueData.treePosition = position
+      }
+
+      return handleItem(rawCatalogueData)
     }
 
     async function handleItem(item: any): Promise<JSONItem> {
@@ -160,6 +196,7 @@ export async function getAllCatalogueItems(
         shape: item.shape.identifier,
         components: handleComponents(item.components),
         topics: item.topics,
+        treePosition: item.treePosition,
       }
 
       // Product specifics
@@ -217,9 +254,11 @@ export async function getAllCatalogueItems(
           const page = pageResponse.data?.catalogue?.subtree
 
           if (page.edges?.length) {
-            const paths: string[] = page.edges.map((e: any) => e.node.path)
-            for (let i = 0; i < paths.length; i++) {
-              const item = await getItem(paths[i])
+            const pathAndIds: { path: string; id: string }[] = page.edges.map(
+              (e: any) => e.node
+            )
+            for (let i = 0; i < pathAndIds.length; i++) {
+              const item = await getItem(pathAndIds[i])
               if (item) {
                 children.push(item)
               }
@@ -234,7 +273,7 @@ export async function getAllCatalogueItems(
 
         await crawlChildren()
 
-        return children
+        return children.sort(byTreePosition)
       }
 
       function handleImage(image: any, id: string) {
@@ -387,10 +426,10 @@ export async function getAllCatalogueItems(
       },
     })
 
-    const rootItems: { path: string }[] =
+    const rootItems: { path: string; id: string }[] =
       rootItemsResponse.data?.catalogue?.children || []
     for (let i = 0; i < rootItems.length; i++) {
-      const item = await getItem(rootItems[i].path)
+      const item = await getItem(rootItems[i])
       if (item) {
         allCatalogueItemsForLanguage.push(item)
       }
@@ -435,16 +474,37 @@ export async function getAllCatalogueItems(
     }
   }
 
+  allCatalogueItems.sort(byTreePosition)
+
   return removeUnwantedFieldsFromThing(allCatalogueItems, [
     'id',
+    'treePosition',
     translationFieldIdentifier,
   ])
 }
+
+/**
+ * Item positions always needs to be fetched from their published
+ * version, as the draft version will not always be synced
+ */
+const GET_ITEM_POSITION_QUERY = `
+query GET_ITEM_POSITION_QUERY ($language: String!, $id: ID!) {
+  tree {
+    getNode (
+      itemId: $id
+      language: $language
+      versionLabel: published
+    ) {
+      position
+    }
+  }
+}`
 
 const GET_ROOT_ITEMS_QUERY = `
 query GET_ROOT_CATALOGUE_ITEMS ($language: String!, $path: String!, $version: VersionLabel!) {
   catalogue(language: $language, path: $path, version: $version) {
     children {
+      id
       path
     }
   }
@@ -717,6 +777,7 @@ query GET_ITEM_CHILDREN_PAGE (
       }
       edges {
         node {
+          id
           path
         }
       }

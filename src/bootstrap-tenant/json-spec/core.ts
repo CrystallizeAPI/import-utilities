@@ -221,6 +221,7 @@ export interface JSONItemBase {
   topics?: JSONItemTopic[]
   parentExternalReference?: string
   parentCataloguePath?: string
+  treePosition?: number
   _parentId?: string
   _options?: {
     publish?: boolean
