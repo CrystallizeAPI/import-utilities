@@ -81,6 +81,10 @@ async function downloadFile(fileURL: string) {
   }
 
   if (!ext || !contentType) {
+    if (fileURL.endsWith('.json')) {
+      ext = 'json'
+      contentType = 'application/json'
+    }
     throw new Error(`Cannot determine filetype for "${fileURL}"`)
   }
 
