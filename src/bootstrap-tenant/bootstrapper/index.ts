@@ -200,28 +200,6 @@ export class Bootstrapper extends EventEmitter {
     this.PIMAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET
 
     this.context.callPIM = this.PIMAPIManager.push
-
-    // Orders
-    if (!this.tenantIdentifier) {
-      console.warn(
-        '⚠️ Tenant identifier not set. Could not create API manager for orders'
-      )
-    } else {
-      this.ordersAPIManager = createAPICaller({
-        uri: `https://${
-          this.env === 'dev'
-            ? 'api-dev.crystallize.digital'
-            : 'api.crystallize.com'
-        }/${this.tenantIdentifier}/orders`,
-        errorNotifier: (error: BootstrapperError) => {
-          this.emit(EVENT_NAMES.ERROR, error)
-        },
-      })
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = ACCESS_TOKEN_ID
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET =
-        ACCESS_TOKEN_SECRET
-      this.context.callOrders = this.ordersAPIManager.push
-    }
   }
 
   setSpec(spec: JsonSpec) {
@@ -324,6 +302,23 @@ export class Bootstrapper extends EventEmitter {
       this.searchAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
         tenant.staticAuthToken
       this.context.callSearch = this.searchAPIManager.push
+
+      // Orders
+      this.ordersAPIManager = createAPICaller({
+        uri: `https://${
+          this.env === 'dev'
+            ? 'api-dev.crystallize.digital'
+            : 'api.crystallize.com'
+        }/${this.tenantIdentifier}/orders`,
+        errorNotifier: (error: BootstrapperError) => {
+          this.emit(EVENT_NAMES.ERROR, error)
+        },
+      })
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID =
+        this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID!
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET =
+        this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
+      this.context.callOrders = this.ordersAPIManager.push
 
       // Set log level late so that we'll catch late changes to the config
       if (this.PIMAPIManager && this.config.logLevel) {
