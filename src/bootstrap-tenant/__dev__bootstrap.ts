@@ -9,10 +9,10 @@ import { Bootstrapper, BootstrapperError, EVENT_NAMES } from './bootstrapper'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'photofinder-clone'
+    const tenantIdentifier = 'mtsbsh-clone-3'
     const jsonSpec = JSON.parse(
       await readFile(
-        resolve(__dirname, '../../json-spec/photofinder.json'),
+        resolve(__dirname, '../../json-spec/mitsubishi-prod.json'),
         'utf-8'
       )
     )
@@ -25,52 +25,11 @@ async function bootstrap() {
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 
     bootstrapper.setAccessToken(
-      process.env.CRYSTALLIZE_ACCESS_TOKEN_ID!,
-      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
+      process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_ID!,
+      process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET!
     )
 
     bootstrapper.setSpec(jsonSpec)
-
-    // const ProgressBar = new Progress.MultiBar({
-    //   clearOnComplete: false,
-    //   hideCursor: false,
-    //   autopadding: true,
-    //   format: '{bar} | {percentage}% | {area} | ETA: {eta}s',
-    // })
-
-    // function createProgress(area: string) {
-    //   return ProgressBar.create(1, 0, {
-    //     area,
-    //   })
-    // }
-
-    // const ProgressLanguages = createProgress('Languages')
-    // const ProgressPriceVariants = createProgress('Price variants')
-    // const ProgressVatTypes = createProgress('Vat types')
-    // const ProgressShapes = createProgress('Shapes')
-    // const ProgressTopics = createProgress('Topics')
-    // const ProgressGrids = createProgress('Grids')
-    // const ProgressItems = createProgress('Items')
-    // const ProgressMedia = createProgress('Media uploads')
-
-    // bootstrapper.on(EVENT_NAMES.STATUS_UPDATE, function (status: Status) {
-    //   ProgressMedia.update(status.media.progress)
-    //   ProgressLanguages.update(status.languages.progress)
-    //   ProgressPriceVariants.update(status.priceVariants.progress)
-    //   ProgressVatTypes.update(status.vatTypes.progress)
-    //   ProgressShapes.update(status.shapes.progress)
-    //   ProgressTopics.update(status.topicMaps.progress)
-    //   ProgressGrids.update(status.grids.progress)
-    //   ProgressItems.update(status.items.progress)
-    // })
-
-    // bootstrapper.on(EVENT_NAMES.SHAPES_DONE, ProgressShapes.stop)
-    // bootstrapper.on(EVENT_NAMES.PRICE_VARIANTS_DONE, ProgressPriceVariants.stop)
-    // bootstrapper.on(EVENT_NAMES.LANGUAGES_DONE, ProgressLanguages.stop)
-    // bootstrapper.on(EVENT_NAMES.VAT_TYPES_DONE, ProgressVatTypes.stop)
-    // bootstrapper.on(EVENT_NAMES.TOPICS_DONE, ProgressTopics.stop)
-    // bootstrapper.on(EVENT_NAMES.ITEMS_DONE, ProgressItems.stop)
-    // bootstrapper.on(EVENT_NAMES.GRIDS_DONE, ProgressGrids.stop)
 
     let itemProgress = -1
     bootstrapper.on(EVENT_NAMES.STATUS_UPDATE, (a) => {
@@ -84,16 +43,12 @@ async function bootstrap() {
     bootstrapper.on(
       EVENT_NAMES.ERROR,
       ({ error, willRetry }: BootstrapperError) => {
-        console.log(error)
+        console.log({ willRetry }, error)
         if (!willRetry) {
-          process.exit(1)
+          // process.exit(1)
         }
       }
     )
-
-    // bootstrapper.config.itemTopics = 'amend'
-    // bootstrapper.config.logLevel = 'verbose'
-    // bootstrapper.config.multilingual = true
 
     bootstrapper.once(EVENT_NAMES.DONE, function ({ duration }) {
       // ProgressBar.stop()
