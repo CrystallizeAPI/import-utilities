@@ -65,6 +65,25 @@ export const getItemId = async ({
 }: IGetItemIdProps): Promise<ItemAndParentId> => {
   let idAndParent: ItemAndParentId = {}
 
+  /**
+   * Prioritise external reference if it exists. It is a better choice
+   * for item reference since it is language independent, and suffers
+   * from ny async operations, unlike catalogue path.
+   */
+  if (externalReference) {
+    idAndParent =
+      context.itemExternalReferenceToIDMap.get(externalReference) || {}
+    if (idAndParent?.itemId) {
+      return idAndParent
+    }
+    return fetchItemIdFromExternalReference({
+      context,
+      externalReference,
+      shapeIdentifier,
+      language,
+    })
+  }
+
   if (cataloguePath) {
     idAndParent = context.itemCataloguePathToIDMap.get(cataloguePath) || {}
     if (idAndParent.itemId) {
@@ -79,20 +98,6 @@ export const getItemId = async ({
     if (idAndParent.itemId) {
       return idAndParent
     }
-  }
-
-  if (externalReference) {
-    idAndParent =
-      context.itemExternalReferenceToIDMap.get(externalReference) || {}
-    if (idAndParent?.itemId) {
-      return idAndParent
-    }
-    return fetchItemIdFromExternalReference({
-      context,
-      externalReference,
-      shapeIdentifier,
-      language,
-    })
   }
 
   return idAndParent
