@@ -55,6 +55,7 @@ export interface AreaWarning {
     | 'FFMPEG_UNAVAILABLE'
     | 'UPLOAD_FAILED'
     | 'SHAPE_ID_TRUNCATED'
+    | 'SHAPE_ID_MISSING'
     | 'CANNOT_HANDLE_ITEM'
     | 'CANNOT_HANDLE_PRODUCT'
     | 'CANNOT_HANDLE_ITEM_RELATION'
@@ -236,16 +237,19 @@ export class FileUploadManager {
 }
 
 export function validShapeIdentifier(
-  str: string,
+  shapeIdentifier: string,
   onUpdate: (t: AreaUpdate) => any
 ) {
-  if (str.length <= 64) return str
+  if (shapeIdentifier.length <= 64) return shapeIdentifier
 
-  const validIdentifier = str.substr(0, 31) + '-' + str.substr(str.length - 32)
+  const validIdentifier =
+    shapeIdentifier.substring(0, 31) +
+    '-' +
+    shapeIdentifier.substring(shapeIdentifier.length - 32)
   onUpdate({
     warning: {
       code: 'SHAPE_ID_TRUNCATED',
-      message: `Truncating shape identifier "${str}" to "${validIdentifier}"`,
+      message: `Truncating shape identifier "${shapeIdentifier}" to "${validIdentifier}"`,
     },
   })
 

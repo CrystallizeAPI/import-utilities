@@ -1061,6 +1061,19 @@ export async function setItems({
     // Create the object to store the component data in
     item._componentsData = {}
 
+    if (!item.shape) {
+      onUpdate({
+        warning: {
+          code: 'SHAPE_ID_MISSING',
+          message: `Missing shape identifier for item "${getTranslation(
+            item.name,
+            context.defaultLanguage.code
+          )}". Got "${item.shape}"`,
+        },
+      })
+      return null
+    }
+
     // Ensure shape identifier is not too long (max 64 characters)
     item.shape = validShapeIdentifier(item.shape, onUpdate)
 

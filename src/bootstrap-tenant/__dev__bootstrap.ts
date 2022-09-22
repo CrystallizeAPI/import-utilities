@@ -6,27 +6,32 @@ import { resolve } from 'path'
 // import Progress from 'cli-progress'
 
 import { Bootstrapper, BootstrapperError, EVENT_NAMES } from './bootstrapper'
+import { JsonSpec } from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'mtsbsh-clone-3'
-    const jsonSpec = JSON.parse(
-      await readFile(
-        resolve(__dirname, '../../json-spec/mitsubishi-prod.json'),
-        'utf-8'
-      )
-    )
+    const tenantIdentifier = 'hkn-demo'
+    const jsonSpec: JsonSpec = {
+      items: [
+        {
+          name: 'Thule',
+          externalReference: 'thule-folder',
+          shape: 'folder-with-relations',
+          parentCataloguePath: '/hei',
+        },
+      ],
+    }
 
     console.log(`✨ Bootstrapping ${tenantIdentifier} ✨`)
 
     const bootstrapper = new Bootstrapper()
-    bootstrapper.env = 'dev'
+    // bootstrapper.env = 'dev'
 
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 
     bootstrapper.setAccessToken(
-      process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_ID!,
-      process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET!
+      process.env.CRYSTALLIZE_ACCESS_TOKEN_ID!,
+      process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
     )
 
     bootstrapper.setSpec(jsonSpec)
