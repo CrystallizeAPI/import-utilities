@@ -1121,6 +1121,7 @@ export async function setItems({
               parentId,
               position: treePosition,
             },
+            components: {}, // Do components later
             ...(item.topics && item._topicsData),
             ...(shape?.type === 'product' && {
               ...(await createProductItemMutation(language)),
