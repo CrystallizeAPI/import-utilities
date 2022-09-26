@@ -1097,15 +1097,6 @@ export async function setItems({
         return
       }
 
-      // @ts-ignore
-      item._componentsData[language] = await createComponentsInput({
-        components: item.components,
-        componentDefinitions: shape.components,
-        language,
-        grids: allGrids,
-        context,
-        onUpdate,
-      })
       item._topicsData = {}
       if (item.topics) {
         item._topicsData = {
@@ -1131,7 +1122,6 @@ export async function setItems({
               position: treePosition,
             },
             ...(item.topics && item._topicsData),
-            components: item._componentsData?.[language],
             ...(shape?.type === 'product' && {
               ...(await createProductItemMutation(language)),
             }),
@@ -1642,7 +1632,7 @@ export async function setItems({
             itemId: id,
           })
         }
-        itemId = id
+        itemId = id as string
 
         const payload: ItemCreatedOrUpdated = {
           id,
@@ -1653,6 +1643,9 @@ export async function setItems({
           },
         }
         context.emit(EVENT_NAMES.ITEM_CREATED, payload)
+
+        // Set the component data for the item
+        await updateForLanguage(context.defaultLanguage.code, itemId)
       }
     }
 
