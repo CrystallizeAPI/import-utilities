@@ -12,7 +12,7 @@ import {
 import { MassClientInterface } from '@crystallize/js-api-client'
 
 import { JsonSpec } from '../../json-spec'
-import { AreaUpdate, BootstrapperContext } from '../utils'
+import { AreaUpdate, BootstrapperContext, validShapeIdentifier } from '../utils'
 
 enum Status {
   created = 'created',
@@ -152,6 +152,10 @@ export async function setShapes({
   let finished = 0
   for (let i = 0; i < spec.shapes.length; i++) {
     const data = spec.shapes[i] as Shape
+
+    // Ensure that the shape identifier is truncated
+    data.identifier = validShapeIdentifier(data.identifier, onUpdate)
+
     const result = await handleShape(data, context)
     if (result === 'deferred') {
       deferredShapes.push(data)
