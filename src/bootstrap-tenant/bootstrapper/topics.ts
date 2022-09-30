@@ -136,6 +136,11 @@ export async function setTopics({
   spec.topicMaps.forEach(count)
 
   async function handleLevel(level: JSONTopic, parentId?: string) {
+    // Guard for empty topics
+    if (!level) {
+      return
+    }
+
     try {
       const exists = Boolean(level.id)
 
