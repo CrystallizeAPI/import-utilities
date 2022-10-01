@@ -2,7 +2,14 @@ import { TopicInput } from '../../types'
 import { buildCreateTopicMutation } from '../../graphql'
 
 import { JsonSpec, JSONStringTranslated, JSONTopic } from '../json-spec'
-import { getTranslation, AreaUpdate, BootstrapperContext, sleep } from './utils'
+import {
+  getTranslation,
+  AreaUpdate,
+  BootstrapperContext,
+  sleep,
+  EVENT_NAMES,
+  BootstrapperError,
+} from './utils'
 import { TopicChildInput } from '../../types/topics/topic.child.input'
 import { buildUpdateTopicMutation } from '../../graphql/build-update-topic-mutation'
 import { getTopicId } from './utils/get-topic-id'
@@ -53,7 +60,7 @@ async function createTopic(
   topic: JSONTopic,
   context: BootstrapperContext,
   parentId?: string
-): Promise<string> {
+): Promise<string | null> {
   const language = context.defaultLanguage.code
 
   /**
@@ -103,6 +110,15 @@ async function createTopic(
 
   const createdTopic = response.data?.topic?.create
 
+  if (!createTopic) {
+    const error: BootstrapperError = {
+      error: 'Could not create topic. ' + JSON.stringify(preparedTopic),
+      willRetry: false,
+    }
+    context.emit(EVENT_NAMES.ERROR, error)
+    return null
+  }
+
   return createdTopic.id
 }
 
@@ -146,33 +162,38 @@ export async function setTopics({
 
       // Can't find this topic, let's create it
       if (!exists) {
-        level.id = await createTopic(level, context, parentId)
+        const id = await createTopic(level, context, parentId)
+        if (id) {
+          level.id = id
+        }
       }
 
-      for (let i = 0; i < languages.length; i++) {
-        // Due to a race condition in the PIM, we need to sleep for a bit
-        await sleep(25)
+      if (level.id) {
+        for (let i = 0; i < languages.length; i++) {
+          // Due to a race condition in the PIM, we need to sleep for a bit
+          await sleep(25)
 
-        const language = languages[i]
-        const name = getTranslation(level.name, language) || ''
+          const language = languages[i]
+          const name = getTranslation(level.name, language) || ''
 
-        if (level.id && name) {
-          await context.callPIM({
-            query: buildUpdateTopicMutation({
-              id: level.id,
-              language,
-              input: {
-                name,
-                ...(level.pathIdentifier && {
-                  pathIdentifier: getTranslation(
-                    level.pathIdentifier,
-                    language
-                  ),
-                }),
-                ...(level.parentId && { parentId: level.parentId }),
-              },
-            }),
-          })
+          if (level.id && name) {
+            await context.callPIM({
+              query: buildUpdateTopicMutation({
+                id: level.id,
+                language,
+                input: {
+                  name,
+                  ...(level.pathIdentifier && {
+                    pathIdentifier: getTranslation(
+                      level.pathIdentifier,
+                      language
+                    ),
+                  }),
+                  ...(level.parentId && { parentId: level.parentId }),
+                },
+              }),
+            })
+          }
         }
       }
 
