@@ -484,7 +484,15 @@ export class Bootstrapper extends EventEmitter {
 
       // Items
       if (props.items) {
-        const options: ItemsCreateSpecOptions = { basePath: '/' }
+        const options: ItemsCreateSpecOptions = {
+          basePath: '/',
+          /**
+           * By setting external references for items that don't have
+           * it, we ensure that things itemRelations is far more
+           * reliable
+           */
+          setExternalReference: true,
+        }
 
         if (typeof props.items !== 'boolean') {
           const optionsOverride = props.items

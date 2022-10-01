@@ -182,8 +182,7 @@ export class ApiManager {
         if (
           e.message.includes('reason: socket hang up') ||
           e.message.includes('ECONNRESET') ||
-          e.message.includes('502 Bad Gateway') ||
-          e.message.includes('original.components.findIndex is not a function') // temporary retry this until patched
+          e.message.includes('502 Bad Gateway')
         ) {
           serverError = e.message
         } else {
