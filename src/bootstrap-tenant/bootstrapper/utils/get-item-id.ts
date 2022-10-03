@@ -68,7 +68,7 @@ export const getItemId = async ({
   /**
    * Prioritise external reference if it exists. It is a better choice
    * for item reference since it is language independent, and suffers
-   * from ny async operations, unlike catalogue path.
+   * from no async operations, unlike catalogue path.
    */
   if (externalReference) {
     idAndParent =

@@ -119,6 +119,7 @@ function getItemById(items: JSONItem[], id: string) {
 export interface ItemsCreateSpecOptions {
   basePath?: String
   version?: 'published' | 'draft'
+  setExternalReference?: Boolean
 }
 
 export async function getAllCatalogueItems(
@@ -197,6 +198,10 @@ export async function getAllCatalogueItems(
         components: handleComponents(item.components),
         topics: item.topics,
         treePosition: item.treePosition,
+      }
+
+      if (!jsonItem.externalReference && options?.setExternalReference) {
+        jsonItem.externalReference = `crystallize-spec-ref-${item.id}`
       }
 
       // Product specifics
@@ -331,7 +336,20 @@ export async function getAllCatalogueItems(
               return tr(c.content, id)
             }
             case 'itemRelations': {
-              return c.content?.items
+              return c.content?.items?.map((item: any) => {
+                if (options?.setExternalReference) {
+                  return {
+                    externalReference:
+                      item.externalReference ||
+                      `crystallize-spec-ref-${item.id}`,
+                  }
+                }
+
+                return {
+                  externalReference: item.externalReference,
+                  cataloguePath: item.cataloguePath,
+                }
+              })
             }
             case 'gridRelations': {
               return c.content?.grids
@@ -705,6 +723,7 @@ fragment richTextContent on RichTextContent {
 
 fragment itemRelationsContent on ItemRelationsContent {
   items {
+    id
     cataloguePath: path
     externalReference
   }

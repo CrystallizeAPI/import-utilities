@@ -82,6 +82,11 @@ export function buildCreateItemQueryAndVariables(
     },
   }
 
+  // Safeguard against invalid value
+  if (!Array.isArray(variables.input.components)) {
+    variables.input.components = []
+  }
+
   return {
     query: gql`
       mutation CREATE_ITEM ($language: String!, $input: ${inputType}!) {
