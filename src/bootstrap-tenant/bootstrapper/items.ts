@@ -1160,7 +1160,7 @@ export async function setItems({
 
       const clearComponentsData = item._componentsData?.[language] === null
 
-      const updates = []
+      const updates: (() => Promise<any>)[] = []
 
       /**
        * If it is a product, we need to pull all the product
@@ -1180,7 +1180,7 @@ export async function setItems({
       /**
        * Start with the basic item information
        */
-      updates.push(
+      updates.push(async () =>
         context.callPIM(
           buildUpdateItemQueryAndVariables(
             itemId,
@@ -1214,7 +1214,7 @@ export async function setItems({
             const componentContent: ComponentContentInput =
               item._componentsData?.[language][componentId]
 
-            updates.push(
+            updates.push(() =>
               context.callPIM(
                 buildUpdateItemComponentQueryAndVariables({
                   itemId,
@@ -1249,7 +1249,7 @@ export async function setItems({
                 const componentContent: ComponentContentInput =
                   variant._componentsData?.[language][componentId]
 
-                updates.push(
+                updates.push(() =>
                   context.callPIM(
                     buildUpdateVariantComponentQueryAndVariables({
                       productId: itemId,
@@ -1268,7 +1268,10 @@ export async function setItems({
         }
       }
 
-      const responses = await Promise.all(updates)
+      const responses: any[] = []
+      for (let i = 0; i < updates.length; i++) {
+        responses.push(await updates[i]())
+      }
 
       const payload: ItemCreatedOrUpdated = {
         id: itemId,
@@ -1932,9 +1935,87 @@ export async function setItems({
 
       if (item.id) {
         if (item.components) {
-          await Promise.all(
-            Object.keys(item.components).map(async (componentId) => {
-              const jsonItem = item.components?.[
+          const keys = Object.keys(item.components)
+
+          for (let i = 0; i < keys.length; i++) {
+            const componentId = keys[i]
+            const jsonItem = item.components?.[
+              componentId
+            ] as JSONComponentContent
+
+            if (jsonItem) {
+              const shape = context.shapes?.find(
+                (s) => s.identifier === item.shape
+              )
+              const def = shape?.components?.find(
+                (c: any) => c.id === componentId
+              )
+
+              const mutationInput = await getComponentUpdateMutationInput({
+                shapeComponent: def,
+                componentContent: jsonItem,
+                componentsData: item._componentsData,
+                componentId,
+              })
+
+              // Update the component
+              if (mutationInput) {
+                try {
+                  const r = await context.callPIM({
+                    query: gql`
+                      mutation UPDATE_RELATIONS_COMPONENT(
+                        $itemId: ID!
+                        $language: String!
+                        $input: ComponentInput!
+                      ) {
+                        item {
+                          updateComponent(
+                            itemId: $itemId
+                            language: $language
+                            input: $input
+                          ) {
+                            id
+                          }
+                        }
+                      }
+                    `,
+                    variables: {
+                      itemId: item.id,
+                      language: context.defaultLanguage.code,
+                      input: mutationInput,
+                    },
+                  })
+
+                  if (r.errors) {
+                    throw r.errors
+                  }
+                } catch (err) {
+                  onUpdate({
+                    warning: {
+                      code: 'CANNOT_HANDLE_ITEM_RELATION',
+                      message: `Unable to update relation for item id "${
+                        item.id
+                      }" with input ${JSON.stringify(mutationInput)} `,
+                    },
+                  })
+                }
+              }
+            }
+          }
+        }
+
+        const product = item as JSONProduct
+        if (product.variants?.length) {
+          for (const variant of product.variants) {
+            if (!variant.components) {
+              continue
+            }
+
+            const keys = Object.keys(variant.components)
+            for (let i = 0; i < keys.length; i++) {
+              const componentId = keys[i]
+
+              const jsonItem = variant.components?.[
                 componentId
               ] as JSONComponentContent
 
@@ -1942,14 +2023,14 @@ export async function setItems({
                 const shape = context.shapes?.find(
                   (s) => s.identifier === item.shape
                 )
-                const def = shape?.components?.find(
+                const def = shape?.variantComponents?.find(
                   (c: any) => c.id === componentId
                 )
 
                 const mutationInput = await getComponentUpdateMutationInput({
                   shapeComponent: def,
                   componentContent: jsonItem,
-                  componentsData: item._componentsData,
+                  componentsData: variant._componentsData,
                   componentId,
                 })
 
@@ -1958,14 +2039,16 @@ export async function setItems({
                   try {
                     const r = await context.callPIM({
                       query: gql`
-                        mutation UPDATE_RELATIONS_COMPONENT(
-                          $itemId: ID!
+                        mutation UPDATE_VARIANT_RELATIONS_COMPONENT(
+                          $productId: ID!
+                          $sku: String!
                           $language: String!
                           $input: ComponentInput!
                         ) {
-                          item {
-                            updateComponent(
-                              itemId: $itemId
+                          product {
+                            updateVariantComponent(
+                              productId: $productId
+                              sku: $sku
                               language: $language
                               input: $input
                             ) {
@@ -1975,7 +2058,8 @@ export async function setItems({
                         }
                       `,
                       variables: {
-                        itemId: item.id,
+                        productId: item.id,
+                        sku: variant.sku,
                         language: context.defaultLanguage.code,
                         input: mutationInput,
                       },
@@ -1988,94 +2072,15 @@ export async function setItems({
                     onUpdate({
                       warning: {
                         code: 'CANNOT_HANDLE_ITEM_RELATION',
-                        message: `Unable to update relation for item id "${
-                          item.id
+                        message: `Unable to update relation for variant with sku "${
+                          variant.sku
                         }" with input ${JSON.stringify(mutationInput)} `,
                       },
                     })
                   }
                 }
               }
-            })
-          )
-        }
-
-        const product = item as JSONProduct
-        if (product.variants?.length) {
-          for (const variant of product.variants) {
-            if (!variant.components) {
-              continue
             }
-
-            await Promise.all(
-              Object.keys(variant.components).map(async (componentId) => {
-                const jsonItem = variant.components?.[
-                  componentId
-                ] as JSONComponentContent
-
-                if (jsonItem) {
-                  const shape = context.shapes?.find(
-                    (s) => s.identifier === item.shape
-                  )
-                  const def = shape?.variantComponents?.find(
-                    (c: any) => c.id === componentId
-                  )
-
-                  const mutationInput = await getComponentUpdateMutationInput({
-                    shapeComponent: def,
-                    componentContent: jsonItem,
-                    componentsData: variant._componentsData,
-                    componentId,
-                  })
-
-                  // Update the component
-                  if (mutationInput) {
-                    try {
-                      const r = await context.callPIM({
-                        query: gql`
-                          mutation UPDATE_VARIANT_RELATIONS_COMPONENT(
-                            $productId: ID!
-                            $sku: String!
-                            $language: String!
-                            $input: ComponentInput!
-                          ) {
-                            product {
-                              updateVariantComponent(
-                                productId: $productId
-                                sku: $sku
-                                language: $language
-                                input: $input
-                              ) {
-                                id
-                              }
-                            }
-                          }
-                        `,
-                        variables: {
-                          productId: item.id,
-                          sku: variant.sku,
-                          language: context.defaultLanguage.code,
-                          input: mutationInput,
-                        },
-                      })
-
-                      if (r.errors) {
-                        throw r.errors
-                      }
-                    } catch (err) {
-                      onUpdate({
-                        warning: {
-                          code: 'CANNOT_HANDLE_ITEM_RELATION',
-                          message: `Unable to update relation for variant with sku "${
-                            variant.sku
-                          }" with input ${JSON.stringify(mutationInput)} `,
-                        },
-                      })
-                    }
-                  }
-                }
-              })
-            )
           }
         }
       }
