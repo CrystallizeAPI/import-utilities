@@ -40,13 +40,13 @@ const testCases: TestCase[] = [
     name: 'Creates basic shapes',
     shapes: [
       {
-        identifier: 'test-folder',
-        name: 'Test Folder',
+        identifier: 'test-folder-0',
+        name: 'Test Folder 0',
         type: 'folder',
       },
       {
-        identifier: 'test-product',
-        name: 'Test Product',
+        identifier: 'test-product-0',
+        name: 'Test Product 0',
         type: 'product',
       },
     ],
@@ -55,8 +55,8 @@ const testCases: TestCase[] = [
     name: 'Creates a shape with basic components',
     shapes: [
       {
-        identifier: 'test-folder',
-        name: 'Test Folder',
+        identifier: 'test-folder-1',
+        name: 'Test Folder 1',
         type: 'folder',
         components: [
           {
@@ -82,8 +82,8 @@ const testCases: TestCase[] = [
     name: 'Creates a shape with basic variant components',
     shapes: [
       {
-        identifier: 'test-product',
-        name: 'Test Product',
+        identifier: 'test-product-2',
+        name: 'Test Product 2',
         type: 'product',
         variantComponents: [
           {
@@ -109,8 +109,8 @@ const testCases: TestCase[] = [
     name: 'Creates a shape with both shape and variant components',
     shapes: [
       {
-        identifier: 'test-product',
-        name: 'Test Product',
+        identifier: 'test-product-3',
+        name: 'Test Product 3',
         type: 'product',
         components: [
           {
@@ -135,8 +135,8 @@ const testCases: TestCase[] = [
     name: 'Creates a shape with structural components',
     shapes: [
       {
-        identifier: 'test-folder',
-        name: 'Test Folder',
+        identifier: 'test-folder-4',
+        name: 'Test Folder 4',
         type: 'folder',
         components: [
           {
@@ -186,8 +186,8 @@ const testCases: TestCase[] = [
     name: 'Creates a shape with components with enums in config',
     shapes: [
       {
-        identifier: 'test-folder',
-        name: 'Test Folder',
+        identifier: 'test-folder-5',
+        name: 'Test Folder 5',
         type: 'folder',
         components: [
           {
@@ -211,8 +211,8 @@ const testCases: TestCase[] = [
     name: 'Creates shapes with relations to one another',
     shapes: [
       {
-        identifier: 'test-folder',
-        name: 'Test Folder',
+        identifier: 'test-folder-6',
+        name: 'Test Folder 6',
         type: 'folder',
         components: [
           {
@@ -220,14 +220,14 @@ const testCases: TestCase[] = [
             name: 'relation',
             type: 'itemRelations',
             config: {
-              acceptedShapeIdentifiers: ['test-product'],
+              acceptedShapeIdentifiers: ['test-product-7'],
             },
           },
         ],
       },
       {
-        identifier: 'test-product',
-        name: 'Test Product',
+        identifier: 'test-product-7',
+        name: 'Test Product 7',
         type: 'product',
         components: [
           {
@@ -235,7 +235,7 @@ const testCases: TestCase[] = [
             name: 'relation',
             type: 'itemRelations',
             config: {
-              acceptedShapeIdentifiers: ['test-folder'],
+              acceptedShapeIdentifiers: ['test-folder-6'],
             },
           },
         ],
@@ -246,8 +246,8 @@ const testCases: TestCase[] = [
     name: 'Creates a shape with relations in structural components',
     shapes: [
       {
-        identifier: 'test-folder',
-        name: 'Test Folder',
+        identifier: 'test-folder-8',
+        name: 'Test Folder 8',
         type: 'folder',
         components: [
           {
@@ -261,7 +261,7 @@ const testCases: TestCase[] = [
                   name: 'relation',
                   type: 'itemRelations',
                   config: {
-                    acceptedShapeIdentifiers: ['test-product'],
+                    acceptedShapeIdentifiers: ['test-product-9'],
                   },
                 },
               ],
@@ -270,8 +270,8 @@ const testCases: TestCase[] = [
         ],
       },
       {
-        identifier: 'test-product',
-        name: 'Test Product',
+        identifier: 'test-product-9',
+        name: 'Test Product 9',
         type: 'product',
         components: [
           {
@@ -285,7 +285,7 @@ const testCases: TestCase[] = [
                   name: 'relation',
                   type: 'itemRelations',
                   config: {
-                    acceptedShapeIdentifiers: ['test-folder'],
+                    acceptedShapeIdentifiers: ['test-folder-8'],
                   },
                 },
                 {

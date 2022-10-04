@@ -129,7 +129,7 @@ const getExistingShapes = async (
   )
   return context.client
     .pimApi(query, variables)
-    .then((res) => res?.shape?.getMany)
+    .then((res) => res?.shape?.getMany || [])
 }
 
 export async function setShapes({
@@ -169,7 +169,6 @@ export async function setShapes({
         ...comps,
       ]
     }
-    debugger
 
     const result = await handleShape(data, context)
     if (result === 'deferred') {
