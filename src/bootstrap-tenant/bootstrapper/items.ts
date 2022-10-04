@@ -1233,7 +1233,9 @@ export async function setItems({
       if ((item as JSONProduct).variants?.length) {
         const product = item as JSONProduct
         for (const variant of product.variants) {
-          // @ts-ignore
+          if (!variant._componentsData) {
+            variant._componentsData = {}
+          }
           variant._componentsData[language] = await createComponentsInput({
             components: variant.components,
             componentDefinitions: shape.variantComponents,
