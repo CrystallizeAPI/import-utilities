@@ -156,6 +156,21 @@ export async function setShapes({
     // Ensure that the shape identifier is truncated
     data.identifier = validShapeIdentifier(data.identifier, onUpdate)
 
+    // Merge in existing shape
+    const existingShapeConfig = existingShapes.find(
+      (e) => e.identifier === data.identifier
+    )
+    if (existingShapeConfig?.components) {
+      const comps = data.components || []
+      data.components = [
+        ...existingShapeConfig.components.filter(
+          (c) => !comps.map((c) => c.id).includes(c.id)
+        ),
+        ...comps,
+      ]
+    }
+    debugger
+
     const result = await handleShape(data, context)
     if (result === 'deferred') {
       deferredShapes.push(data)

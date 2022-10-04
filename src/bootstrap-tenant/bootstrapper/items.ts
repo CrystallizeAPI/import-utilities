@@ -1900,7 +1900,7 @@ export async function setItems({
                         chunkIndex
                       ]
 
-                      // Update all potential itemRelation components
+                      // Get item ids within chunk
                       await Promise.all(
                         itemRelationIds.map(async (itemRelationId: string) => {
                           const itemRelationComponentIndex = chunk.findIndex(
