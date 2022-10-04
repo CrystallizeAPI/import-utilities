@@ -153,7 +153,7 @@ export async function getAllCatalogueItems(
         return null
       }
 
-      const [catalogueResponse, positionResponse] = await Promise.all([
+      const [catalogueResponse, pathAndPositionResponse] = await Promise.all([
         context.callCatalogue({
           query: GET_ITEM_QUERY,
           variables: {
@@ -163,7 +163,7 @@ export async function getAllCatalogueItems(
           },
         }),
         context.callPIM({
-          query: GET_ITEM_POSITION_QUERY,
+          query: GET_ITEM_PATH_AND_POSITION_QUERY,
           variables: {
             language,
             id,
@@ -179,10 +179,11 @@ export async function getAllCatalogueItems(
         return null
       }
 
-      // Extend with the position from PIM
-      const position = positionResponse?.data?.tree?.getNode?.position
-      if (position != null) {
-        rawCatalogueData.treePosition = position
+      // Extend with the path and position from PIM
+      const pathAndPosition = pathAndPositionResponse?.data?.tree?.getNode
+      if (pathAndPosition != null) {
+        rawCatalogueData.cataloguePath = pathAndPosition.path
+        rawCatalogueData.treePosition = pathAndPosition.position
       }
 
       return handleItem(rawCatalogueData)
@@ -505,14 +506,15 @@ export async function getAllCatalogueItems(
  * Item positions always needs to be fetched from their published
  * version, as the draft version will not always be synced
  */
-const GET_ITEM_POSITION_QUERY = `
-query GET_ITEM_POSITION_QUERY ($language: String!, $id: ID!) {
+const GET_ITEM_PATH_AND_POSITION_QUERY = `
+query GET_ITEM_PATH_AND_POSITION_QUERY ($language: String!, $id: ID!) {
   tree {
     getNode (
       itemId: $id
       language: $language
       versionLabel: published
     ) {
+      path
       position
     }
   }
