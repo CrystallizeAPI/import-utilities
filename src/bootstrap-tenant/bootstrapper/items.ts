@@ -1747,9 +1747,9 @@ export async function setItems({
         const itm = item as JSONFolder
 
         if (itm.children) {
-          await Promise.all(
-            itm.children.map((child, index) => handleItem(child, index, itm.id))
-          )
+          for (let i = 0; i < itm.children.length; i++) {
+            await handleItem(itm.children[i], i, itm.id)
+          }
         }
       }
     }
