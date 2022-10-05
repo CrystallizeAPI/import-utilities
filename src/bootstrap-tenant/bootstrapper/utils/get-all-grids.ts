@@ -1,7 +1,7 @@
 import { BootstrapperContext } from '.'
 import { JSONGrid } from '../../json-spec'
 
-const QUERY = `
+const QUERY_GET_ALL_GRIDS = `
 query GET_GRIDS($tenantId: ID!, $language: String!) {
 	grid {
     getMany (
@@ -9,9 +9,22 @@ query GET_GRIDS($tenantId: ID!, $language: String!) {
       language: $language
     ) {
       id
+    }
+  }
+}
+`
+
+const QUERY_GET_GRID = `
+query GET_GRID($id: ID!, $language: String!) {
+	grid {
+    get (
+      id: $id
+      language: $language
+    ) {
       name
       rows {
         columns {
+          itemId
           item {
             id
             externalReference
@@ -41,8 +54,8 @@ export async function getAllGrids(
 ): Promise<JSONGrid[]> {
   const tenantId = context.tenantId
 
-  const response = await context.callPIM({
-    query: QUERY,
+  const responseAllGrids = await context.callPIM({
+    query: QUERY_GET_ALL_GRIDS,
     variables: {
       language,
       tenantId,
@@ -53,6 +66,7 @@ export async function getAllGrids(
     return {
       columns: row.columns.map((c: any) => {
         let item
+
         if (c.item) {
           if (options?.setItemExternalReference && !c.item.externalReference) {
             item = {
@@ -74,7 +88,18 @@ export async function getAllGrids(
     }
   }
 
-  async function handleGrid(grid: any): Promise<JSONGrid> {
+  async function handleGrid({ id }: { id: string }): Promise<JSONGrid> {
+    // Get base grid info
+    const gridResponse = await context.callPIM({
+      query: QUERY_GET_GRID,
+      variables: {
+        id,
+        language,
+      },
+    })
+
+    const grid = gridResponse?.data?.grid?.get
+
     // Get names for remaining languages
     if (context.config.multilingual) {
       grid.name = {
@@ -86,7 +111,7 @@ export async function getAllGrids(
         .filter((l) => l !== language)
       await Promise.all(
         remainingLanguages.map(async (lang) => {
-          grid.name[lang] = await getNameForGrid(grid.id, lang, context)
+          grid.name[lang] = await getNameForGrid(id, lang, context)
         })
       )
     }
@@ -96,7 +121,9 @@ export async function getAllGrids(
     }
   }
 
-  return Promise.all(response.data?.grid?.getMany?.map(handleGrid) || [])
+  return Promise.all(
+    responseAllGrids.data?.grid?.getMany?.map(handleGrid) || []
+  )
 }
 
 async function getNameForGrid(
