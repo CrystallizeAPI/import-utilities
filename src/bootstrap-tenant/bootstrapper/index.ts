@@ -477,32 +477,34 @@ export class Bootstrapper extends EventEmitter {
         spec.shapes = await getExistingShapesForSpec(this.context)
       }
 
+      const itemOptions: ItemsCreateSpecOptions = {
+        basePath: '/',
+        /**
+         * By setting external references for items that don't have
+         * it, we ensure that things itemRelations is far more
+         * reliable
+         */
+        setExternalReference: true,
+      }
+
+      if (typeof props.items !== 'boolean') {
+        const optionsOverride = props.items
+        Object.assign(itemOptions, optionsOverride)
+      }
+
       // Grids
       if (props.grids) {
-        spec.grids = await getAllGrids(languageToUse, this.context)
+        spec.grids = await getAllGrids(languageToUse, this.context, {
+          setItemExternalReference: itemOptions.setExternalReference!,
+        })
       }
 
       // Items
       if (props.items) {
-        const options: ItemsCreateSpecOptions = {
-          basePath: '/',
-          /**
-           * By setting external references for items that don't have
-           * it, we ensure that things itemRelations is far more
-           * reliable
-           */
-          setExternalReference: true,
-        }
-
-        if (typeof props.items !== 'boolean') {
-          const optionsOverride = props.items
-          Object.assign(options, optionsOverride)
-        }
-
         spec.items = await getAllCatalogueItems(
           languageToUse,
           this.context,
-          options
+          itemOptions
         )
         spec.items.forEach((i: any) => {
           function handleLevel(a: any) {

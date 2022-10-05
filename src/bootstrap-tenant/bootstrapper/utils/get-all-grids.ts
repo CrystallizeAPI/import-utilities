@@ -13,6 +13,7 @@ query GET_GRIDS($tenantId: ID!, $language: String!) {
       rows {
         columns {
           item {
+            id
             externalReference
             tree {
               path(language: $language)
@@ -29,9 +30,14 @@ query GET_GRIDS($tenantId: ID!, $language: String!) {
 }
 `
 
+type GetAllGridsOptions = {
+  setItemExternalReference: Boolean
+}
+
 export async function getAllGrids(
   language: string,
-  context: BootstrapperContext
+  context: BootstrapperContext,
+  options?: GetAllGridsOptions
 ): Promise<JSONGrid[]> {
   const tenantId = context.tenantId
 
@@ -45,15 +51,26 @@ export async function getAllGrids(
 
   function handleRow(row: any) {
     return {
-      columns: row.columns.map((c: any) => ({
-        layout: c.layout,
-        item: !c.item
-          ? null
-          : {
+      columns: row.columns.map((c: any) => {
+        let item
+        if (c.item) {
+          if (options?.setItemExternalReference && !c.item.externalReference) {
+            item = {
+              externalReference: `crystallize-spec-ref-${c.item.id}`,
+            }
+          } else {
+            item = {
               externalReference: c.item.tree.externalReference,
               cataloguePath: c.item.tree.path,
-            },
-      })),
+            }
+          }
+        }
+
+        return {
+          layout: c.layout,
+          item,
+        }
+      }),
     }
   }
 

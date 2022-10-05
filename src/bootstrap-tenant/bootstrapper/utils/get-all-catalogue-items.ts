@@ -259,7 +259,7 @@ export async function getAllCatalogueItems(
 
           const page = pageResponse.data?.catalogue?.subtree
 
-          if (page.edges?.length) {
+          if (page?.edges?.length) {
             const pathAndIds: { path: string; id: string }[] = page.edges.map(
               (e: any) => e.node
             )
