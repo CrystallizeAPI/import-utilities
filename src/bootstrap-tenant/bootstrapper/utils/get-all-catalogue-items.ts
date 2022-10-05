@@ -250,7 +250,7 @@ export async function getAllCatalogueItems(
             query: GET_ITEM_CHILDREN_PAGE,
             variables: {
               language,
-              version,
+              version: 'published', // Always use published version when getting tree info
               path: item.cataloguePath,
               after,
               pageSize,
@@ -440,7 +440,7 @@ export async function getAllCatalogueItems(
       query: GET_ROOT_ITEMS_QUERY,
       variables: {
         language,
-        version,
+        version: 'published', // Always use published version when getting tree info
         path: options?.basePath || '/',
       },
     })
