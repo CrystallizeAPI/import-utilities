@@ -157,7 +157,13 @@ export async function getAllCatalogueItems(
 
     const tr = trFactory(language)
 
-    async function getItem({ id }: { id: string }): Promise<JSONItem | null> {
+    async function getItem({
+      id,
+      item,
+    }: {
+      id: string
+      item: { name: string }
+    }): Promise<JSONItem | null> {
       const response = await context.callPIM({
         query: GET_ITEM_QUERY,
         variables: {
@@ -171,6 +177,11 @@ export async function getAllCatalogueItems(
 
       if (!rawCatalogueData) {
         return null
+      }
+
+      // Fallback when name is not set for draft
+      if (rawCatalogueData.name === 'MISSING_NAME_FOR_LANGUAGE') {
+        rawCatalogueData.name = item.name
       }
 
       return handleItem(rawCatalogueData)
@@ -416,8 +427,14 @@ export async function getAllCatalogueItems(
       },
     })
 
-    const rootItems: { id: string; position: number; path: string }[] =
-      rootItemsResponse.data?.tree?.getNode?.children || []
+    const rootItems: {
+      id: string
+      position: number
+      path: string
+      item: {
+        name: string
+      }
+    }[] = rootItemsResponse.data?.tree?.getNode?.children || []
 
     for (let i = 0; i < rootItems.length; i++) {
       if (pathShouldBeIncluded(rootItems[i].path)) {
@@ -490,6 +507,7 @@ query GET_ITEM_CHILDREN (
         id: itemId
         treePosition: position
         path
+        item { name }
       }
     }
   }
