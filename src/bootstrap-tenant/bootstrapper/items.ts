@@ -641,8 +641,11 @@ async function createComponentsInput(
         const gridIds: string[] = []
 
         gridsComponent.forEach((g) => {
+          debugger
           const found = grids.find(
-            (a) => a.name === getTranslation(g.name, language)
+            (a) =>
+              getTranslation(a.name, language) ===
+              getTranslation(g.name, language)
           )
           if (found?.id) {
             gridIds.push(found.id)

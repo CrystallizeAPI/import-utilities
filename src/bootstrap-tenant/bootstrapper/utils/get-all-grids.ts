@@ -21,6 +21,7 @@ query GET_GRID($id: ID!, $language: String!) {
       id: $id
       language: $language
     ) {
+      id
       name
       rows {
         columns {
