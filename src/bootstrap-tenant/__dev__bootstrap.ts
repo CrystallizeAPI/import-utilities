@@ -10,14 +10,35 @@ import { JsonSpec } from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'hkn-demo'
+    const tenantIdentifier = 'hkn-test-test'
     const jsonSpec: JsonSpec = {
+      shapes: [
+        {
+          identifier: 'test-folder',
+          name: 'Test Folder',
+          type: 'folder',
+        },
+        {
+          identifier: 'test-product',
+          name: 'Test Product',
+          type: 'product',
+        },
+      ],
       items: [
         {
-          name: 'Thule',
-          externalReference: 'thule-folder',
-          shape: 'folder-with-relations',
-          parentCataloguePath: '/hei',
+          name: 'Basic Folder',
+          shape: 'test-folder',
+        },
+        {
+          name: 'Basic product',
+          shape: 'test-product',
+          vatType: 'No Tax',
+          variants: [
+            {
+              name: 'Basic Variant',
+              sku: 'basic-variant',
+            },
+          ],
         },
       ],
     }

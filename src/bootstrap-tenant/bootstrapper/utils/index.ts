@@ -397,3 +397,25 @@ export function removeUnwantedFieldsFromThing(
 
   return thing
 }
+
+export async function getTenantRootItemId(
+  context: BootstrapperContext
+): Promise<string> {
+  const tenantId = context.tenantId
+  const r = await context.callPIM({
+    query: gql`
+      query GET_TENANT_ROOT_ITEM_ID($tenantId: ID!) {
+        tenant {
+          get(id: $tenantId) {
+            rootItemId
+          }
+        }
+      }
+    `,
+    variables: {
+      tenantId,
+    },
+  })
+
+  return r.data?.tenant?.get?.rootItemId || ''
+}
