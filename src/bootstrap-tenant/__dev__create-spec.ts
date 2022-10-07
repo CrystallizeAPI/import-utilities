@@ -8,7 +8,7 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'frntr'
+  const tenantIdentifier = 'hkn-test-test'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
@@ -22,6 +22,7 @@ async function createSpec() {
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
   bootstrapper.config.multilingual = true
+  // bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.on(EVENT_NAMES.ERROR, (error: BootstrapperError) => {
     if (!error.willRetry) {
@@ -30,15 +31,15 @@ async function createSpec() {
   })
 
   const spec = await bootstrapper.createSpec({
-    shapes: true,
-    grids: true,
+    shapes: false,
+    grids: false,
     items: true,
-    languages: true,
-    priceVariants: true,
-    stockLocations: true,
-    vatTypes: true,
-    subscriptionPlans: true,
-    topicMaps: true,
+    languages: false,
+    priceVariants: false,
+    stockLocations: false,
+    vatTypes: false,
+    subscriptionPlans: false,
+    topicMaps: false,
     onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 

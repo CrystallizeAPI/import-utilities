@@ -1,8 +1,4 @@
-import {
-  BootstrapperContext,
-  getTenantRootItemId,
-  removeUnwantedFieldsFromThing,
-} from '.'
+import { BootstrapperContext, removeUnwantedFieldsFromThing } from '.'
 import {
   JSONComponentContent,
   JSONFolder,
@@ -136,41 +132,58 @@ export async function getAllCatalogueItems(
     ? context.languages.map((l) => l.code)
     : [lng]
 
-  const pathShouldBeIncluded = (function () {
-    const baseParts = (options?.basePath || '').split('/')
-    return (path: string) => {
-      if (!options?.basePath || options.basePath === '/') {
-        return true
-      }
-      const parts = (path || '').split('/')
-      for (let i = 0; i < parts.length; i++) {
-        if (i < baseParts.length && parts[i] !== baseParts[i]) {
-          return false
-        }
-      }
-      return true
-    }
-  })()
-
   async function handleLanguage(language: string) {
     const allCatalogueItemsForLanguage: JSONItem[] = []
 
     const tr = trFactory(language)
 
-    async function getItem({ id }: { id: string }): Promise<JSONItem | null> {
-      const response = await context.callPIM({
-        query: GET_ITEM_QUERY,
-        variables: {
-          language,
-          version,
-          id,
-        },
-      })
+    async function getItem({
+      path,
+      id,
+    }: {
+      path: string
+      id: string
+    }): Promise<JSONItem | null> {
+      /**
+       * "/" represents the catalogue root and is not retrieved here.
+       * If an item path is "/", then it is most likely not published
+       * to the catalogue
+       */
+      if (path === '/') {
+        return null
+      }
 
-      const rawCatalogueData: JSONItem | null = response.data?.item?.get
+      const [catalogueResponse, pathAndPositionResponse] = await Promise.all([
+        context.callCatalogue({
+          query: GET_ITEM_QUERY,
+          variables: {
+            language,
+            version,
+            path,
+          },
+        }),
+        context.callPIM({
+          query: GET_ITEM_PATH_AND_POSITION_QUERY,
+          variables: {
+            language,
+            id,
+          },
+          suppressErrors: true,
+        }),
+      ])
+
+      const rawCatalogueData: JSONItem | null =
+        catalogueResponse.data?.catalogue
 
       if (!rawCatalogueData) {
         return null
+      }
+
+      // Extend with the path and position from PIM
+      const pathAndPosition = pathAndPositionResponse?.data?.tree?.getNode
+      if (pathAndPosition != null) {
+        rawCatalogueData.cataloguePath = pathAndPosition.path
+        rawCatalogueData.treePosition = pathAndPosition.position
       }
 
       return handleItem(rawCatalogueData)
@@ -180,12 +193,12 @@ export async function getAllCatalogueItems(
       const jsonItem: JSONItem = {
         id: item.id, // Used for reference when doing multilingual spec
         name: tr(item.name, `${item.id}.name`),
-        cataloguePath: item.tree.path,
-        treePosition: item.tree.position,
+        cataloguePath: item.cataloguePath,
         externalReference: item.externalReference,
         shape: item.shape.identifier,
         components: handleComponents(item.components),
         topics: item.topics,
+        treePosition: item.treePosition,
       }
 
       if (!jsonItem.externalReference && options?.setExternalReference) {
@@ -214,7 +227,6 @@ export async function getAllCatalogueItems(
               handleImage(i, `${v.sku}.images.${index}`)
             ),
             subscriptionPlans: v.subscriptionPlans?.map(handleSubscriptionPlan),
-            components: handleComponents(v.components),
           }
 
           return variant
@@ -230,24 +242,42 @@ export async function getAllCatalogueItems(
       async function getChildren(): Promise<JSONItem[]> {
         const children: JSONItem[] = []
 
-        const pageResponse = await context.callPIM({
-          query: GET_ITEM_CHILDREN,
-          variables: {
-            language,
-            id: item.id,
-          },
-        })
+        let after: string | undefined = undefined
 
-        const rawChilds = pageResponse.data?.tree?.getNode?.children || []
+        async function crawlChildren() {
+          const pageSize = 1000
+          const pageResponse = await context.callCatalogue({
+            query: GET_ITEM_CHILDREN_PAGE,
+            variables: {
+              language,
+              version: 'published', // Always use published version when getting tree info
+              path: item.cataloguePath,
+              after,
+              pageSize,
+            },
+          })
 
-        for (let i = 0; i < rawChilds.length; i++) {
-          if (pathShouldBeIncluded(rawChilds[i].path)) {
-            const item = await getItem(rawChilds[i])
-            if (item) {
-              children.push(item)
+          const page = pageResponse.data?.catalogue?.subtree
+
+          if (page?.edges?.length) {
+            const pathAndIds: { path: string; id: string }[] = page.edges.map(
+              (e: any) => e.node
+            )
+            for (let i = 0; i < pathAndIds.length; i++) {
+              const item = await getItem(pathAndIds[i])
+              if (item) {
+                children.push(item)
+              }
+            }
+
+            if (page.pageInfo?.hasNextPage && page.edges?.length === pageSize) {
+              after = page.pageInfo.endCursor
+              await crawlChildren()
             }
           }
         }
+
+        await crawlChildren()
 
         return children.sort(byTreePosition)
       }
@@ -318,7 +348,7 @@ export async function getAllCatalogueItems(
 
                 return {
                   externalReference: item.externalReference,
-                  cataloguePath: item.tree.path,
+                  cataloguePath: item.cataloguePath,
                 }
               })
             }
@@ -406,25 +436,21 @@ export async function getAllCatalogueItems(
       return jsonItem
     }
 
-    const rootItemId = await getTenantRootItemId(context)
-
-    const rootItemsResponse = await context.callPIM({
-      query: GET_ITEM_CHILDREN,
+    const rootItemsResponse = await context.callCatalogue({
+      query: GET_ROOT_ITEMS_QUERY,
       variables: {
         language,
-        id: rootItemId,
+        version: 'published', // Always use published version when getting tree info
+        path: options?.basePath || '/',
       },
     })
 
-    const rootItems: { id: string; position: number; path: string }[] =
-      rootItemsResponse.data?.tree?.getNode?.children || []
-
+    const rootItems: { path: string; id: string }[] =
+      rootItemsResponse.data?.catalogue?.children || []
     for (let i = 0; i < rootItems.length; i++) {
-      if (pathShouldBeIncluded(rootItems[i].path)) {
-        const item = await getItem(rootItems[i])
-        if (item) {
-          allCatalogueItemsForLanguage.push(item)
-        }
+      const item = await getItem(rootItems[i])
+      if (item) {
+        allCatalogueItemsForLanguage.push(item)
       }
     }
 
@@ -476,33 +502,40 @@ export async function getAllCatalogueItems(
   ])
 }
 
-const GET_ITEM_CHILDREN = `
-query GET_ITEM_CHILDREN (
-  $language: String!
-  $id: ID!
-) {
+/**
+ * Item positions always needs to be fetched from their published
+ * version, as the draft version will not always be synced
+ */
+const GET_ITEM_PATH_AND_POSITION_QUERY = `
+query GET_ITEM_PATH_AND_POSITION_QUERY ($language: String!, $id: ID!) {
   tree {
     getNode (
-      language: $language
       itemId: $id
+      language: $language
+      versionLabel: published
     ) {
-      children {
-        id: itemId
-        treePosition: position
-        path
-      }
+      path
+      position
+    }
+  }
+}`
+
+const GET_ROOT_ITEMS_QUERY = `
+query GET_ROOT_CATALOGUE_ITEMS ($language: String!, $path: String!, $version: VersionLabel!) {
+  catalogue(language: $language, path: $path, version: $version) {
+    children {
+      id
+      path
     }
   }
 }
 `
 
 const GET_ITEM_QUERY = `
-query GET_ITEM($language: String!, $id: ID!, $version: VersionLabel!) {
-  item {
-    get(id: $id, language: $language, versionLabel: $version) {
-      ...item
-      ...product
-    }
+query GET_ITEM ($language: String!, $path: String!, $version: VersionLabel!) {
+  catalogue(language: $language, path: $path, version: $version) {
+    ...item
+    ...product
   }
 }
 
@@ -510,10 +543,7 @@ fragment item on Item {
   id
   name
   type
-  tree {
-    path
-    position
-  }
+  cataloguePath: path
   externalReference
   shape {
     identifier
@@ -522,7 +552,32 @@ fragment item on Item {
     path
   }
   components {
-    ...rootComponent
+    id
+    name
+    type
+    content {
+      ...primitiveComponentContent
+      ... on ComponentChoiceContent {
+        selectedComponent {
+          id
+          name
+          type
+          content {
+            ...primitiveComponentContent
+          }
+        }
+      }
+      ... on ContentChunkContent {
+        chunks {
+          id
+          name
+          type
+          content {
+            ...primitiveComponentContent
+          }
+        }
+      }
+    }
   }
 }
 
@@ -544,11 +599,14 @@ fragment primitiveComponentContent on ComponentContent {
 }
 
 fragment product on Product {
+  id
+  language
   vatType {
     name
     percent
   }
   variants {
+    id
     externalReference
     name
     sku
@@ -581,39 +639,6 @@ fragment product on Product {
         }
         recurring {
           ...subscriptionPlanPricing
-        }
-      }
-    }
-
-    components {
-      ...rootComponent
-    }
-  }
-}
-
-fragment rootComponent on Component {
-  id: componentId
-  name
-  type
-  content {
-    ...primitiveComponentContent
-    ... on ComponentChoiceContent {
-      selectedComponent {
-        id: componentId
-        name
-        type
-        content {
-          ...primitiveComponentContent
-        }
-      }
-    }
-    ... on ContentChunkContent {
-      chunks {
-        id: componentId
-        name
-        type
-        content {
-          ...primitiveComponentContent
         }
       }
     }
@@ -701,9 +726,7 @@ fragment richTextContent on RichTextContent {
 fragment itemRelationsContent on ItemRelationsContent {
   items {
     id
-    tree {
-      path
-    }
+    cataloguePath: path
     externalReference
   }
 }
@@ -750,6 +773,34 @@ fragment subscriptionPlanPricing on ProductVariantSubscriptionPlanPricing {
       priceVariants {
         identifier
         price
+      }
+    }
+  }
+}
+`
+
+const GET_ITEM_CHILDREN_PAGE = `
+query GET_ITEM_CHILDREN_PAGE (
+  $path: String!,
+  $language: String!,
+  $version: VersionLabel!,
+  $after: String,
+  $pageSize: Int
+  ) {
+  catalogue(path: $path, language: $language, version: $version) {
+    subtree (
+      first: $pageSize
+      after: $after
+    ) {
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      edges {
+        node {
+          id
+          path
+        }
       }
     }
   }

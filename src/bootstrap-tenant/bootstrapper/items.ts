@@ -71,6 +71,7 @@ import {
   getItemId,
   ItemCreatedOrUpdated,
   EVENT_NAMES,
+  getTenantRootItemId,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
@@ -100,28 +101,6 @@ export interface Props {
   spec: JsonSpec | null
   onUpdate(t: AreaUpdate): any
   context: BootstrapperContext
-}
-
-async function getTenantRootItemId(
-  context: BootstrapperContext
-): Promise<string> {
-  const tenantId = context.tenantId
-  const r = await context.callPIM({
-    query: gql`
-      query GET_TENANT_ROOT_ITEM_ID($tenantId: ID!) {
-        tenant {
-          get(id: $tenantId) {
-            rootItemId
-          }
-        }
-      }
-    `,
-    variables: {
-      tenantId,
-    },
-  })
-
-  return r.data?.tenant?.get?.rootItemId || ''
 }
 
 function publishItem(
@@ -1326,33 +1305,11 @@ export async function setItems({
         )
       }
 
-      jsonVariant._componentsData = {}
-      if (jsonVariant.components) {
-        jsonVariant._componentsData[language] = await createComponentsInput({
-          components: jsonVariant.components,
-          componentDefinitions: shape.variantComponents,
-          language,
-          grids: allGrids,
-          context,
-          onUpdate,
-        })
-      }
-
       const {
         priceVariants: existingProductVariantPriceVariants,
         stockLocations: existingProductVariantStockLocations,
         ...restOfExistingProductVariant
       } = existingProductVariant || {}
-
-      const components = jsonVariant.components
-        ? Object.keys(jsonVariant._componentsData?.[language] || {}).map(
-            (componentId: string) => ({
-              // @ts-ignore
-              ...jsonVariant._componentsData[language][componentId],
-              componentId,
-            })
-          )
-        : undefined
 
       const variant: CreateProductVariantInput = {
         ...(restOfExistingProductVariant as CreateProductVariantInput),
@@ -1367,8 +1324,31 @@ export async function setItems({
           jsonPrice: jsonVariant.price,
           existingProductVariantPriceVariants,
         }),
-        components,
         ...(attributes && { attributes }),
+      }
+
+      if (shape.variantComponents) {
+        jsonVariant._componentsData = {}
+        if (jsonVariant.components) {
+          jsonVariant._componentsData[language] = await createComponentsInput({
+            components: jsonVariant.components,
+            componentDefinitions: shape.variantComponents,
+            language,
+            grids: allGrids,
+            context,
+            onUpdate,
+          })
+        }
+
+        variant.components = jsonVariant.components
+          ? Object.keys(jsonVariant._componentsData?.[language] || {}).map(
+              (componentId: string) => ({
+                // @ts-ignore
+                ...jsonVariant._componentsData[language][componentId],
+                componentId,
+              })
+            )
+          : undefined
       }
 
       if (jsonVariant.subscriptionPlans) {
