@@ -72,6 +72,7 @@ import {
   ItemCreatedOrUpdated,
   EVENT_NAMES,
   getTenantRootItemId,
+  BootstrapperError,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
@@ -641,7 +642,6 @@ async function createComponentsInput(
         const gridIds: string[] = []
 
         gridsComponent.forEach((g) => {
-          debugger
           const found = grids.find(
             (a) =>
               getTranslation(a.name, language) ===
@@ -649,6 +649,13 @@ async function createComponentsInput(
           )
           if (found?.id) {
             gridIds.push(found.id)
+          } else {
+            const err: BootstrapperError = {
+              error: `Could not find grid with name "${g.name}". Skipping the grid relation.`,
+              willRetry: false,
+              type: 'error',
+            }
+            context.emit(EVENT_NAMES.ERROR, err)
           }
         })
 
