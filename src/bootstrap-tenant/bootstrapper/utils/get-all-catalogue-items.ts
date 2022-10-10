@@ -121,9 +121,18 @@ function getItemById(items: JSONItem[], id: string) {
 }
 
 export interface ItemsCreateSpecOptions {
-  basePath?: String
+  basePath?: string
   version?: 'published' | 'draft'
-  setExternalReference?: Boolean
+  setExternalReference?: boolean
+}
+
+export function buildPathShouldBeIncludedValidator(basePath: string = '') {
+  return (path: string) => {
+    if (!basePath || basePath === '/') {
+      return true
+    }
+    return path.startsWith(basePath)
+  }
 }
 
 export async function getAllCatalogueItems(
@@ -136,21 +145,9 @@ export async function getAllCatalogueItems(
     ? context.languages.map((l) => l.code)
     : [lng]
 
-  const pathShouldBeIncluded = (function () {
-    const baseParts = (options?.basePath || '').split('/')
-    return (path: string) => {
-      if (!options?.basePath || options.basePath === '/') {
-        return true
-      }
-      const parts = (path || '').split('/')
-      for (let i = 0; i < parts.length; i++) {
-        if (i < baseParts.length && parts[i] !== baseParts[i]) {
-          return false
-        }
-      }
-      return true
-    }
-  })()
+  const pathShouldBeIncluded = buildPathShouldBeIncludedValidator(
+    options?.basePath
+  )
 
   async function handleLanguage(language: string) {
     const allCatalogueItemsForLanguage: JSONItem[] = []
