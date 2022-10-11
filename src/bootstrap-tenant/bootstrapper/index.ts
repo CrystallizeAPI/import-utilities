@@ -527,9 +527,14 @@ export class Bootstrapper extends EventEmitter {
       if (props.stockLocations) {
         spec.stockLocations = await getExistingStockLocations(this.context)
       }
-    } catch (error) {
+    } catch (e: any) {
+      let error: string = e
+      if (e.stack) {
+        error = `${e.stack}`
+      }
+
       const err: BootstrapperError = {
-        error: JSON.stringify(error),
+        error,
         willRetry: false,
       }
       this.emit(EVENT_NAMES.ERROR, err)
@@ -571,11 +576,17 @@ export class Bootstrapper extends EventEmitter {
         duration: new Duration(start, end).toString(1),
         spec: this.SPEC,
       })
-    } catch (error) {
+    } catch (e: any) {
+      let error: string = e
+      if (e.stack) {
+        error = `${e.stack}`
+      }
+
       const err: BootstrapperError = {
-        error: JSON.stringify(error),
+        error,
         willRetry: false,
       }
+
       this.emit(EVENT_NAMES.ERROR, err)
     }
   }
