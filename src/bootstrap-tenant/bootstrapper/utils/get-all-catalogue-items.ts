@@ -126,12 +126,26 @@ export interface ItemsCreateSpecOptions {
   setExternalReference?: boolean
 }
 
+type pathValidation = {
+  thisItem: boolean
+  descendants: boolean
+}
+
 export function buildPathShouldBeIncludedValidator(basePath: string = '') {
-  return (path: string) => {
+  return function validate(path: string): pathValidation {
     if (!basePath || basePath === '/') {
-      return true
+      return {
+        thisItem: true,
+        descendants: true,
+      }
     }
-    return path.startsWith(basePath)
+
+    const p = path || ''
+
+    return {
+      thisItem: p.startsWith(basePath),
+      descendants: basePath.startsWith(p),
+    }
   }
 }
 
@@ -249,7 +263,8 @@ export async function getAllCatalogueItems(
         const rawChilds = pageResponse.data?.tree?.getNode?.children || []
 
         for (let i = 0; i < rawChilds.length; i++) {
-          if (pathShouldBeIncluded(rawChilds[i].path)) {
+          const pathValid = pathShouldBeIncluded(rawChilds[i].path)
+          if (pathValid.descendants || pathValid.thisItem) {
             const item = await getItem(rawChilds[i])
             if (item) {
               children.push(item)
@@ -434,12 +449,21 @@ export async function getAllCatalogueItems(
     }[] = rootItemsResponse.data?.tree?.getNode?.children || []
 
     for (let i = 0; i < rootItems.length; i++) {
-      if (pathShouldBeIncluded(rootItems[i].path)) {
+      const pathValid = pathShouldBeIncluded(rootItems[i].path)
+      if (pathValid.descendants || pathValid.thisItem) {
         const item = await getItem(rootItems[i])
         if (item) {
           allCatalogueItemsForLanguage.push(item)
         }
       }
+    }
+
+    // Filter out on the desired path in the end
+    if (options?.basePath?.length) {
+      return getOnlyItemsWithPathStartingWith(
+        options.basePath,
+        allCatalogueItemsForLanguage
+      )
     }
 
     return allCatalogueItemsForLanguage
@@ -770,3 +794,30 @@ fragment subscriptionPlanPricing on ProductVariantSubscriptionPlanPricing {
   }
 }
 `
+function getOnlyItemsWithPathStartingWith(
+  basePath: string,
+  allCatalogueItemsForLanguage: JSONItem[]
+): JSONItem[] {
+  let foundItem: JSONItem | null = null
+
+  function handleLevel(item: JSONItem) {
+    if (!foundItem) {
+      if (item.cataloguePath?.startsWith(basePath)) {
+        foundItem = item
+      } else {
+        const f = item as JSONFolder
+        if (f.children) {
+          f.children.forEach(handleLevel)
+        }
+      }
+    }
+  }
+
+  allCatalogueItemsForLanguage.forEach(handleLevel)
+
+  if (foundItem) {
+    return [foundItem]
+  }
+
+  return []
+}
