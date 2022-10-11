@@ -798,6 +798,9 @@ function getOnlyItemsWithPathStartingWith(
   basePath: string,
   allCatalogueItemsForLanguage: JSONItem[]
 ): JSONItem[] {
+  if (basePath === '/') {
+    return allCatalogueItemsForLanguage
+  }
   let foundItem: JSONItem | null = null
 
   function handleLevel(item: JSONItem) {
