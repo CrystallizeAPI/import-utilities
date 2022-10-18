@@ -183,6 +183,24 @@ export class Bootstrapper extends EventEmitter {
 
   getStatus = () => this.status
 
+  setSessionId = (sessionId: string) => {
+    // PIM
+    this.PIMAPIManager = createAPICaller({
+      uri: `https://${
+        this.env === 'dev'
+          ? 'pim-dev.crystallize.digital'
+          : 'pim.crystallize.com'
+      }/graphql`,
+      errorNotifier: (error: BootstrapperError) => {
+        this.emit(EVENT_NAMES.ERROR, error)
+      },
+    })
+
+    this.PIMAPIManager.CRYSTALLIZE_SESSION_ID = sessionId
+
+    this.context.callPIM = this.PIMAPIManager.push
+  }
+
   setAccessToken = (ACCESS_TOKEN_ID: string, ACCESS_TOKEN_SECRET: string) => {
     // PIM
     this.PIMAPIManager = createAPICaller({
@@ -273,6 +291,7 @@ export class Bootstrapper extends EventEmitter {
         tenantId: this.context.tenantId,
         accessTokenId: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID,
         accessTokenSecret: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+        sessionId: this.PIMAPIManager?.CRYSTALLIZE_SESSION_ID,
         origin:
           this.env === 'dev' ? '-dev.crystallize.digital' : '.crystallize.com',
       })
