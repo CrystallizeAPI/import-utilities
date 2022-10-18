@@ -40,6 +40,7 @@ export class ApiManager {
   CRYSTALLIZE_ACCESS_TOKEN_ID = ''
   CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
   CRYSTALLIZE_STATIC_AUTH_TOKEN = ''
+  CRYSTALLIZE_SESSION_ID = ''
 
   constructor(url: string) {
     this.url = url
@@ -148,12 +149,17 @@ export class ApiManager {
         this.url,
         item.props.query,
         item.props.variables,
-        {
-          'X-Crystallize-Access-Token-Id': this.CRYSTALLIZE_ACCESS_TOKEN_ID,
-          'X-Crystallize-Access-Token-Secret':
-            this.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
-          'X-Crystallize-Static-Auth-Token': this.CRYSTALLIZE_STATIC_AUTH_TOKEN,
-        }
+        this.CRYSTALLIZE_SESSION_ID
+          ? {
+              Cookie: `connect.sid=${this.CRYSTALLIZE_SESSION_ID}`,
+            }
+          : {
+              'X-Crystallize-Access-Token-Id': this.CRYSTALLIZE_ACCESS_TOKEN_ID,
+              'X-Crystallize-Access-Token-Secret':
+                this.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
+              'X-Crystallize-Static-Auth-Token':
+                this.CRYSTALLIZE_STATIC_AUTH_TOKEN,
+            }
       )
       if (this.logLevel === 'verbose') {
         console.log(JSON.stringify(response, null, 1))
