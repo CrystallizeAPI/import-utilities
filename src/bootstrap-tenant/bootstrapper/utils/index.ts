@@ -19,6 +19,7 @@ export * from './get-item-id'
 export const EVENT_NAMES = {
   DONE: 'BOOTSTRAPPER_DONE',
   ERROR: 'BOOTSTRAPPER_ERROR',
+  WARNING: 'BOOTSTRAPPER_WARNING',
   STATUS_UPDATE: 'BOOTSTRAPPER_STATUS_UPDATE',
   SHAPES_UPDATE: 'BOOTSTRAPPER_SHAPES_UPDATE',
   SHAPES_DONE: 'BOOTSTRAPPER_SHAPES_DONE',
@@ -51,10 +52,13 @@ export type EVENT_NAMES_VALUES = typeof EVENT_NAMES[EVENT_NAMES_KEYS]
 
 export interface AreaWarning {
   message: string
+  code: 'FFMPEG_UNAVAILABLE' | 'SHAPE_ID_TRUNCATED' | 'OTHER'
+}
+
+export interface AreaError {
+  message: string
   code:
-    | 'FFMPEG_UNAVAILABLE'
     | 'UPLOAD_FAILED'
-    | 'SHAPE_ID_TRUNCATED'
     | 'SHAPE_ID_MISSING'
     | 'CANNOT_HANDLE_ITEM'
     | 'CANNOT_HANDLE_PRODUCT'
@@ -66,6 +70,7 @@ export interface AreaUpdate {
   progress?: number
   message?: string
   warning?: AreaWarning
+  error?: AreaError
 }
 
 export interface Config {
@@ -83,6 +88,8 @@ export type BootstrapperError = {
   error: string
   type?: 'error' | 'warning'
 }
+
+export type BootstrapperWarning = AreaWarning
 
 export interface BootstrapperContext {
   client?: MassClientInterface

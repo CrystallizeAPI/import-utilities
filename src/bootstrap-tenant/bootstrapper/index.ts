@@ -20,6 +20,7 @@ import {
   ItemAndParentId,
   EVENT_NAMES_VALUES,
   BootstrapperError,
+  BootstrapperWarning,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -640,10 +641,12 @@ export class Bootstrapper extends EventEmitter {
         immer(this.status, () => {})
       )
     } else if (areaUpdate.warning) {
+      this.emit(EVENT_NAMES.WARNING, areaUpdate.warning)
+    } else if (areaUpdate.error) {
       const err: BootstrapperError = {
-        error: JSON.stringify(areaUpdate.warning, null, 1),
+        error: JSON.stringify(areaUpdate.error, null, 1),
         willRetry: false,
-        type: 'warning',
+        type: 'error',
       }
 
       this.emit(EVENT_NAMES.ERROR, err)

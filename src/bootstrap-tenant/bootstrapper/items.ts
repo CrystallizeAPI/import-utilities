@@ -232,7 +232,7 @@ async function createImagesInput(
         }
       } catch (e) {
         onUpdate({
-          warning: {
+          error: {
             code: 'UPLOAD_FAILED',
             message: `Could not upload image "${JSON.stringify(image)}"`,
           },
@@ -281,7 +281,7 @@ async function createVideosInput(
         }
       } catch (e) {
         onUpdate({
-          warning: {
+          error: {
             code: 'UPLOAD_FAILED',
             message: `Could not upload video "${JSON.stringify(video)}"`,
           },
@@ -333,7 +333,7 @@ async function createFilesInput(
         }
       } catch (e) {
         onUpdate({
-          warning: {
+          error: {
             code: 'UPLOAD_FAILED',
             message: `Could not upload file "${JSON.stringify(file)}"`,
           },
@@ -1052,7 +1052,7 @@ export async function setItems({
 
     if (!item.shape) {
       onUpdate({
-        warning: {
+        error: {
           code: 'SHAPE_ID_MISSING',
           message: `Missing shape identifier for item "${getTranslation(
             item.name,
@@ -1070,7 +1070,7 @@ export async function setItems({
     const shape = context.shapes?.find((s) => s.identifier === item.shape)
     if (!shape) {
       onUpdate({
-        warning: {
+        error: {
           code: 'CANNOT_HANDLE_ITEM',
           message: `Skipping  "${getTranslation(
             item.name,
@@ -1126,7 +1126,7 @@ export async function setItems({
     async function updateForLanguage(language: string, itemId: string) {
       if (!shape || !itemId) {
         onUpdate({
-          warning: {
+          error: {
             code: 'CANNOT_HANDLE_PRODUCT',
             message: `Cannot update "${getTranslation(
               item.name,
@@ -1285,7 +1285,7 @@ export async function setItems({
       )
       if (!vatType) {
         onUpdate({
-          warning: {
+          error: {
             code: 'CANNOT_HANDLE_PRODUCT',
             message: `Cannot create product "${product.name}". Vat type "${product.vatType}" does not exist`,
           },
@@ -1583,7 +1583,7 @@ export async function setItems({
       // Ensure a name is set for the default language (required by the API)
       if (!getTranslation(item.name, context.defaultLanguage.code)) {
         onUpdate({
-          warning: {
+          error: {
             code: 'CANNOT_HANDLE_ITEM',
             message: `Item name cannot be empty for the default language. Item id: "${item.id}"`,
           },
@@ -1600,7 +1600,7 @@ export async function setItems({
         const product = item as JSONProduct
         if (!product.variants || product.variants.length === 0) {
           onUpdate({
-            warning: {
+            error: {
               code: 'CANNOT_HANDLE_PRODUCT',
               message: `Skipping  "${getTranslation(
                 item.name,
@@ -1647,7 +1647,7 @@ export async function setItems({
 
     if (!itemId) {
       onUpdate({
-        warning: {
+        error: {
           code: 'CANNOT_HANDLE_ITEM',
           message: `Could not create or update item "${getTranslation(
             item.name,
@@ -1784,7 +1784,7 @@ export async function setItems({
               ids.push(itemId)
             } else {
               onUpdate({
-                warning: {
+                error: {
                   code: 'CANNOT_HANDLE_ITEM_RELATION',
                   message: `Could not determine an ID for related item "${
                     itemRelation.externalReference
@@ -1983,7 +1983,7 @@ export async function setItems({
                   }
                 } catch (err) {
                   onUpdate({
-                    warning: {
+                    error: {
                       code: 'CANNOT_HANDLE_ITEM_RELATION',
                       message: `Unable to update relation for item id "${
                         item.id
@@ -2062,7 +2062,7 @@ export async function setItems({
                     }
                   } catch (err) {
                     onUpdate({
-                      warning: {
+                      error: {
                         code: 'CANNOT_HANDLE_ITEM_RELATION',
                         message: `Unable to update relation for variant with sku "${
                           variant.sku
@@ -2120,7 +2120,7 @@ export async function setItems({
     } catch (e) {
       console.log(e)
       onUpdate({
-        warning: {
+        error: {
           code: 'CANNOT_HANDLE_ITEM',
           message: `Skipping "${getTranslation(
             item.name,
