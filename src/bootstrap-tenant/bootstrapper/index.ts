@@ -109,7 +109,7 @@ export class Bootstrapper extends EventEmitter {
   env: 'prod' | 'dev' = 'prod'
 
   context: BootstrapperContext = {
-    defaultLanguage: { code: 'en', name: 'English' },
+    defaultLanguage: 'en',
     languages: [],
     config: {
       experimental: {},
@@ -221,6 +221,16 @@ export class Bootstrapper extends EventEmitter {
     this.context.callPIM = this.PIMAPIManager.push
   }
 
+  setTargetLanguage(targetLanguageCode: string) {
+    if (this.config.multilingual) {
+      console.warn(
+        '⚠️ Setting the target language with multilingual mode enabled has no effect'
+      )
+    }
+
+    this.context.targetLanguage = targetLanguageCode
+  }
+
   setSpec(spec: JsonSpec) {
     this.SPEC = spec
   }
@@ -262,6 +272,9 @@ export class Bootstrapper extends EventEmitter {
                 id
                 identifier
                 staticAuthToken
+                defaults {
+                  language
+                }
               }
             }
           }
@@ -280,6 +293,7 @@ export class Bootstrapper extends EventEmitter {
     } else {
       this.context.tenantId = tenant.id
       this.context.fileUploader.context = this.context
+      this.context.defaultLanguage = tenant.defaults.language
 
       const baseUrl = `https://${
         this.env === 'dev'
@@ -672,7 +686,7 @@ export class Bootstrapper extends EventEmitter {
       throw new Error('Cannot determine default language for the tenant')
     }
 
-    this.context.defaultLanguage = defaultLanguage
+    this.context.defaultLanguage = defaultLanguage.code
 
     if (!this.config.multilingual) {
       this.context.languages = [defaultLanguage]

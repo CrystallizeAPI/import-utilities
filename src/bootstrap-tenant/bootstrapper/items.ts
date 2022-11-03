@@ -997,7 +997,10 @@ export async function setItems({
   }
 
   const rootItemId = await getTenantRootItemId(context)
-  const allGrids = await getAllGrids(context.defaultLanguage.code, context)
+  const allGrids = await getAllGrids(
+    context.targetLanguage || context.defaultLanguage,
+    context
+  )
 
   /**
    * First off, let's start uploading all the images
@@ -1056,7 +1059,7 @@ export async function setItems({
           code: 'SHAPE_ID_MISSING',
           message: `Missing shape identifier for item "${getTranslation(
             item.name,
-            context.defaultLanguage.code
+            context.targetLanguage || context.defaultLanguage
           )}". Got "${item.shape}"`,
         },
       })
@@ -1074,7 +1077,7 @@ export async function setItems({
           code: 'CANNOT_HANDLE_ITEM',
           message: `Skipping  "${getTranslation(
             item.name,
-            context.defaultLanguage.code
+            context.targetLanguage || context.defaultLanguage
           )}". Could not locate its shape (${item.shape}}))`,
         },
       })
@@ -1091,7 +1094,7 @@ export async function setItems({
         item._topicsData = {
           topicIds: await getTopicIds({
             topics: item.topics || [],
-            language: context.defaultLanguage.code,
+            language: context.targetLanguage || context.defaultLanguage,
             context,
           }),
         }
@@ -1496,7 +1499,7 @@ export async function setItems({
     item._topicsData = {
       topicIds: await getTopicIds({
         topics: item.topics || [],
-        language: context.defaultLanguage.code,
+        language: context.targetLanguage || context.defaultLanguage,
         context,
       }),
     }
@@ -1546,7 +1549,7 @@ export async function setItems({
       if (item.topics && context.config.itemTopics === 'amend') {
         const existingTopicIds = await getExistingTopicIdsForItem(
           itemId,
-          context.defaultLanguage.code,
+          context.targetLanguage || context.defaultLanguage,
           context
         )
 
@@ -1556,7 +1559,7 @@ export async function setItems({
       }
 
       const responses = await updateForLanguage(
-        context.defaultLanguage.code,
+        context.targetLanguage || context.defaultLanguage,
         itemId
       )
       if (responses?.length) {
@@ -1581,7 +1584,12 @@ export async function setItems({
       }
     } else {
       // Ensure a name is set for the default language (required by the API)
-      if (!getTranslation(item.name, context.defaultLanguage.code)) {
+      if (
+        !getTranslation(
+          item.name,
+          context.targetLanguage || context.defaultLanguage
+        )
+      ) {
         onUpdate({
           error: {
             code: 'CANNOT_HANDLE_ITEM',
@@ -1604,7 +1612,7 @@ export async function setItems({
               code: 'CANNOT_HANDLE_PRODUCT',
               message: `Skipping  "${getTranslation(
                 item.name,
-                context.defaultLanguage.code
+                context.targetLanguage || context.defaultLanguage
               )}". No variants defined for product`,
             },
           })
@@ -1612,7 +1620,9 @@ export async function setItems({
         }
       }
 
-      const response = await createForLanguage(context.defaultLanguage.code)
+      const response = await createForLanguage(
+        context.targetLanguage || context.defaultLanguage
+      )
 
       if (response?.data?.[shape?.type]?.create) {
         const {
@@ -1632,7 +1642,7 @@ export async function setItems({
 
         const payload: ItemCreatedOrUpdated = {
           id,
-          language: context.defaultLanguage.code,
+          language: context.targetLanguage || context.defaultLanguage,
           shape: {
             type: shape.type,
             identifier: shape.identifier,
@@ -1641,7 +1651,10 @@ export async function setItems({
         context.emit(EVENT_NAMES.ITEM_CREATED, payload)
 
         // Set the component data for the item
-        await updateForLanguage(context.defaultLanguage.code, itemId)
+        await updateForLanguage(
+          context.targetLanguage || context.defaultLanguage,
+          itemId
+        )
       }
     }
 
@@ -1651,7 +1664,7 @@ export async function setItems({
           code: 'CANNOT_HANDLE_ITEM',
           message: `Could not create or update item "${getTranslation(
             item.name,
-            context.defaultLanguage.code
+            context.targetLanguage || context.defaultLanguage
           )}"`,
         },
       })
@@ -1680,7 +1693,7 @@ export async function setItems({
       externalReference: item.externalReference,
       cataloguePath: item.cataloguePath,
       shapeIdentifier: item.shape,
-      language: context.defaultLanguage.code,
+      language: context.targetLanguage || context.defaultLanguage,
     })
 
     item.id = itemAndParentId.itemId
@@ -1692,7 +1705,7 @@ export async function setItems({
         externalReference: item.parentExternalReference,
         cataloguePath: item.parentCataloguePath,
         shapeIdentifier: item.shape,
-        language: context.defaultLanguage.code,
+        language: context.targetLanguage || context.defaultLanguage,
       })
       parentId = parentItemAndParentId.itemId
     }
@@ -1711,7 +1724,7 @@ export async function setItems({
       progress: finishedItems / totalItems,
       message: `Handled ${getTranslation(
         item.name,
-        context.defaultLanguage.code
+        context.targetLanguage || context.defaultLanguage
       )}`,
     })
     if (item.id) {
@@ -1753,7 +1766,7 @@ export async function setItems({
     onUpdate({
       message: `Item relations: ${getTranslation(
         item.name,
-        context.defaultLanguage.code
+        context.targetLanguage || context.defaultLanguage
       )}`,
     })
 
@@ -1777,7 +1790,7 @@ export async function setItems({
               context,
               externalReference: itemRelation.externalReference,
               cataloguePath: itemRelation.cataloguePath,
-              language: context.defaultLanguage.code,
+              language: context.targetLanguage || context.defaultLanguage,
             })
 
             if (itemId) {
@@ -1849,7 +1862,9 @@ export async function setItems({
           // Get existing data for component
           if (itemRelationIds.length > 0) {
             const existingComponentsData =
-              componentsData?.[context.defaultLanguage.code]
+              componentsData?.[
+                context.targetLanguage || context.defaultLanguage
+              ]
             const componentData = existingComponentsData[componentId]
 
             if (componentData) {
@@ -1973,7 +1988,8 @@ export async function setItems({
                     `,
                     variables: {
                       itemId: item.id,
-                      language: context.defaultLanguage.code,
+                      language:
+                        context.targetLanguage || context.defaultLanguage,
                       input: mutationInput,
                     },
                   })
@@ -2052,7 +2068,8 @@ export async function setItems({
                       variables: {
                         productId: item.id,
                         sku: variant.sku,
-                        language: context.defaultLanguage.code,
+                        language:
+                          context.targetLanguage || context.defaultLanguage,
                         input: mutationInput,
                       },
                     })
@@ -2124,7 +2141,7 @@ export async function setItems({
           code: 'CANNOT_HANDLE_ITEM',
           message: `Skipping "${getTranslation(
             item.name,
-            context.defaultLanguage.code
+            context.targetLanguage || context.defaultLanguage
           )}"`,
         },
       })
