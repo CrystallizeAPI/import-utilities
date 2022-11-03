@@ -61,7 +61,7 @@ async function createTopic(
   context: BootstrapperContext,
   parentId?: string
 ): Promise<string | null> {
-  const language = context.defaultLanguage.code
+  const language = context.targetLanguage || context.defaultLanguage
 
   /**
    * Do not include children here, as we have no control over
@@ -89,7 +89,7 @@ async function createTopic(
         topic: {
           path: parentPath,
         },
-        language: context.defaultLanguage.code,
+        language: context.targetLanguage || context.defaultLanguage,
         context,
         useCache: false,
       })
@@ -139,7 +139,7 @@ export async function setTopics({
 
   const languages = context.config.multilingual
     ? context.languages.map((l) => l.code)
-    : [context.defaultLanguage.code]
+    : [context.targetLanguage || context.defaultLanguage]
 
   let finished = 0
   let totalTopics = 0
@@ -202,7 +202,7 @@ export async function setTopics({
         progress: finished / totalTopics,
         message: `${getTranslation(
           level.name,
-          context.defaultLanguage.code
+          context.targetLanguage || context.defaultLanguage
         )}: ${!exists ? 'updated' : 'created'}`,
       })
 
@@ -224,7 +224,7 @@ export async function setTopics({
 
   async function getIdForLevel(level: JSONTopic) {
     try {
-      const language = context.defaultLanguage.code
+      const language = context.targetLanguage || context.defaultLanguage
 
       const existingTopicId = await getTopicId({
         topic: level.path

@@ -95,7 +95,8 @@ export interface BootstrapperContext {
   client?: MassClientInterface
   tenantId: string
   tenantIdentifier: string
-  defaultLanguage: JSONLanguage
+  defaultLanguage: string
+  targetLanguage?: string
   languages: JSONLanguage[]
   shapes?: Shape[]
   priceVariants?: JSONPriceVariant[]

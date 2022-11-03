@@ -32,7 +32,7 @@ async function setItemIds(
             context,
             externalReference: column.item?.externalReference,
             cataloguePath: column.item?.cataloguePath,
-            language: context.defaultLanguage.code,
+            language: context.targetLanguage || context.defaultLanguage,
           })
           if (itemId) {
             column.itemId = itemId
@@ -124,7 +124,7 @@ export async function setGrids(props: ISetGrids) {
     return
   }
 
-  const language = context.defaultLanguage.code
+  const language = context.targetLanguage || context.defaultLanguage
 
   const existingGrids = await getAllGrids(language, context)
   const missingGrids: JSONGrid[] = []
