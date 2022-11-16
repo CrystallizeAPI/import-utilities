@@ -156,18 +156,54 @@ export async function setShapes({
     // Ensure that the shape identifier is truncated
     data.identifier = validShapeIdentifier(data.identifier, onUpdate)
 
-    // Merge in existing shape
+    // Get existing shape
     const existingShapeConfig = existingShapes.find(
       (e) => e.identifier === data.identifier
     )
-    if (existingShapeConfig?.components) {
-      const comps = data.components || []
-      data.components = [
-        ...existingShapeConfig.components.filter(
-          (c) => !comps.map((c) => c.id).includes(c.id)
-        ),
-        ...comps,
-      ]
+
+    // Delete shape components (not variant components) before adding new ones
+    if (existingShapeConfig) {
+      if (context.config.shapeComponents === 'replace') {
+        try {
+          await context.callPIM({
+            query: `
+              mutation CLEAR_SHAPE_COMPONENTS (
+                $tenantId: ID!
+                $identifier: String!
+              ) {
+                shape {
+                  update (
+                    tenantId: $tenantId
+                    identifier: $identifier
+                    input: {
+                      components: []
+                    }
+                  ) {
+                    identifier
+                  }
+                }
+              }
+            `,
+            variables: {
+              identifier: data.identifier,
+              tenantId: context.tenantId,
+            },
+          })
+        } catch (e) {
+          console.log(e)
+        }
+      }
+
+      // Merge in existing shape
+      else if (existingShapeConfig?.components) {
+        const comps = data.components || []
+        data.components = [
+          ...existingShapeConfig.components.filter(
+            (c) => !comps.map((c) => c.id).includes(c.id)
+          ),
+          ...comps,
+        ]
+      }
     }
 
     const result = await handleShape(data, context)

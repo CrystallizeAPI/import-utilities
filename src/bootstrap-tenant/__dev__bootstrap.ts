@@ -10,33 +10,18 @@ import { JsonSpec } from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'hkn-test-test'
+    const tenantIdentifier = 'hkn-test-shape-clear'
     const jsonSpec: JsonSpec = {
       shapes: [
         {
           identifier: 'test-folder',
           name: 'Test Folder',
           type: 'folder',
-        },
-        {
-          identifier: 'test-product',
-          name: 'Test Product',
-          type: 'product',
-        },
-      ],
-      items: [
-        {
-          name: 'Basic Folder',
-          shape: 'test-folder',
-        },
-        {
-          name: 'Basic product',
-          shape: 'test-product',
-          vatType: 'No Tax',
-          variants: [
+          components: [
             {
-              name: 'Basic Variant',
-              sku: 'basic-variant',
+              id: 'blah',
+              type: 'paragraphCollection',
+              name: 'blah',
             },
           ],
         },
@@ -48,6 +33,7 @@ async function bootstrap() {
     const bootstrapper = new Bootstrapper()
     // bootstrapper.env = 'dev'
 
+    bootstrapper.config.shapeComponents = 'replace'
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 
     bootstrapper.setAccessToken(
