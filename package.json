@@ -8,6 +8,7 @@
     "Håkon Krogh <hakon@crystallize.com>"
   ],
   "files": [
+    "CHANGELOG.md",
     "dist/**/*"
   ],
   "ava": {
