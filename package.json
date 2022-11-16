@@ -26,7 +26,9 @@
     "dev:spec:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__create-spec.ts\"",
     "dev:bootstrapper": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
     "dev:bootstrapper:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
-    "generate-graphql-types": "graphql-codegen --require dotenv/config --config codegen.yml"
+    "generate-graphql-types": "graphql-codegen --require dotenv/config --config codegen.yml",
+    "changeset": "changeset",
+    "publish-packages": "changeset publish"
   },
   "dependencies": {
     "@crystallize/content-transformer": "^9.1.2",
@@ -53,6 +55,7 @@
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
+    "@changesets/cli": "^2.25.2",
     "@graphql-codegen/cli": "2.2.0",
     "@graphql-codegen/introspection": "^2.1.0",
     "@graphql-codegen/typescript": "2.2.2",
