@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.9.1
+
+### Patch Changes
+
+- 1737b4c: Include the dist folder back into the published package.
+
 ## 1.9.0
 
 ### Minor Changes
