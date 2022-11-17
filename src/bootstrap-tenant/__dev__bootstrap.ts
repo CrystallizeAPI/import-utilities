@@ -19,9 +19,9 @@ async function bootstrap() {
           type: 'folder',
           components: [
             {
-              id: 'blah',
-              type: 'paragraphCollection',
-              name: 'blah',
+              id: 'alsdj',
+              type: 'singleLine',
+              name: 'h',
             },
           ],
         },
@@ -33,7 +33,7 @@ async function bootstrap() {
     const bootstrapper = new Bootstrapper()
     // bootstrapper.env = 'dev'
 
-    bootstrapper.config.shapeComponents = 'replace'
+    // bootstrapper.config.shapeComponents = 'amend'
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 
     bootstrapper.setAccessToken(

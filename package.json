@@ -11,6 +11,9 @@
     "CHANGELOG.md",
     "dist/**/*"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "ava": {
     "extensions": [
       "ts"
