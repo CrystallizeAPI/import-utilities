@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  build-test-and-publish:
     runs-on: ubuntu-latest
     env:
       DEV_CRYSTALLIZE_ACCESS_TOKEN_ID:
@@ -25,22 +25,6 @@ jobs:
       - run: npm install
       - run: npm run build
       - run: npm test
-
-  publish:
-    name: Publish packages
-    runs-on: ubuntu-latest
-    needs: [build-and-test]
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-
-      - run: npm install
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
