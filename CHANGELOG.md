@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.9.2
+
+### Patch Changes
+
+- 3712700: Ensuring dist folder in published output
+
 ## 1.9.1
 
 ### Patch Changes
