@@ -9,7 +9,7 @@
   ],
   "files": [
     "CHANGELOG.md",
-    "dist/**/*"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
