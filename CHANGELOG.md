@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.9.4
+
+### Patch Changes
+
+- 12c536b: Fixed validation for null orders in bootstrapper
+
 ## 1.9.3
 
 ### Patch Changes
