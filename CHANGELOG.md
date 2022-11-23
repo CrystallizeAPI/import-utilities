@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.9.3
+
+### Patch Changes
+
+- dea88bb: Fixed issue where the product variant components were sent even
+  though the shape definition did not specify product variant components
+
 ## 1.9.2
 
 ### Patch Changes
