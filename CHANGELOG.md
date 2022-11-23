@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.9.5
+
+### Patch Changes
+
+- 482e97a: Include imageUrl in order cart items
+
 ## 1.9.4
 
 ### Patch Changes
