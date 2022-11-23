@@ -1078,7 +1078,7 @@ export async function setItems({
           message: `Skipping  "${getTranslation(
             item.name,
             context.targetLanguage || context.defaultLanguage
-          )}". Could not locate its shape (${item.shape}}))`,
+          )}". Could not locate its shape (${item.shape}))`,
         },
       })
       return null
@@ -1362,6 +1362,8 @@ export async function setItems({
               })
             )
           : undefined
+      } else {
+        delete variant.components
       }
 
       if (jsonVariant.subscriptionPlans) {
