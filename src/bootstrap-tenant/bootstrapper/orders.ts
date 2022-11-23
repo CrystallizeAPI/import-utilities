@@ -31,12 +31,21 @@ const createOrder = async (
         })),
       },
       cart: cart.map(
-        ({ name, price, productId, productVariantId, sku, quantity }) => ({
+        ({
+          name,
+          price,
+          productId,
+          productVariantId,
+          sku,
+          quantity,
+          imageUrl,
+        }) => ({
           name,
           productId,
           productVariantId,
           sku,
           quantity,
+          imageUrl,
           price: price && {
             currency: price.currency,
             gross: price.gross,
