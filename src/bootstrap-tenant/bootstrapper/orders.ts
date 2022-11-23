@@ -62,19 +62,20 @@ export const setOrders = async ({
     return
   }
   let finished = 0
-  const orders = spec.orders
 
-  await Promise.all(
-    spec.orders.map(async (order) => {
-      const res = await createOrder(context, order)
+  const validOrders = spec.orders.filter(Boolean)
 
-      // Store the created id
-      order.id = res.data?.orders?.create?.id
+  const totalOrderCount = validOrders.length
 
-      onUpdate({
-        progress: finished / orders.length,
-        message: `order: ${res?.errors ? 'error' : 'added'}`,
-      })
+  for (const order of validOrders) {
+    const res = await createOrder(context, order)
+
+    // Store the created id
+    order.id = res.data?.orders?.create?.id
+
+    onUpdate({
+      progress: finished / totalOrderCount,
+      message: `order: ${res?.errors ? 'error' : 'added'}`,
     })
-  )
+  }
 }
