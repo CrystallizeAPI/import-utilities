@@ -589,6 +589,12 @@ export class Bootstrapper extends EventEmitter {
 
       const start = new Date()
 
+      if (this.config.shapeComponents === 'replace') {
+        console.log(
+          "config.shapeComponents = 'replace' is not supported at the moment, falling back to the default option 'amend'"
+        )
+      }
+
       await this.setLanguages()
       await this.setPriceVariants()
       await this.setStockLocations()

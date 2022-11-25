@@ -163,39 +163,41 @@ export async function setShapes({
 
     // Delete shape components (not variant components) before adding new ones
     if (existingShapeConfig) {
-      if (context.config.shapeComponents === 'replace') {
-        try {
-          await context.callPIM({
-            query: `
-              mutation CLEAR_SHAPE_COMPONENTS (
-                $tenantId: ID!
-                $identifier: String!
-              ) {
-                shape {
-                  update (
-                    tenantId: $tenantId
-                    identifier: $identifier
-                    input: {
-                      components: []
-                    }
-                  ) {
-                    identifier
-                  }
-                }
-              }
-            `,
-            variables: {
-              identifier: data.identifier,
-              tenantId: context.tenantId,
-            },
-          })
-        } catch (e) {
-          console.log(e)
-        }
-      }
+      // if (context.config.shapeComponents === 'replace') {
+      //   try {
+      //     await context.callPIM({
+      //       query: `
+      //         mutation CLEAR_SHAPE_COMPONENTS (
+      //           $tenantId: ID!
+      //           $identifier: String!
+      //         ) {
+      //           shape {
+      //             update (
+      //               tenantId: $tenantId
+      //               identifier: $identifier
+      //               input: {
+      //                 components: []
+      //               }
+      //             ) {
+      //               identifier
+      //             }
+      //           }
+      //         }
+      //       `,
+      //       variables: {
+      //         identifier: data.identifier,
+      //         tenantId: context.tenantId,
+      //       },
+      //     })
+      //   } catch (e) {
+      //     console.log(e)
+      //   }
+      // }
+
+      // else if (existingShapeConfig?.components) {
 
       // Merge in existing shape
-      else if (existingShapeConfig?.components) {
+      if (existingShapeConfig?.components) {
         const comps = data.components || []
         data.components = [
           ...existingShapeConfig.components.filter(
