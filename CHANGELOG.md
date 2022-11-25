@@ -1,5 +1,13 @@
 # @crystallize/import-utilities
 
+## 1.9.6
+
+### Patch Changes
+
+- b479843: Disable config.shapeComponents for now since it will clear component
+  data for in the catalogue api for existing components, forcing a new publish
+  of items. Falling back to the default option of "amend".
+
 ## 1.9.5
 
 ### Patch Changes
