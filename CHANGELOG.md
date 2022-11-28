@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.10.1
+
+### Patch Changes
+
+- c184a3f: Fixed an issue where setting product variant images to null caused
+  the API to throw.
+
 ## 1.10.0
 
 ### Minor Changes
