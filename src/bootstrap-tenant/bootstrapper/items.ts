@@ -767,7 +767,7 @@ function getAllMediaUrls(items: JSONItem[]): string[] {
 
       if (typeof value === 'object') {
         // Check for media signature
-        if ('src' in value) {
+        if ('src' in value && typeof value.src === 'string' && Boolean(value.src)) {
           medias.push(value.src)
         } else {
           Object.values(value).forEach(handleItem)
