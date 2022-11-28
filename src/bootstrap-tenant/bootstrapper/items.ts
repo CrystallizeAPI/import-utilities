@@ -1413,6 +1413,12 @@ export async function setItems({
         })
       }
 
+      // This causes an internal error at the API right now. Setting the value to an empty
+      // array has the same outcome as setting it to null
+      if (variant.images === null) {
+        variant.images = [];
+      }
+
       return variant
     }
 
