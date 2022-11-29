@@ -767,7 +767,11 @@ function getAllMediaUrls(items: JSONItem[]): string[] {
 
       if (typeof value === 'object') {
         // Check for media signature
-        if ('src' in value && typeof value.src === 'string' && Boolean(value.src)) {
+        if (
+          'src' in value &&
+          typeof value.src === 'string' &&
+          Boolean(value.src)
+        ) {
           medias.push(value.src)
         } else {
           Object.values(value).forEach(handleItem)
@@ -1416,7 +1420,7 @@ export async function setItems({
       // This causes an internal error at the API right now. Setting the value to an empty
       // array has the same outcome as setting it to null
       if (variant.images === null) {
-        variant.images = [];
+        variant.images = []
       }
 
       return variant
@@ -1501,8 +1505,6 @@ export async function setItems({
 
     let itemId = item.id
 
-    let versionsInfo
-
     // Get new topics
     item._topicsData = {
       topicIds: await getTopicIds({
@@ -1514,13 +1516,13 @@ export async function setItems({
 
     if (itemId) {
       /**
-       * Get the item version info now and store it in the
+       * Pull the item version info now and store it in the
        * context cace before any changes are made to it.
        * The version info will be read later before a
        * potential publishing of an item
        */
       if (context.config.itemPublish === 'auto') {
-        versionsInfo = await getItemVersionsForLanguages({
+        await getItemVersionsForLanguages({
           itemId,
           languages: context.languages.map((l) => l.code),
           context,
