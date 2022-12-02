@@ -3,7 +3,13 @@ config()
 
 import { readFile } from 'fs/promises'
 
-import { Bootstrapper, BootstrapperError, EVENT_NAMES } from './bootstrapper'
+import {
+  Bootstrapper,
+  BootstrapperError,
+  EVENT_NAMES,
+  ItemEventPayload,
+  ItemEventPayloadCreatedOrUpdated,
+} from './bootstrapper'
 import { JsonSpec } from './json-spec'
 
 async function bootstrap() {
@@ -22,8 +28,8 @@ async function bootstrap() {
     bootstrapper.setTenantIdentifier(tenantIdentifier)
 
     bootstrapper.setAccessToken(
-      process.env.D_CRYSTALLIZE_ACCESS_TOKEN_ID!,
-      process.env.D_CRYSTALLIZE_ACCESS_TOKEN_SECRET!
+      process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_ID!,
+      process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET!
     )
 
     bootstrapper.setSpec(jsonSpec)
@@ -36,6 +42,17 @@ async function bootstrap() {
         console.log(new Date(), itemProgress)
       }
     })
+
+    bootstrapper.on(EVENT_NAMES.ITEM_PUBLISHED, (a: ItemEventPayload) => {
+      console.log('PUBLISHED', a)
+    })
+
+    bootstrapper.on(
+      EVENT_NAMES.ITEM_UPDATED,
+      (a: ItemEventPayloadCreatedOrUpdated) => {
+        console.log('UPDATED', a)
+      }
+    )
 
     bootstrapper.on(
       EVENT_NAMES.ERROR,

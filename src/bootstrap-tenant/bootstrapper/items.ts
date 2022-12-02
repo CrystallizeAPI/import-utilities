@@ -69,10 +69,11 @@ import {
   ItemVersionDescription,
   getItemVersionsForLanguages,
   getItemId,
-  ItemCreatedOrUpdated,
   EVENT_NAMES,
   getTenantRootItemId,
   BootstrapperError,
+  ItemEventPayload,
+  ItemEventPayloadCreatedOrUpdated,
 } from './utils'
 import { getAllGrids } from './utils/get-all-grids'
 import { ffmpegAvailable } from './utils/remote-file-upload'
@@ -1271,15 +1272,15 @@ export async function setItems({
         responses.push(await updates[i]())
       }
 
-      const payload: ItemCreatedOrUpdated = {
+      context.emit(EVENT_NAMES.ITEM_UPDATED, {
         id: itemId,
+        name: getTranslation(item.name, language),
         language,
         shape: {
           type: shape.type,
           identifier: shape.identifier,
         },
-      }
-      context.emit(EVENT_NAMES.ITEM_UPDATED, payload)
+      } as ItemEventPayloadCreatedOrUpdated)
 
       return responses
     }
@@ -1650,15 +1651,16 @@ export async function setItems({
         }
         itemId = id as string
 
-        const payload: ItemCreatedOrUpdated = {
+        const language = context.targetLanguage || context.defaultLanguage
+        context.emit(EVENT_NAMES.ITEM_CREATED, {
           id,
-          language: context.targetLanguage || context.defaultLanguage,
+          name: getTranslation(item.name, language),
+          language,
           shape: {
             type: shape.type,
             identifier: shape.identifier,
           },
-        }
-        context.emit(EVENT_NAMES.ITEM_CREATED, payload)
+        } as ItemEventPayloadCreatedOrUpdated)
 
         // Set the component data for the item
         await updateForLanguage(
@@ -2107,10 +2109,22 @@ export async function setItems({
       // Publish if needed
       if (item.id) {
         for (let i = 0; i < context.languages.length; i++) {
+          const language = context.languages[i].code
+
+          const publish = () => {
+            context.emit(EVENT_NAMES.ITEM_PUBLISHED, {
+              id: item.id,
+              name: getTranslation(item.name, language),
+              language,
+            } as ItemEventPayload)
+
+            return publishItem(language, item.id!, context)
+          }
+
           const passedPublishConfig = item._options?.publish
           if (typeof passedPublishConfig === 'boolean') {
             if (passedPublishConfig) {
-              await publishItem(context.languages[i].code, item.id, context)
+              await publish()
             }
           } else if (
             context.config.itemPublish === 'publish' ||
@@ -2118,7 +2132,7 @@ export async function setItems({
             versionsInfo[context.languages[i].code] ===
               ItemVersionDescription.Published
           ) {
-            await publishItem(context.languages[i].code, item.id, context)
+            await publish()
           }
         }
       }

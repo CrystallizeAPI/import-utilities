@@ -37,6 +37,7 @@ export const EVENT_NAMES = {
   GRIDS_DONE: 'BOOTSTRAPPER_GRIDS_DONE',
   ITEM_CREATED: 'BOOTSTRAPPER_ITEM_CREATED',
   ITEM_UPDATED: 'BOOTSTRAPPER_ITEM_UPDATED',
+  ITEM_PUBLISHED: 'BOOTSTRAPPER_ITEM_PUBLISHED',
   ITEMS_UPDATE: 'BOOTSTRAPPER_ITEMS_UPDATE',
   ITEMS_DONE: 'BOOTSTRAPPER_ITEMS_DONE',
   ORDERS_UPDATE: 'BOOTSTRAPPER_ORDERS_UPDATE',
@@ -119,14 +120,20 @@ export interface BootstrapperContext {
   emit: (name: EVENT_NAMES_VALUES, message: any) => void
 }
 
-export type ItemCreatedOrUpdated = {
+export type ItemEventPayload = {
   id: string
   language: string
+  name: string
+}
+
+export type ItemEventPayloadCreatedOrUpdated = ItemEventPayload & {
   shape: {
     type: 'product' | 'document' | 'folder'
     identifier: string
   }
 }
+// Lets keep this old type in order to not break things.
+export type ItemCreatedOrUpdated = ItemEventPayloadCreatedOrUpdated
 
 export function getTranslation(translation?: any, language?: string): string {
   if (!translation || !language) {
