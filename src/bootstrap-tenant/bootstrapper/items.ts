@@ -1039,7 +1039,7 @@ export async function setItems({
   let totalItems = 0
   function getCount(item: JSONFolder) {
     totalItems++
-    if ('children' in item) {
+    if (item && 'children' in item) {
       item.children?.forEach(getCount)
     }
   }
@@ -1758,7 +1758,7 @@ export async function setItems({
         })
       }
 
-      if ('children' in item) {
+      if (item && 'children' in item) {
         const itm = item as JSONFolder
 
         if (itm.children) {
@@ -2143,7 +2143,7 @@ export async function setItems({
       progress: finishedItems / totalItems,
     })
 
-    if ('children' in item) {
+    if (item && 'children' in item) {
       const itm = item as JSONFolder
 
       if (itm.children) {
