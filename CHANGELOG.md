@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.11.1
+
+### Patch Changes
+
+- 86f31f5: Fixed a runtime error where the bootstrapper broke down if an item
+  was `null`.
+
 ## 1.11.0
 
 ### Minor Changes
