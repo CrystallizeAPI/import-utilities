@@ -8,7 +8,7 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'dounot'
+  const tenantIdentifier = 'friio-prod'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
@@ -33,13 +33,14 @@ async function createSpec() {
   const spec = await bootstrapper.createSpec({
     shapes: false,
     grids: false,
-    items: true,
+    items: false,
     languages: false,
     priceVariants: false,
     stockLocations: false,
     vatTypes: false,
     subscriptionPlans: false,
     topicMaps: false,
+    orders: true,
     onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 
