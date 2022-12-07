@@ -1,5 +1,5 @@
 import { BootstrapperContext } from '.'
-import { JSONCustomer, JSONOrder } from '../../json-spec'
+import { JSONCustomer } from '../../json-spec'
 
 const query = `
 query {
