@@ -1140,6 +1140,7 @@ export async function setItems({
               item.name,
               language
             )}" for language "${language}". Missing shape or itemId`,
+            item,
           },
         })
         return
@@ -1296,6 +1297,7 @@ export async function setItems({
           error: {
             code: 'CANNOT_HANDLE_PRODUCT',
             message: `Cannot create product "${product.name}". Vat type "${product.vatType}" does not exist`,
+            item,
           },
         })
         return
@@ -1625,6 +1627,7 @@ export async function setItems({
                 item.name,
                 context.targetLanguage || context.defaultLanguage
               )}". No variants defined for product`,
+              item,
             },
           })
           return null
@@ -1816,8 +1819,9 @@ export async function setItems({
                       ? itemRelation.externalReference
                       : itemRelation.cataloguePath
                   }`,
+                  item,
                 },
-              })
+              } as AreaUpdate)
             }
           }
         })
@@ -2016,6 +2020,7 @@ export async function setItems({
                       message: `Unable to update relation for item id "${
                         item.id
                       }" with input ${JSON.stringify(mutationInput)} `,
+                      item,
                     },
                   })
                 }
@@ -2159,7 +2164,6 @@ export async function setItems({
     try {
       await handleItem(item, i, rootItemId)
     } catch (e) {
-      console.log(e)
       onUpdate({
         error: {
           code: 'CANNOT_HANDLE_ITEM',
@@ -2167,6 +2171,7 @@ export async function setItems({
             item.name,
             context.targetLanguage || context.defaultLanguage
           )}"`,
+          item,
         },
       })
     }

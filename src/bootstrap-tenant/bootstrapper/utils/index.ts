@@ -7,6 +7,7 @@ import {
   JSONPriceVariant,
   JSONVatType,
   JSONStockLocation,
+  JSONItem,
 } from '../../json-spec'
 import { IcallAPI, IcallAPIResult } from './api'
 import { ItemAndParentId } from './get-item-id'
@@ -65,6 +66,7 @@ export interface AreaError {
     | 'CANNOT_HANDLE_PRODUCT'
     | 'CANNOT_HANDLE_ITEM_RELATION'
     | 'OTHER'
+  item?: JSONItem
 }
 
 export interface AreaUpdate {
@@ -88,6 +90,7 @@ export interface Config {
 export type BootstrapperError = {
   willRetry: boolean
   error: string
+  areaError?: AreaError
   type?: 'error' | 'warning'
 }
 

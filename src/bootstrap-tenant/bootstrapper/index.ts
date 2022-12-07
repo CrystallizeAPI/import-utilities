@@ -666,6 +666,7 @@ export class Bootstrapper extends EventEmitter {
     } else if (areaUpdate.error) {
       const err: BootstrapperError = {
         error: JSON.stringify(areaUpdate.error, null, 1),
+        areaError: areaUpdate.error,
         willRetry: false,
         type: 'error',
       }

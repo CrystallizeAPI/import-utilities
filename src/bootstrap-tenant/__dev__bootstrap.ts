@@ -43,23 +43,16 @@ async function bootstrap() {
       }
     })
 
-    bootstrapper.on(EVENT_NAMES.ITEM_PUBLISHED, (a: ItemEventPayload) => {
-      console.log('PUBLISHED', a)
-    })
-
-    bootstrapper.on(
-      EVENT_NAMES.ITEM_UPDATED,
-      (a: ItemEventPayloadCreatedOrUpdated) => {
-        console.log('UPDATED', a)
-      }
-    )
-
     bootstrapper.on(
       EVENT_NAMES.ERROR,
-      ({ error, willRetry }: BootstrapperError) => {
-        console.log({ willRetry }, error)
+      ({ error, areaError, willRetry }: BootstrapperError) => {
+        if (areaError) {
+          console.log(JSON.stringify(areaError, null, 1))
+        } else {
+          console.log(JSON.stringify(error, null, 1))
+        }
         if (!willRetry) {
-          // process.exit(1)
+          process.exit(1)
         }
       }
     )

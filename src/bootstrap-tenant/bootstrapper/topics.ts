@@ -218,7 +218,18 @@ export async function setTopics({
         }
       }
     } catch (e) {
-      console.log(e)
+      onUpdate({
+        error: {
+          code: 'OTHER',
+          message:
+            'Error occured on topic "' +
+            getTranslation(
+              level.name,
+              context.targetLanguage || context.defaultLanguage
+            ) +
+            '"',
+        },
+      })
     }
   }
 
@@ -244,9 +255,7 @@ export async function setTopics({
           await getIdForLevel(level.children[i])
         }
       }
-    } catch (e) {
-      console.log(e)
-    }
+    } catch (e) {}
   }
 
   // Pull ids for all topics before modifying them
