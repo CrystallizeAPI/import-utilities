@@ -44,6 +44,7 @@ import { setOrders } from './orders'
 import { setCustomers } from './customers'
 import { createClient, createMassCallClient } from '@crystallize/js-api-client'
 import { getExistingOrders } from './utils/get-all-orders'
+import { getExistingCustomers } from './utils/get-all-customers'
 
 export interface ICreateSpec {
   language?: string
@@ -57,6 +58,7 @@ export interface ICreateSpec {
   topicMaps: boolean
   stockLocations: boolean
   orders?: boolean
+  customers?: boolean
   onUpdate: (t: AreaUpdate) => any
 }
 
@@ -71,6 +73,7 @@ export const createSpecDefaults: ICreateSpec = {
   topicMaps: true,
   stockLocations: true,
   orders: false,
+  customers: false,
   onUpdate: () => null,
 }
 
@@ -569,6 +572,11 @@ export class Bootstrapper extends EventEmitter {
       // Orders
       if (props.orders) {
         spec.orders = await getExistingOrders({ context: this.context })
+      }
+
+      // Customers
+      if (props.customers) {
+        spec.customers = await getExistingCustomers({ context: this.context})
       }
     } catch (e: any) {
       let error: string = e
