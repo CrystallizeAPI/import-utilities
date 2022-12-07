@@ -2,9 +2,13 @@ import { BootstrapperContext } from '.'
 import { JSONCustomer } from '../../json-spec'
 
 const query = `
-query {
+query($after: String, $tenantId: ID!) {
     customer {
         getMany(first: 50, after: $after, tenantId: $tenantId) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
             edges {
                 node {
                     identifier
@@ -57,19 +61,21 @@ export async function getExistingCustomers({
 }: {
   context: BootstrapperContext
 }): Promise<JSONCustomer[]> {
-  let after: string = ''
+  let after: string = ""
   let hasNextPage = true
   const customers: JSONCustomer[] = []
 
   while (hasNextPage) {
+    console.log("ARE YOU COMPLAINING HERE?", "after:", after, "<=")
     const res = await getPage(context, after)
+    console.log("OR HERE")
     const getMany = res.data?.customer?.getMany
     const pageInfo = getMany?.pageInfo
 
     if (!getMany || !pageInfo) {
       hasNextPage = false
     } else {
-      customers.push(...getMany.edges.map((e: any) => e.node))
+      getMany?.edges?.length > 0 && customers.push(...getMany.edges.map((e: any) => e.node))
       after = pageInfo.endCursor
       hasNextPage = pageInfo.hasNextPage
     }

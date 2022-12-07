@@ -14,7 +14,7 @@ import { JsonSpec } from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'hkn-test-dounot'
+    const tenantIdentifier = 'love-is-in-air'
     const jsonSpec: JsonSpec = JSON.parse(
       await readFile('./json-spec/dounot.json', 'utf-8')
     )
