@@ -7,33 +7,34 @@ query {
         getMany(first: 50, after: $after, tenantId: $tenantId) {
             edges {
                 node {
-                identifier
-                email
-                firstName
-                lastName
-                companyName
-                externalReferences {
-                    key
-                    value
-                }
-                meta {
-                    key
-                    value
-                }
-                taxNumber
-                addresses {
-                    id
-                    country
-                    type
-                    city
+                    identifier
                     email
-                    phone
-                    postalCode
-                    middleName
-                    state
-                    street
-                    street2
-                    streetNumber
+                    firstName
+                    lastName
+                    companyName
+                    externalReferences {
+                        key
+                        value
+                    }
+                    meta {
+                        key
+                        value
+                    }
+                    taxNumber
+                    addresses {
+                        id
+                        country
+                        type
+                        city
+                        email
+                        phone
+                        postalCode
+                        middleName
+                        state
+                        street
+                        street2
+                        streetNumber
+                    }
                 }
             }
         }
