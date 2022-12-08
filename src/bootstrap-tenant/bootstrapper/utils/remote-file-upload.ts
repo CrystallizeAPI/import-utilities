@@ -4,15 +4,16 @@ import FormData from 'form-data'
 import fetch from 'node-fetch'
 import xmlJS from 'xml-js'
 import download from 'download'
-import fileType, { FileTypeResult } from 'file-type'
+import fileType from 'file-type'
 import { v4 as uuid } from 'uuid'
-// @ts-ignore
+// @ts-expect-error no types for this
 import m3u8ToMp4 from 'm3u8-to-mp4'
 
 import execa from 'execa'
 import { BootstrapperContext } from '.'
 import gql from 'graphql-tag'
 
+// eslint-disable-next-line no-async-promise-executor
 export const ffmpegAvailable = new Promise(async (resolve) => {
   try {
     await execa('ffmpeg', ['--help'])
@@ -26,9 +27,9 @@ function getUrlSafeFileName(fileName: string) {
   return slug(fileName, {
     replacement: '-', // replace spaces with replacement
     lower: false, // result in lower case
-    // @ts-ignore
+    // @ts-expect-error dunno
     charmap: slug.charmap, // replace special characters
-    // @ts-ignore
+    // @ts-expect-error dunno
     multicharmap: slug.multicharmap, // replace multi-characters
   })
 }
@@ -189,13 +190,14 @@ export async function remoteFileUpload({
     `,
   })
 
-  if (!signedUploadResponse || !signedUploadResponse.data?.fileUpload) {
+  const result = signedUploadResponse.data?.fileUpload
+
+  if (!signedUploadResponse || !result) {
     throw new Error('Could not get presigned request fields')
   }
 
   // Extract what we need for upload
-  const { fields, url } =
-    signedUploadResponse.data?.fileUpload.generatePresignedRequest
+  const { fields, url } = result.generatePresignedRequest
 
   const formData = new FormData()
   fields.forEach((field: any) => formData.append(field.name, field.value))

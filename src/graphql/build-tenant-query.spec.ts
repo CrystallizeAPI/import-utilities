@@ -1,6 +1,5 @@
 import test from 'ava'
-import { TenantInput } from '../types'
-import { buildCreateTenantMutation } from './build-create-tenant-mutation'
+
 import { buildTenantQuery } from './build-tenant-query'
 
 test('create tenant query with id', (t) => {

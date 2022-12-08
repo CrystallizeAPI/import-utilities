@@ -164,7 +164,7 @@ type fileUploadQueueItem = {
 
 export class FileUploadManager {
   uploads: uploadFileRecord[] = []
-  maxWorkers: number = 2
+  maxWorkers = 2
   workerQueue: fileUploadQueueItem[] = []
   context?: BootstrapperContext
 
@@ -233,7 +233,7 @@ export class FileUploadManager {
 
     const result = this.scheduleUpload(url)
 
-    result.catch((e) => {})
+    result.catch(() => ({}))
 
     this.uploads.push({
       url,

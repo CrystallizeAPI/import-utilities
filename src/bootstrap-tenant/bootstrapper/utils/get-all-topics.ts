@@ -1,9 +1,5 @@
 import gql from 'graphql-tag'
-import {
-  BootstrapperContext,
-  getTranslation,
-  removeUnwantedFieldsFromThing,
-} from '.'
+import { BootstrapperContext, removeUnwantedFieldsFromThing } from '.'
 import { JSONTopic } from '../../json-spec'
 import {
   mergeInTranslations,
@@ -42,9 +38,7 @@ export async function getAllTopicsForSpec(
   async function handleLanguage(language: string) {
     const tr = trFactory(language)
 
-    async function getTopicChildren(
-      id: string
-    ): Promise<
+    async function getTopicChildren(id: string): Promise<
       {
         id: string
         name: string
@@ -153,19 +147,19 @@ export async function getAllTopicsForSpec(
 
   const topicMaps: JSONTopic[] = []
 
+  function handleTopic(topic: JSONTopic) {
+    const existingTopic = getTopicById(topicMaps, topic.id as string)
+    if (!existingTopic) {
+      console.log('Could not find existing topic by id. Strange.', topic)
+    } else {
+      mergeInTranslations(existingTopic, topic)
+      topic.children?.forEach(handleTopic)
+    }
+  }
+
   for (let i = 0; i < languages.length; i++) {
     const language = languages[i]
     const topicsForLanguage = await handleLanguage(language)
-
-    function handleTopic(topic: JSONTopic) {
-      const existingTopic = getTopicById(topicMaps, topic.id as string)
-      if (!existingTopic) {
-        console.log('Could not find existing topic by id. Strange.', topic)
-      } else {
-        mergeInTranslations(existingTopic, topic)
-        topic.children?.forEach(handleTopic)
-      }
-    }
 
     if (topicMaps.length === 0) {
       topicMaps.push(...topicsForLanguage)

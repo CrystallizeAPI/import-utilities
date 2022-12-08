@@ -1,7 +1,7 @@
 import { TopicInput } from '../../types'
 import { buildCreateTopicMutation } from '../../graphql'
 
-import { JsonSpec, JSONStringTranslated, JSONTopic } from '../json-spec'
+import { JsonSpec, JSONTopic } from '../json-spec'
 import {
   getTranslation,
   AreaUpdate,
@@ -255,7 +255,9 @@ export async function setTopics({
           await getIdForLevel(level.children[i])
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      /* empty */
+    }
   }
 
   // Pull ids for all topics before modifying them

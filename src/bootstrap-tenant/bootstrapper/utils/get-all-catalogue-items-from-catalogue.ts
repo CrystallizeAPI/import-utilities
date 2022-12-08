@@ -106,7 +106,9 @@ function getItemById(items: JSONItem[], id: string) {
       if (item.id === id) {
         found = item
       } else {
-        ;(item as JSONFolder).children?.forEach(search)
+        if ('children' in item) {
+          item.children?.forEach(search)
+        }
       }
     }
   }
@@ -117,9 +119,9 @@ function getItemById(items: JSONItem[], id: string) {
 }
 
 export interface ItemsCreateSpecOptions {
-  basePath?: String
+  basePath?: string
   version?: 'published' | 'draft'
-  setExternalReference?: Boolean
+  setExternalReference?: boolean
 }
 
 export async function getAllCatalogueItems(
@@ -459,26 +461,28 @@ export async function getAllCatalogueItems(
 
   const allCatalogueItems: JSONItem[] = []
 
+  function mergeWithExisting(itemForNewLang: JSONItem) {
+    const existingItem = getItemById(
+      allCatalogueItems,
+      itemForNewLang.id as string
+    )
+    if (!existingItem) {
+      console.log(
+        'Huh, weird. Could not find existing item with id',
+        itemForNewLang.id
+      )
+    } else {
+      mergeInTranslations(existingItem, itemForNewLang)
+    }
+
+    if ('children' in itemForNewLang) {
+      itemForNewLang.children?.forEach(mergeWithExisting)
+    }
+  }
+
   for (let i = 0; i < languages.length; i++) {
     const language = languages[i]
     const itemsForLanguage = await handleLanguage(language)
-
-    function mergeWithExisting(itemForNewLang: JSONItem) {
-      const existingItem = getItemById(
-        allCatalogueItems,
-        itemForNewLang.id as string
-      )
-      if (!existingItem) {
-        console.log(
-          'Huh, weird. Could not find existing item with id',
-          itemForNewLang.id
-        )
-      } else {
-        mergeInTranslations(existingItem, itemForNewLang)
-      }
-
-      ;(itemForNewLang as JSONFolder).children?.forEach(mergeWithExisting)
-    }
 
     if (allCatalogueItems.length === 0) {
       allCatalogueItems.push(...itemsForLanguage)

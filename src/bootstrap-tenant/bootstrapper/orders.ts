@@ -70,7 +70,7 @@ export const setOrders = async ({
     })
     return
   }
-  let finished = 0
+  const finished = 0
 
   const validOrders = spec.orders.filter(Boolean)
 

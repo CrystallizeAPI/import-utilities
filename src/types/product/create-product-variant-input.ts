@@ -1,4 +1,3 @@
-import { KeyValuePairInput } from '..'
 import { StockLocationReferenceInput } from '../../generated/graphql'
 
 export interface CreateProductVariantInput {

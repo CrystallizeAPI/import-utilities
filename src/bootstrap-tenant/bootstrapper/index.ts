@@ -1,7 +1,7 @@
 import gql from 'graphql-tag'
 import { EventEmitter } from 'events'
 import immer from 'immer'
-// @ts-ignore
+// @ts-expect-error there are no types for 'duration'
 import Duration from 'duration'
 
 import { JsonSpec } from '../json-spec'
@@ -20,7 +20,6 @@ import {
   ItemAndParentId,
   EVENT_NAMES_VALUES,
   BootstrapperError,
-  BootstrapperWarning,
 } from './utils'
 import { getExistingShapesForSpec, setShapes } from './shapes'
 import { setPriceVariants, getExistingPriceVariants } from './price-variants'
@@ -355,10 +354,11 @@ export class Bootstrapper extends EventEmitter {
           this.emit(EVENT_NAMES.ERROR, error)
         },
       })
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID =
-        this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID!
-      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET =
-        this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
+
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = this.PIMAPIManager
+        ?.CRYSTALLIZE_ACCESS_TOKEN_ID as string
+      this.ordersAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = this.PIMAPIManager
+        ?.CRYSTALLIZE_ACCESS_TOKEN_SECRET as string
       this.context.callOrders = this.ordersAPIManager.push
 
       // Set log level late so that we'll catch late changes to the config
@@ -482,7 +482,7 @@ export class Bootstrapper extends EventEmitter {
           this.context
         )
 
-        // @ts-ignore
+        // @ts-expect-error ts complains that meteredVariables.unit cannot be a string. It must be
         spec.subscriptionPlans = subscriptionPlans.map((s) => ({
           identifier: s.identifier,
           name: s.name || '',
@@ -576,7 +576,7 @@ export class Bootstrapper extends EventEmitter {
 
       // Customers
       if (props.customers) {
-        spec.customers = await getExistingCustomers({ context: this.context})
+        spec.customers = await getExistingCustomers({ context: this.context })
       }
     } catch (e: any) {
       let error: string = e
@@ -673,10 +673,7 @@ export class Bootstrapper extends EventEmitter {
         }
       })
 
-      this.emit(
-        EVENT_NAMES.STATUS_UPDATE,
-        immer(this.status, () => {})
-      )
+      this.emit(EVENT_NAMES.STATUS_UPDATE, this.status)
     } else if (areaUpdate.warning) {
       this.emit(EVENT_NAMES.WARNING, areaUpdate.warning)
     } else if (areaUpdate.error) {

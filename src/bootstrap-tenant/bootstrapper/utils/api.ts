@@ -33,8 +33,8 @@ type RequestStatus = 'ok' | 'error'
 
 export class ApiManager {
   queue: QueuedRequest[] = []
-  url: string = ''
-  maxWorkers: number = 1
+  url = ''
+  maxWorkers = 1
   errorNotifier: errorNotifierFn
   logLevel: LogLevel = 'silent'
   CRYSTALLIZE_ACCESS_TOKEN_ID = ''
@@ -114,9 +114,9 @@ export class ApiManager {
 
     item.working = true
 
-    let queryError: string = ''
-    let otherError: string = ''
-    let serverError: string = ''
+    let queryError = ''
+    let otherError = ''
+    let serverError = ''
 
     const resolveWith = (response: IcallAPIResult) => {
       if (item) {

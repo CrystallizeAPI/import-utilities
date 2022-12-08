@@ -3,18 +3,12 @@ config()
 
 import { readFile } from 'fs/promises'
 
-import {
-  Bootstrapper,
-  BootstrapperError,
-  EVENT_NAMES,
-  ItemEventPayload,
-  ItemEventPayloadCreatedOrUpdated,
-} from './bootstrapper'
+import { Bootstrapper, BootstrapperError, EVENT_NAMES } from './bootstrapper'
 import { JsonSpec } from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'love-is-in-air'
+    const tenantIdentifier = 'dounot'
     const jsonSpec: JsonSpec = JSON.parse(
       await readFile('./json-spec/dounot.json', 'utf-8')
     )

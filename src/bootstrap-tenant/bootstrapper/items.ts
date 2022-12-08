@@ -1,11 +1,10 @@
-// @ts-ignore
-import fromHTML from '@crystallize/content-transformer/fromHTML'
 import { Shape, ShapeComponent } from '@crystallize/schema/shape'
 import gql from 'graphql-tag'
+// @ts-expect-error no types for this
+import fromHTML from '@crystallize/content-transformer/fromHTML'
 
 import {
   BooleanComponentContentInput,
-  Component,
   ComponentChoiceComponentContentInput,
   ComponentContentInput,
   ContentChunkComponentContentInput,
@@ -173,7 +172,7 @@ function createRichTextInput(
      * }
      *
      **/
-    let c = content as any
+    const c = content as any
 
     const keys = Object.keys(content || {})
 
@@ -1124,7 +1123,7 @@ export async function setItems({
               ...(await createProductItemMutation(language)),
             }),
           },
-          // @ts-ignore
+          // @ts-expect-error this will be set. Don't worry.
           shape?.type,
           language
         )
@@ -1146,15 +1145,16 @@ export async function setItems({
         return
       }
 
-      // @ts-ignore
-      item._componentsData[language] = await createComponentsInput({
-        components: item.components,
-        componentDefinitions: shape.components,
-        language,
-        grids: allGrids,
-        context,
-        onUpdate,
-      })
+      if (item._componentsData) {
+        item._componentsData[language] = await createComponentsInput({
+          components: item.components,
+          componentDefinitions: shape.components,
+          language,
+          grids: allGrids,
+          context,
+          onUpdate,
+        })
+      }
 
       const clearComponentsData = item._componentsData?.[language] === null
 
@@ -1363,7 +1363,7 @@ export async function setItems({
         variant.components = jsonVariant.components
           ? Object.keys(jsonVariant._componentsData?.[language] || {}).map(
               (componentId: string) => ({
-                // @ts-ignore
+                // @ts-expect-error jsonVariant._componentsData will be set
                 ...jsonVariant._componentsData[language][componentId],
                 componentId,
               })
@@ -1577,12 +1577,13 @@ export async function setItems({
       )
       if (responses?.length) {
         responses.forEach((response) => {
-          if (response?.data?.[shape?.type]?.update) {
+          const result = response?.data?.[shape?.type]?.update
+          if (result) {
             const {
               id,
               externalReference,
               tree: { path },
-            } = response?.data?.[shape?.type]?.update
+            } = result
             context.itemCataloguePathToIDMap.set(item.cataloguePath || path, {
               itemId: id,
             })
@@ -1638,12 +1639,13 @@ export async function setItems({
         context.targetLanguage || context.defaultLanguage
       )
 
-      if (response?.data?.[shape?.type]?.create) {
+      const result = response?.data?.[shape?.type]?.create
+      if (result) {
         const {
           id,
           externalReference,
           tree: { path },
-        } = response?.data?.[shape?.type]?.create
+        } = result
         context.itemCataloguePathToIDMap.set(item.cataloguePath || path, {
           itemId: id,
         })

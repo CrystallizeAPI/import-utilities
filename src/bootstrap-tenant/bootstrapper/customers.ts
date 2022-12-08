@@ -47,7 +47,7 @@ export const setCustomers = async ({
     })
     return
   }
-  let finished = 0
+  const finished = 0
   const customers = spec.customers
 
   await Promise.all(

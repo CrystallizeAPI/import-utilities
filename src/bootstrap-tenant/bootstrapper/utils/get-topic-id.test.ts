@@ -1,7 +1,6 @@
 import test from 'ava'
 import { BootstrapperContext } from '.'
 import { IcallAPIResult } from './api'
-import { getItemId, IGetItemIdProps, ItemAndParentId } from './get-item-id'
 import { getTopicId, IGetTopicIdProps, TopicAndTenantId } from './get-topic-id'
 
 interface testCase {

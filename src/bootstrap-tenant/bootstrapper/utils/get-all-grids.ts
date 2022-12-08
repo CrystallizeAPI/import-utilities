@@ -45,7 +45,7 @@ query GET_GRID($id: ID!, $language: String!) {
 `
 
 type GetAllGridsOptions = {
-  setItemExternalReference: Boolean
+  setItemExternalReference: boolean
 }
 
 export async function getAllGrids(

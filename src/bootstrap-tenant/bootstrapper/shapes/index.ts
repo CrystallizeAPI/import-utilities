@@ -75,7 +75,7 @@ const shouldDefer = (data: Shape): boolean => {
 async function handleShape(
   data: Shape,
   context: BootstrapperContext,
-  isDeferred: boolean = false
+  isDeferred = false
 ): Promise<Status> {
   const s = { ...data }
   let defer = false

@@ -1,7 +1,5 @@
 import test from 'ava'
 
-import { TopicInput } from '../types'
-
 import { buildDeleteTopicMutation } from './build-delete-topic-mutation'
 
 test('delete mutation for topic', (t) => {

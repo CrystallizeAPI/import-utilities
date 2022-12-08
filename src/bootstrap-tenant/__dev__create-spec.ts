@@ -2,7 +2,6 @@ import { config } from 'dotenv'
 config()
 
 import { writeFileSync } from 'fs'
-import { resolve } from 'path'
 import { BootstrapperError } from './bootstrapper'
 
 import { Bootstrapper, EVENT_NAMES } from './index'
@@ -47,7 +46,7 @@ async function createSpec() {
   })
 
   writeFileSync(
-    `./${tenantIdentifier}.json`,
+    `./json-spec/${tenantIdentifier}.json`,
     JSON.stringify(spec, null, 2),
     'utf-8'
   )

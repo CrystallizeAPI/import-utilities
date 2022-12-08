@@ -3,8 +3,9 @@ node_modules
 .yarn
 .yarnrnc.yml
 .yarnrc.yml
+yarn-error.log
 dist
 .env
 examples/*/yarn.lock
-examples/*/package-lock.json
 json-spec/*.json
+package-lock.json

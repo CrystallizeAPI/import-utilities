@@ -71,7 +71,7 @@ export function buildCreateItemQueryAndVariables(
   }
 
   const components = input.components || {}
-  let variables = {
+  const variables = {
     language,
     input: {
       ...input,

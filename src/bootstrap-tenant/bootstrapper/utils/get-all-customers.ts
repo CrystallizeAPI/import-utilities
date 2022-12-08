@@ -61,7 +61,7 @@ export async function getExistingCustomers({
 }: {
   context: BootstrapperContext
 }): Promise<JSONCustomer[]> {
-  let after: string = ''
+  let after = ''
   let hasNextPage = true
   const customers: JSONCustomer[] = []
 

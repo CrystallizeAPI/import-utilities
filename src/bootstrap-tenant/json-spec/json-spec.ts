@@ -1,4 +1,3 @@
-import { Shape } from '@crystallize/schema/shape'
 import {
   JSONGrid,
   JSONItem,

@@ -132,7 +132,7 @@ export async function getExistingOrders({
 }: {
   context: BootstrapperContext
 }): Promise<JSONOrder[]> {
-  let after: string = ''
+  let after = ''
   let hasNextPage = true
   const orders: JSONOrder[] = []
 
