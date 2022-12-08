@@ -7,14 +7,13 @@ import { BootstrapperError } from './bootstrapper'
 
 import { Bootstrapper, EVENT_NAMES } from './index'
 
-
 async function createSpec() {
-  const tenantIdentifier = 'love-is-in-the-air'
+  const tenantIdentifier = 'giphy'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
   const bootstrapper = new Bootstrapper()
-  bootstrapper.env = "dev"
+  bootstrapper.env = 'dev'
   // bootstrapper.env = 'prod'
 
   bootstrapper.setAccessToken(
@@ -47,7 +46,11 @@ async function createSpec() {
     onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
   })
 
-  writeFileSync(`./${tenantIdentifier}.json`, JSON.stringify(spec,null, 2), 'utf-8')
+  writeFileSync(
+    `./${tenantIdentifier}.json`,
+    JSON.stringify(spec, null, 2),
+    'utf-8'
+  )
 
   console.log(`✨ Spec created (${tenantIdentifier}.json) ✨`)
 }
