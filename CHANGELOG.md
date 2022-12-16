@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.14.1
+
+### Patch Changes
+
+- 79e2e5f: Handle 404 response codes from download of assets separately. This
+  will no longer be retried 3 times.
+
 ## 1.14.0
 
 ### Minor Changes
