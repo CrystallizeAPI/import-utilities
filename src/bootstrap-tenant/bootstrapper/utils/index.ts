@@ -204,6 +204,7 @@ export class FileUploadManager {
         fileUrl: item.url,
         context: this.context,
       })
+
       item.resolve?.(result)
       removeWorker(item)
     } catch (e: any) {
@@ -212,10 +213,18 @@ export class FileUploadManager {
       }
 
       // Allow for 3 fails
-      const isLastAttempt = item.failCount === 3
+      let isLastAttempt = item.failCount === 3
+
+      const fileNotFound = 'statusCode' in e && e.statusCode === 404
+
+      if (fileNotFound) {
+        isLastAttempt = true
+      }
 
       if (isLastAttempt) {
-        const msg = e.message || JSON.stringify(e, null, 1)
+        const msg = fileNotFound
+          ? `Got 404 for file "${item.url}"`
+          : e.message || JSON.stringify(e, null, 1)
         item.reject?.(msg)
         removeWorker(item)
       } else {
