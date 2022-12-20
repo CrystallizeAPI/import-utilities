@@ -7,17 +7,17 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'giphy'
+  const tenantIdentifier = 'bos-ecom-qa'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
   const bootstrapper = new Bootstrapper()
-  bootstrapper.env = 'dev'
+  // bootstrapper.env = 'dev'
   // bootstrapper.env = 'prod'
 
   bootstrapper.setAccessToken(
-    process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_ID!,
-    process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET!
+    process.env.CRYSTALLIZE_ACCESS_TOKEN_ID!,
+    process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
   )
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
@@ -31,18 +31,20 @@ async function createSpec() {
   })
 
   const spec = await bootstrapper.createSpec({
-    shapes: false,
-    grids: false,
-    items: false,
     languages: false,
-    priceVariants: false,
-    stockLocations: false,
     vatTypes: false,
-    subscriptionPlans: false,
+    priceVariants: false,
+    shapes: false,
     topicMaps: false,
-    orders: false,
-    customers: true,
-    onUpdate: (u) => console.log(JSON.stringify(u, null, 1)),
+    grids: false,
+    items: {
+      basePath: '/pim/vehicles/mercedes-benz/eqc/eqc-400-4m/eqc400-advanced',
+    },
+    stockLocations: false,
+    subscriptionPlans: false,
+    onUpdate: (areaUpdate) => {
+      console.log(JSON.stringify(areaUpdate, null, 1))
+    },
   })
 
   writeFileSync(

@@ -1,5 +1,9 @@
 import test from 'ava'
-import { buildPathShouldBeIncludedValidator } from './get-all-catalogue-items'
+import { JSONItem } from '../../json-spec'
+import {
+  buildPathShouldBeIncludedValidator,
+  getOnlyItemsWithPathStartingWith,
+} from './get-all-catalogue-items'
 
 test('pathValidator should work with single level paths', (t) => {
   const validator = buildPathShouldBeIncludedValidator('/shop')
@@ -22,4 +26,33 @@ test('pathValidator should work with nested paths', (t) => {
 
   t.is(false, validator('/shoes').descendants)
   t.is(false, validator('/').thisItem)
+})
+
+test('final filtering should work', (t) => {
+  const basePath = '/products/shoes/shoe'
+
+  const firstShoe: JSONItem = {
+    name: 'first',
+    cataloguePath: '/products/shoes/shoe-first',
+    shape: '',
+  }
+  const secondShoe: JSONItem = {
+    name: 'second',
+    cataloguePath: '/products/shoes/shoe-second',
+    shape: '',
+  }
+
+  const allCatalogueItemsForLanguage: JSONItem[] = [
+    {
+      name: 'Shoes',
+      cataloguePath: '/products/shoes',
+      shape: 'default-folder',
+      children: [firstShoe, secondShoe],
+    },
+  ]
+
+  t.deepEqual(
+    [firstShoe, secondShoe],
+    getOnlyItemsWithPathStartingWith(basePath, allCatalogueItemsForLanguage)
+  )
 })

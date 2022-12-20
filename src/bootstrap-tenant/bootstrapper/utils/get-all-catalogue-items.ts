@@ -144,9 +144,11 @@ export function buildPathShouldBeIncludedValidator(basePath = '') {
 
     const p = path || ''
 
+    const thisItem = p.startsWith(basePath)
+
     return {
-      thisItem: p.startsWith(basePath),
-      descendants: basePath.startsWith(p),
+      thisItem,
+      descendants: thisItem || basePath.startsWith(p),
     }
   }
 }
@@ -248,6 +250,7 @@ export async function getAllCatalogueItems(
         const children = await getChildren()
         if (children.length > 0) {
           itemWithChildren.children = children
+          console.log(itemWithChildren.children.map((c) => c.cataloguePath))
         }
       }
 
@@ -266,6 +269,7 @@ export async function getAllCatalogueItems(
 
         for (let i = 0; i < rawChilds.length; i++) {
           const pathValid = pathShouldBeIncluded(rawChilds[i].path)
+
           if (pathValid.descendants || pathValid.thisItem) {
             const item = await getItem(rawChilds[i])
             if (item) {
@@ -797,19 +801,26 @@ fragment subscriptionPlanPricing on ProductVariantSubscriptionPlanPricing {
   }
 }
 `
-function getOnlyItemsWithPathStartingWith(
+export function getOnlyItemsWithPathStartingWith(
   basePath: string,
   allCatalogueItemsForLanguage: JSONItem[]
 ): JSONItem[] {
   if (basePath === '/') {
     return allCatalogueItemsForLanguage
   }
-  let foundItem: JSONItem | null = null
+
+  const ret: JSONItem[] = []
+
+  let foundExactFolderMatch = false
 
   function handleLevel(item: JSONItem) {
-    if (!foundItem) {
+    if (!foundExactFolderMatch) {
       if (item.cataloguePath?.startsWith(basePath)) {
-        foundItem = item
+        if ('children' in item) {
+          foundExactFolderMatch = true
+        }
+
+        ret.push(item)
       } else {
         const f = item as JSONFolder
         if (f.children) {
@@ -821,9 +832,5 @@ function getOnlyItemsWithPathStartingWith(
 
   allCatalogueItemsForLanguage.forEach(handleLevel)
 
-  if (foundItem) {
-    return [foundItem]
-  }
-
-  return []
+  return ret
 }
