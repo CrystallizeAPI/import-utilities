@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.14.3
+
+### Patch Changes
+
+- 9f0f393: Skipping eager asset upload in favor of data.
+
 ## 1.14.2
 
 ### Patch Changes
