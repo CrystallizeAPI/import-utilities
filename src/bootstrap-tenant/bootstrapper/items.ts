@@ -752,40 +752,40 @@ async function createComponentsInput(
   return input
 }
 
-function getAllMediaUrls(items: JSONItem[]): string[] {
-  const medias: string[] = []
+// function getAllMediaUrls(items: JSONItem[]): string[] {
+//   const medias: string[] = []
 
-  function handleItem(item: any) {
-    if (!item) {
-      return
-    }
+//   function handleItem(item: any) {
+//     if (!item) {
+//       return
+//     }
 
-    Object.values(item).forEach((value: any) => {
-      if (!value) {
-        return
-      }
+//     Object.values(item).forEach((value: any) => {
+//       if (!value) {
+//         return
+//       }
 
-      if (typeof value === 'object') {
-        // Check for media signature
-        if (
-          'src' in value &&
-          typeof value.src === 'string' &&
-          Boolean(value.src)
-        ) {
-          medias.push(value.src)
-        } else {
-          Object.values(value).forEach(handleItem)
-        }
-      } else if (Array.isArray(value)) {
-        value.forEach(handleItem)
-      }
-    })
-  }
+//       if (typeof value === 'object') {
+//         // Check for media signature
+//         if (
+//           'src' in value &&
+//           typeof value.src === 'string' &&
+//           Boolean(value.src)
+//         ) {
+//           medias.push(value.src)
+//         } else {
+//           Object.values(value).forEach(handleItem)
+//         }
+//       } else if (Array.isArray(value)) {
+//         value.forEach(handleItem)
+//       }
+//     })
+//   }
 
-  items.forEach(handleItem)
+//   items.forEach(handleItem)
 
-  return medias
-}
+//   return medias
+// }
 
 async function getExistingTopicIdsForItem(
   itemId: string,
@@ -1009,30 +1009,30 @@ export async function setItems({
   /**
    * First off, let's start uploading all the images
    */
-  const allMediaUrls = getAllMediaUrls(spec.items)
-  const allMediaUplods = allMediaUrls.map(context.uploadFileFromUrl)
+  // const allMediaUrls = getAllMediaUrls(spec.items)
+  // const allMediaUplods = allMediaUrls.map(context.uploadFileFromUrl)
 
-  // Pull the status every second
-  const getFileuploaderStatusInterval = setInterval(() => {
-    const queue = context.fileUploader.workerQueue
-    const endedUploads = queue.filter((u) => u.status === 'done')
+  // // Pull the status every second
+  // const getFileuploaderStatusInterval = setInterval(() => {
+  //   const queue = context.fileUploader.workerQueue
+  //   const endedUploads = queue.filter((u) => u.status === 'done')
 
-    const progress = endedUploads.length / queue.length
-    onUpdate({
-      message: 'media-upload-progress',
-      progress,
-    })
+  //   const progress = endedUploads.length / queue.length
+  //   onUpdate({
+  //     message: 'media-upload-progress',
+  //     progress,
+  //   })
 
-    if (progress === 1) {
-      clearInterval(getFileuploaderStatusInterval)
-    }
-  }, 1000)
+  //   if (progress === 1) {
+  //     clearInterval(getFileuploaderStatusInterval)
+  //   }
+  // }, 1000)
 
-  onUpdate({
-    message: `Initiating upload of ${allMediaUrls.length} media item(s)`,
-  })
+  // onUpdate({
+  //   message: `Initiating upload of ${allMediaUrls.length} media item(s)`,
+  // })
 
-  await Promise.all(allMediaUplods)
+  // await Promise.all(allMediaUplods)
 
   // Get a total item count
   let totalItems = 0
@@ -1935,9 +1935,10 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
-                              jsonChunk[itemRelationId] as JSONItemRelation[]
-                            )
+                            ].itemRelations.itemIds =
+                              await getItemIdsForItemRelation(
+                                jsonChunk[itemRelationId] as JSONItemRelation[]
+                              )
                           }
                         })
                       )
@@ -2197,7 +2198,7 @@ export async function setItems({
     await handleItemRelationsAndPublish(spec.items[i])
   }
 
-  clearInterval(getFileuploaderStatusInterval)
+  // clearInterval(getFileuploaderStatusInterval)
 
   onUpdate({
     progress: 1,
