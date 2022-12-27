@@ -146,7 +146,9 @@ export async function remoteFileUpload({
   if (fileUrl) {
     const downloadResult = await downloadFile(fileUrl)
     file = downloadResult.file
-    fileName = downloadResult.filename
+    if (!fileName) {
+      fileName = downloadResult.filename
+    }
     contentType = downloadResult.contentType
   } else if (file && !contentType) {
     const result = await handleFileBuffer(file)

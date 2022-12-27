@@ -221,7 +221,10 @@ async function createImagesInput(
 
     if (!key) {
       try {
-        const uploadResult = await context.uploadFileFromUrl(image.src)
+        const uploadResult = await context.uploadFileFromUrl(
+          image.src,
+          image.fileName
+        )
         if (uploadResult) {
           key = uploadResult.key
           mimeType = uploadResult.mimeType
@@ -1935,10 +1938,9 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds =
-                              await getItemIdsForItemRelation(
-                                jsonChunk[itemRelationId] as JSONItemRelation[]
-                              )
+                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
+                              jsonChunk[itemRelationId] as JSONItemRelation[]
+                            )
                           }
                         })
                       )

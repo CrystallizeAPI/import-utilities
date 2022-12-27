@@ -154,8 +154,8 @@ export class Bootstrapper extends EventEmitter {
     topicPathToIDMap: new Map<string, string>(),
 
     fileUploader: new FileUploadManager(),
-    uploadFileFromUrl: (url: string) =>
-      this.context.fileUploader.uploadFromUrl(url),
+    uploadFileFromUrl: (url: string, fileName?: string) =>
+      this.context.fileUploader.uploadFromUrl(url, fileName),
     callPIM: () => Promise.resolve({ data: {} }),
     callCatalogue: () => Promise.resolve({ data: {} }),
     callSearch: () => Promise.resolve({ data: {} }),

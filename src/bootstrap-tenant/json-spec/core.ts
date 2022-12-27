@@ -123,6 +123,7 @@ export type JSONRichTextTranslated = JSONRichText | Record<string, JSONRichText>
 export interface JSONMedia {
   src: string
   key?: string
+  fileName?: string
 }
 
 export interface JSONImage extends JSONMedia {

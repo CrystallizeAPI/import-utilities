@@ -115,7 +115,10 @@ export interface BootstrapperContext {
   topicPathToIDMap: Map<string, string>
   itemVersions: Map<string, ItemVersionsForLanguages>
   fileUploader: FileUploadManager
-  uploadFileFromUrl: (url: string) => Promise<RemoteFileUploadResult | null>
+  uploadFileFromUrl: (
+    url: string,
+    fileName?: string
+  ) => Promise<RemoteFileUploadResult | null>
   callPIM: (props: IcallAPI) => Promise<IcallAPIResult>
   callCatalogue: (props: IcallAPI) => Promise<IcallAPIResult>
   callSearch: (props: IcallAPI) => Promise<IcallAPIResult>
@@ -151,11 +154,13 @@ export function getTranslation(translation?: any, language?: string): string {
 
 type uploadFileRecord = {
   url: string
+  fileName?: string
   result: Promise<RemoteFileUploadResult | null>
 }
 
 type fileUploadQueueItem = {
   url: string
+  fileName?: string
   status: 'not-started' | 'working' | 'done'
   failCount?: number
   resolve?: (result: RemoteFileUploadResult | null) => void
@@ -202,6 +207,7 @@ export class FileUploadManager {
     try {
       const result = await remoteFileUpload({
         fileUrl: item.url,
+        fileName: item.fileName,
         context: this.context,
       })
 
@@ -234,28 +240,33 @@ export class FileUploadManager {
     }
   }
 
-  uploadFromUrl(url: string) {
+  uploadFromUrl(url: string, fileName?: string) {
     const existing = this.uploads.find((u) => u.url === url)
     if (existing) {
       return existing.result
     }
 
-    const result = this.scheduleUpload(url)
+    const result = this.scheduleUpload(url, fileName)
 
     result.catch(() => ({}))
 
     this.uploads.push({
       url,
+      fileName,
       result,
     })
 
     return result
   }
 
-  scheduleUpload(url: string): Promise<RemoteFileUploadResult | null> {
+  scheduleUpload(
+    url: string,
+    fileName?: string
+  ): Promise<RemoteFileUploadResult | null> {
     return new Promise((resolve, reject) => {
       this.workerQueue.push({
         url,
+        fileName,
         status: 'not-started',
         resolve,
         reject,
