@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.17.0
+
+### Minor Changes
+
+- d8a306a: This only a dependency package updates, bumping `graphql` to v16
+
 ## 1.16.0
 
 ### Minor Changes
