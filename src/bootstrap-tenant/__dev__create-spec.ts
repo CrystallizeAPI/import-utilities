@@ -7,7 +7,7 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'bos-ecom-qa'
+  const tenantIdentifier = 'dounot'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
@@ -34,12 +34,10 @@ async function createSpec() {
     languages: false,
     vatTypes: false,
     priceVariants: false,
-    shapes: false,
+    shapes: true,
     topicMaps: false,
     grids: false,
-    items: {
-      basePath: '/pim/vehicles/mercedes-benz/eqc/eqc-400-4m/eqc400-advanced',
-    },
+    items: false,
     stockLocations: false,
     subscriptionPlans: false,
     onUpdate: (areaUpdate) => {
