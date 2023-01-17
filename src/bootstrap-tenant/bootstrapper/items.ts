@@ -90,7 +90,7 @@ import {
   SubscriptionPlanMeteredVariableReferenceInput,
   SubscriptionPlanPriceInput,
 } from '../../generated/graphql'
-import { getProductVariants } from './utils/get-product-variants'
+import { getProduct } from './utils/get-product'
 import { getTopicIds } from './utils/get-topic-id'
 import {
   ComponentChoiceComponentConfig,
@@ -1171,11 +1171,20 @@ export async function setItems({
        */
       let existingProductVariants: undefined | ProductVariant[]
       if (shape?.type === 'product') {
-        existingProductVariants = await getProductVariants(
-          language,
-          itemId,
-          context
-        )
+        const existingProduct = await getProduct(language, itemId, context)
+        existingProductVariants = existingProduct.variants
+
+        // Add vatType if it is not part of the item.
+        // This eases the DX, as you don't _have_ to pass vatType
+        // for existing products
+        const productItem = item as JSONProduct
+        if (!productItem.vatType) {
+          productItem.vatType = existingProduct.vatType.name
+        }
+        // Ensure that this is an array
+        if (!productItem.variants) {
+          productItem.variants = []
+        }
       }
 
       /**
@@ -1938,9 +1947,10 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
-                              jsonChunk[itemRelationId] as JSONItemRelation[]
-                            )
+                            ].itemRelations.itemIds =
+                              await getItemIdsForItemRelation(
+                                jsonChunk[itemRelationId] as JSONItemRelation[]
+                              )
                           }
                         })
                       )

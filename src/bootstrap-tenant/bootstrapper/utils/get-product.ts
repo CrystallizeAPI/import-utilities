@@ -1,11 +1,19 @@
 import { BootstrapperContext } from '.'
 import { ProductVariant } from '../../../generated/graphql'
 
-export async function getProductVariants(
+type ExistingProduct = {
+  id: string
+  vatType: {
+    name: string
+  }
+  variants: ProductVariant[]
+}
+
+export async function getProduct(
   language: string,
   itemId: string,
   context: BootstrapperContext
-): Promise<ProductVariant[]> {
+): Promise<ExistingProduct> {
   const response = await context.callPIM({
     query: QUERY,
     variables: {
@@ -14,13 +22,16 @@ export async function getProductVariants(
     },
   })
 
-  return response.data?.product?.get?.variants || []
+  return response.data?.product?.get
 }
 
 const QUERY = `
 query GET_PRODUCT_INFO($language: String!, $itemId: ID!) {
     product {
       get(id: $itemId, language: $language) {
+        vatType {
+          name
+        }
         variants {
           id
           name
