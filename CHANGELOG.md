@@ -1,5 +1,13 @@
 # @crystallize/import-utilities
 
+## 1.18.0
+
+### Minor Changes
+
+- 0850ae0: Implemented a `kill` method on the bootrapper class. This will be run
+  after each successful import and spec creation, clearing intervals made by the
+  fileUpload and API manager classes.
+
 ## 1.17.0
 
 ### Minor Changes
