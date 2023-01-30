@@ -2,6 +2,7 @@ import { DocumentNode } from 'graphql'
 import { request } from 'graphql-request'
 import { v4 as uuid } from 'uuid'
 import { BootstrapperError } from '.'
+import { KillableWorker } from './killable-worker'
 import { LogLevel } from './types'
 
 export interface IcallAPI {
@@ -31,7 +32,7 @@ type errorNotifierFn = (args: BootstrapperError) => void
 
 type RequestStatus = 'ok' | 'error'
 
-export class ApiManager {
+export class ApiManager extends KillableWorker {
   queue: QueuedRequest[] = []
   url = ''
   maxWorkers = 1
@@ -43,10 +44,11 @@ export class ApiManager {
   CRYSTALLIZE_SESSION_ID = ''
 
   constructor(url: string) {
+    super()
     this.url = url
     this.errorNotifier = () => null
 
-    setInterval(() => this.work(), 5)
+    this._workIntervalId = setInterval(() => this.work(), 5)
   }
 
   setErrorNotifier(fn: errorNotifierFn) {
@@ -102,6 +104,10 @@ export class ApiManager {
   }
 
   async work() {
+    if (this.isKilled) {
+      return
+    }
+
     const currentWorkers = this.queue.filter((q) => q.working).length
     if (currentWorkers === this.maxWorkers) {
       return

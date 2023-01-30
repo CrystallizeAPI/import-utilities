@@ -838,4 +838,12 @@ export class Bootstrapper extends EventEmitter {
     })
     this.emit(EVENT_NAMES.ORDERS_DONE)
   }
+
+  async kill() {
+    this.context.fileUploader.kill()
+    this.PIMAPIManager?.kill()
+    this.catalogueAPIManager?.kill()
+    this.ordersAPIManager?.kill()
+    this.searchAPIManager?.kill()
+  }
 }

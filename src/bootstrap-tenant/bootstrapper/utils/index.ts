@@ -13,6 +13,7 @@ import { IcallAPI, IcallAPIResult } from './api'
 import { ItemAndParentId } from './get-item-id'
 import { remoteFileUpload, RemoteFileUploadResult } from './remote-file-upload'
 import { LogLevel } from './types'
+import { KillableWorker } from './killable-worker'
 
 export * from './api'
 export * from './get-item-id'
@@ -167,18 +168,19 @@ type fileUploadQueueItem = {
   reject?: (r: any) => void
 }
 
-export class FileUploadManager {
+export class FileUploadManager extends KillableWorker {
   uploads: uploadFileRecord[] = []
   maxWorkers = 2
   workerQueue: fileUploadQueueItem[] = []
   context?: BootstrapperContext
 
   constructor() {
-    setInterval(() => this.work(), 5)
+    super()
+    this._workIntervalId = setInterval(() => this.work(), 5)
   }
 
   async work() {
-    if (!this.context) {
+    if (!this.context || this.isKilled) {
       return
     }
 
