@@ -123,10 +123,19 @@ const fetchItemIdFromExternalReference = async ({
     },
   })
 
-  let items = response.data?.item?.getMany || []
+  let items = response.data?.item?.getMany
+
+  if (!items?.length) {
+    return {}
+  }
 
   if (shapeIdentifier) {
-    items = items.filter((s: any) => s.shape.identifier === shapeIdentifier)
+    const itemsMatchingShape = items.filter(
+      (s: any) => s.shape.identifier === shapeIdentifier
+    )
+    if (itemsMatchingShape.length) {
+      items = itemsMatchingShape
+    }
   }
 
   const item = items[0]
