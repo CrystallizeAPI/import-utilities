@@ -1,5 +1,6 @@
 .DS_Store
 node_modules
+.pnpm*
 .yarn
 .yarnrnc.yml
 .yarnrc.yml
@@ -9,3 +10,4 @@ dist
 examples/*/yarn.lock
 json-spec/*.json
 package-lock.json
+yarn.lock
