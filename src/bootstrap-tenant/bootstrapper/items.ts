@@ -1737,6 +1737,16 @@ export async function setItems({
         language: context.targetLanguage || context.defaultLanguage,
       })
       parentId = parentItemAndParentId.itemId
+      if (!parentId) {
+        parentId = context.fallbackFolderId
+        onUpdate({
+          error: {
+            code: 'PARENT_FOLDER_NOT_FOUND',
+            message: `Cannot find the specified parent folder for item`,
+            item,
+          },
+        })
+      }
     }
 
     // If the item exists in Crystallize already
@@ -1947,10 +1957,9 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds =
-                              await getItemIdsForItemRelation(
-                                jsonChunk[itemRelationId] as JSONItemRelation[]
-                              )
+                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
+                              jsonChunk[itemRelationId] as JSONItemRelation[]
+                            )
                           }
                         })
                       )

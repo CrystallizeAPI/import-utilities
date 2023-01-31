@@ -146,6 +146,7 @@ export class Bootstrapper extends EventEmitter {
 
     tenantId: '',
     tenantIdentifier: '',
+    fallbackFolderId: '',
 
     /**
      * A map keeping a reference of all of the topics in the current
@@ -239,6 +240,15 @@ export class Bootstrapper extends EventEmitter {
 
   setSpec(spec: JsonSpec) {
     this.SPEC = spec
+  }
+
+  /**
+   * Folder to import items to if the target parent can't be found.
+   *
+   * @param id folder id
+   */
+  setFallbackFolderId(id: string) {
+    this.context.fallbackFolderId = id
   }
 
   setTenantIdentifier = async (tenantIdentifier: string) => {
