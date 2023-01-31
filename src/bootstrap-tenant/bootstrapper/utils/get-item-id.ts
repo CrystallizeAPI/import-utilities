@@ -60,7 +60,6 @@ export const getItemId = async ({
   context,
   cataloguePath,
   externalReference,
-  shapeIdentifier,
   language,
 }: IGetItemIdProps): Promise<ItemAndParentId> => {
   let idAndParent: ItemAndParentId = {}
@@ -79,7 +78,6 @@ export const getItemId = async ({
     return fetchItemIdFromExternalReference({
       context,
       externalReference,
-      shapeIdentifier,
       language,
     })
   }
@@ -106,7 +104,6 @@ export const getItemId = async ({
 const fetchItemIdFromExternalReference = async ({
   context,
   externalReference,
-  shapeIdentifier,
   language,
 }: {
   context: BootstrapperContext
@@ -123,25 +120,13 @@ const fetchItemIdFromExternalReference = async ({
     },
   })
 
-  let items = response.data?.item?.getMany
+  const items = response.data?.item?.getMany
 
-  if (!items?.length) {
+  if (!items?.length || !items[0]) {
     return {}
-  }
-
-  if (shapeIdentifier) {
-    const itemsMatchingShape = items.filter(
-      (s: any) => s.shape.identifier === shapeIdentifier
-    )
-    if (itemsMatchingShape.length) {
-      items = itemsMatchingShape
-    }
   }
 
   const item = items[0]
-  if (!item) {
-    return {}
-  }
 
   return {
     itemId: item.id,
