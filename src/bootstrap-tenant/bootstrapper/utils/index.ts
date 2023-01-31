@@ -66,6 +66,7 @@ export interface AreaError {
     | 'CANNOT_HANDLE_ITEM'
     | 'CANNOT_HANDLE_PRODUCT'
     | 'CANNOT_HANDLE_ITEM_RELATION'
+    | 'PARENT_FOLDER_NOT_FOUND'
     | 'OTHER'
   item?: JSONItem
 }

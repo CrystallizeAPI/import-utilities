@@ -1736,7 +1736,17 @@ export async function setItems({
         shapeIdentifier: item.shape,
         language: context.targetLanguage || context.defaultLanguage,
       })
-      parentId = parentItemAndParentId.itemId || context.fallbackFolderId
+      parentId = parentItemAndParentId.itemId
+      if (!parentId) {
+        parentId = context.fallbackFolderId
+        onUpdate({
+          error: {
+            code: 'PARENT_FOLDER_NOT_FOUND',
+            message: `Cannot find the specified parent folder for item`,
+            item,
+          },
+        })
+      }
     }
 
     // If the item exists in Crystallize already
