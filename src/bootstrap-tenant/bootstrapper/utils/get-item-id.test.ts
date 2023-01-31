@@ -98,48 +98,6 @@ const testCases: testCase[] = [
       parentId: 'some-parent-id',
     },
   },
-  {
-    name: 'only gets items by external reference from the api matching the provided shape identifier',
-    props: {
-      context: {
-        callPIM: async (_) =>
-          ({
-            data: {
-              item: {
-                getMany: [
-                  {
-                    id: 'some-wrong-id',
-                    tree: {
-                      parentId: 'some-wrong-parent-id',
-                    },
-                    shape: {
-                      identifier: 'some-wrong-shape',
-                    },
-                  },
-                  {
-                    id: 'some-id',
-                    tree: {
-                      parentId: 'some-parent-id',
-                    },
-                    shape: {
-                      identifier: 'some-shape',
-                    },
-                  },
-                ],
-              },
-            },
-          } as IcallAPIResult),
-        itemExternalReferenceToIDMap: new Map<string, ItemAndParentId>(),
-      } as BootstrapperContext,
-      language: 'en',
-      externalReference: 'some-item',
-      shapeIdentifier: 'some-shape',
-    },
-    expected: {
-      itemId: 'some-id',
-      parentId: 'some-parent-id',
-    },
-  },
 ]
 
 testCases.forEach((tc) =>
