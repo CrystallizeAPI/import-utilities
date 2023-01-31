@@ -1736,7 +1736,7 @@ export async function setItems({
         shapeIdentifier: item.shape,
         language: context.targetLanguage || context.defaultLanguage,
       })
-      parentId = parentItemAndParentId.itemId
+      parentId = parentItemAndParentId.itemId || context.fallbackFolderId
     }
 
     // If the item exists in Crystallize already
@@ -1947,10 +1947,9 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds =
-                              await getItemIdsForItemRelation(
-                                jsonChunk[itemRelationId] as JSONItemRelation[]
-                              )
+                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
+                              jsonChunk[itemRelationId] as JSONItemRelation[]
+                            )
                           }
                         })
                       )

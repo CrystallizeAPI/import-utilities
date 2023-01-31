@@ -101,6 +101,7 @@ export interface BootstrapperContext {
   client?: MassClientInterface
   tenantId: string
   tenantIdentifier: string
+  fallbackFolderId: string
   defaultLanguage: string
   targetLanguage?: string
   languages: JSONLanguage[]
