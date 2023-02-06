@@ -13,6 +13,7 @@ import {
   JSONProductSubscriptionPlanPricing,
   JSONProductVariant,
   JSONProductVariantPriceVariants,
+  JSONProductVariantStockLocations,
   JSONProductVariantSubscriptionPlanMeteredVariableTier,
 } from '../../json-spec'
 import {
@@ -235,7 +236,16 @@ export async function getAllCatalogueItems(
             isDefault: v.isDefault,
             attributes,
             externalReference: v.externalReference,
-            stock: v.stock,
+            stock: v.stockLocations?.reduce(
+              (
+                acc: JSONProductVariantStockLocations,
+                { identifier, stock }: { identifier: string; stock: number }
+              ) => {
+                acc[identifier] = stock
+                return acc
+              },
+              {}
+            ),
             images: v.images?.map((i: any, index: number) =>
               handleImage(i, `${v.sku}.images.${index}`)
             ),
