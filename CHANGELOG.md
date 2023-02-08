@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.19.1
+
+### Patch Changes
+
+- 59b06d3: Import/export stock location values and quick select folder ids
+
 ## 1.18.0
 
 ### Minor Changes
