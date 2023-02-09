@@ -1457,7 +1457,7 @@ export async function setItems({
       if (existingProductVariants) {
         inp.variants.push(
           ...existingProductVariants.map(
-            ({ priceVariants, stockLocations, ...rest }) =>
+            ({ priceVariants, stockLocations, components, ...rest }) =>
               ({
                 ...rest,
                 priceVariants: priceVariants?.map((p) => ({
@@ -1957,9 +1957,10 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
-                              jsonChunk[itemRelationId] as JSONItemRelation[]
-                            )
+                            ].itemRelations.itemIds =
+                              await getItemIdsForItemRelation(
+                                jsonChunk[itemRelationId] as JSONItemRelation[]
+                              )
                           }
                         })
                       )
