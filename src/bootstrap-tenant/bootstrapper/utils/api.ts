@@ -30,7 +30,7 @@ interface QueuedRequest {
 
 type errorNotifierFn = (args: BootstrapperError) => void
 
-type RequestStatus = 'ok' | 'error'
+type RequestStatus = 'ok' | 'error' | 'rate-limited'
 
 export class ApiManager extends KillableWorker {
   queue: QueuedRequest[] = []
@@ -78,28 +78,36 @@ export class ApiManager extends KillableWorker {
   recordRequestStatus = (status: RequestStatus) => {
     this.lastRequestsStatuses.unshift(status)
 
-    const maxRequests = 20
-
-    const errors = this.lastRequestsStatuses.filter(
-      (r) => r === 'error'
-    )?.length
-    if (errors > 5) {
-      this.maxWorkers--
-      this.lastRequestsStatuses.length = 0
-    } else if (errors === 0 && this.lastRequestsStatuses.length > maxRequests) {
-      this.maxWorkers++
-      this.lastRequestsStatuses.length = 0
-    }
-
-    const maxWorkers = 5
-    if (this.maxWorkers < 1) {
+    // Reset max workers if rate limited
+    if (status === 'rate-limited') {
       this.maxWorkers = 1
-    } else if (this.maxWorkers > maxWorkers) {
-      this.maxWorkers = maxWorkers
-    }
+    } else {
+      const maxRequests = 20
 
-    if (this.lastRequestsStatuses.length > maxRequests) {
-      this.lastRequestsStatuses.length = maxRequests
+      const errors = this.lastRequestsStatuses.filter(
+        (r) => r === 'error'
+      )?.length
+      if (errors > 5) {
+        this.maxWorkers--
+        this.lastRequestsStatuses.length = 0
+      } else if (
+        errors === 0 &&
+        this.lastRequestsStatuses.length > maxRequests
+      ) {
+        this.maxWorkers++
+        this.lastRequestsStatuses.length = 0
+      }
+
+      const maxWorkers = 5
+      if (this.maxWorkers < 1) {
+        this.maxWorkers = 1
+      } else if (this.maxWorkers > maxWorkers) {
+        this.maxWorkers = maxWorkers
+      }
+
+      if (this.lastRequestsStatuses.length > maxRequests) {
+        this.lastRequestsStatuses.length = maxRequests
+      }
     }
   }
 
@@ -167,12 +175,27 @@ export class ApiManager extends KillableWorker {
                 this.CRYSTALLIZE_STATIC_AUTH_TOKEN,
             }
       )
+
       if (this.logLevel === 'verbose') {
         console.log(JSON.stringify(response, null, 1))
       }
     } catch (e: any) {
       if (this.logLevel === 'verbose') {
         console.log(e)
+      }
+
+      // Rate limited
+      if (e.response.status === 429) {
+        if (!item.props.suppressErrors) {
+          this.errorNotifier({
+            willRetry: true,
+            error: `Oh dear, you've been temporarily rate limited. The maximum requests allowed is 5 pr. second.`,
+          })
+        }
+        this.recordRequestStatus('rate-limited')
+        await sleep(5000)
+        item.working = false
+        return
       }
 
       // Network/system errors
@@ -203,11 +226,11 @@ export class ApiManager extends KillableWorker {
       }
     }
 
-    /**
-     * When server errors or other errors occur, we want to not discard the item
-     * that is being worked on, but rather wait until the API is back up
-     */
     if (otherError || serverError) {
+      /**
+       * When server errors or other errors occur, we want to not discard the item
+       * that is being worked on, but rather wait until the API is back up
+       */
       this.recordRequestStatus('error')
 
       const err = otherError || serverError
