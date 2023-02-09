@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.19.2
+
+### Patch Changes
+
+- 13c4ddf: Output an error message in case you've been rate limited by the API.
+
 ## 1.19.1
 
 ### Patch Changes
