@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.19.3
+
+### Patch Changes
+
+- 04d9091: Fixed an issue where updates to product variants would fail in cases
+  where the variants had components defined in the shape.
+
 ## 1.19.2
 
 ### Patch Changes
