@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.19.4
+
+### Patch Changes
+
+- 6053850: Fix an issue where the check for rate limiter error would cause the
+  script to exit.
+
 ## 1.19.3
 
 ### Patch Changes
