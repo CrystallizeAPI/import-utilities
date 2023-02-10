@@ -185,7 +185,7 @@ export class ApiManager extends KillableWorker {
       }
 
       // Rate limited
-      if (e.response.status === 429) {
+      if (e.response?.status === 429) {
         if (!item.props.suppressErrors) {
           this.errorNotifier({
             willRetry: true,
