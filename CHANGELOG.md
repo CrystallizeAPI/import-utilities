@@ -1,5 +1,14 @@
 # @crystallize/import-utilities
 
+## 1.20.0
+
+### Minor Changes
+
+- 1e81305: Exponential backoff in case you are being rate limited by the
+  service.
+- 6b0abca: Increased bootstrapper speed by parallelising (item/productVariant)
+  components create/update mutations.
+
 ## 1.19.4
 
 ### Patch Changes
