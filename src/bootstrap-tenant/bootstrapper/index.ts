@@ -277,7 +277,7 @@ export class Bootstrapper extends EventEmitter {
        * multiple languages on the same time, we need to limit
        * the amount of workers to 1 for now
        */
-      this.PIMAPIManager.maxWorkers = 1
+      this.PIMAPIManager.MAX_WORKERS = 1
     }
 
     const r = await this.context.callPIM({
@@ -409,7 +409,6 @@ export class Bootstrapper extends EventEmitter {
       // No need to report for this query, as it will error out if the tenant does not exist
       suppressErrors: true,
     })
-
     const match = resultGetTenant?.data?.tenant?.get || null
     if (match) {
       return true

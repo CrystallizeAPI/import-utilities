@@ -260,7 +260,6 @@ export async function getAllCatalogueItems(
         const children = await getChildren()
         if (children.length > 0) {
           itemWithChildren.children = children
-          console.log(itemWithChildren.children.map((c) => c.cataloguePath))
         }
       }
 

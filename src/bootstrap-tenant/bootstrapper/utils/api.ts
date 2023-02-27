@@ -26,29 +26,31 @@ interface QueuedRequest {
   failCount: number
   resolve: (value: IcallAPIResult) => void
   working?: boolean
+  partOfRateLimitedGroup?: boolean
 }
 
 type errorNotifierFn = (args: BootstrapperError) => void
 
-type RequestStatus = 'ok' | 'error' | 'rate-limited'
+type RequestStatus = 'ok' | 'error'
 
 export class ApiManager extends KillableWorker {
   queue: QueuedRequest[] = []
   url = ''
-  maxWorkers = 1
+  currentWorkers = 2
   errorNotifier: errorNotifierFn
   logLevel: LogLevel = 'silent'
   CRYSTALLIZE_ACCESS_TOKEN_ID = ''
   CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
   CRYSTALLIZE_STATIC_AUTH_TOKEN = ''
   CRYSTALLIZE_SESSION_ID = ''
+  MAX_WORKERS = 20
 
   constructor(url: string) {
     super()
     this.url = url
     this.errorNotifier = () => null
 
-    this._workIntervalId = setInterval(() => this.work(), 5)
+    this._workIntervalId = setInterval(() => this.work(), 1)
   }
 
   setErrorNotifier(fn: errorNotifierFn) {
@@ -70,6 +72,21 @@ export class ApiManager extends KillableWorker {
     })
   }
 
+  backoffOnRateLimit() {
+    // Mark all in-flight requests as being part of a rate limited group
+    this.queue
+      .filter((q) => q.working)
+      .forEach((q) => {
+        q.partOfRateLimitedGroup = true
+      })
+
+    // Back off, slice current workers in half
+    this.currentWorkers = Math.floor(this.currentWorkers / 2)
+    if (this.currentWorkers < 1) {
+      this.currentWorkers = 1
+    }
+  }
+
   /**
    * Adjust the maximum amount of workers up and down depending on
    * the amount of errors coming from the API
@@ -78,36 +95,26 @@ export class ApiManager extends KillableWorker {
   recordRequestStatus = (status: RequestStatus) => {
     this.lastRequestsStatuses.unshift(status)
 
-    // Reset max workers if rate limited
-    if (status === 'rate-limited') {
-      this.maxWorkers = 1
-    } else {
-      const maxRequests = 20
+    const errors = this.lastRequestsStatuses.filter(
+      (r) => r === 'error'
+    )?.length
+    if (errors > 5) {
+      this.currentWorkers--
+      this.lastRequestsStatuses.length = 0
+    } else if (errors === 0) {
+      this.currentWorkers++
+      this.lastRequestsStatuses.length = 0
+    }
 
-      const errors = this.lastRequestsStatuses.filter(
-        (r) => r === 'error'
-      )?.length
-      if (errors > 5) {
-        this.maxWorkers--
-        this.lastRequestsStatuses.length = 0
-      } else if (
-        errors === 0 &&
-        this.lastRequestsStatuses.length > maxRequests
-      ) {
-        this.maxWorkers++
-        this.lastRequestsStatuses.length = 0
-      }
+    if (this.currentWorkers < 1) {
+      this.currentWorkers = 1
+    } else if (this.currentWorkers > this.MAX_WORKERS) {
+      this.currentWorkers = this.MAX_WORKERS
+    }
 
-      const maxWorkers = 5
-      if (this.maxWorkers < 1) {
-        this.maxWorkers = 1
-      } else if (this.maxWorkers > maxWorkers) {
-        this.maxWorkers = maxWorkers
-      }
-
-      if (this.lastRequestsStatuses.length > maxRequests) {
-        this.lastRequestsStatuses.length = maxRequests
-      }
+    // Keep the last 20 request statuses
+    if (this.lastRequestsStatuses.length > 20) {
+      this.lastRequestsStatuses.length = 20
     }
   }
 
@@ -116,8 +123,14 @@ export class ApiManager extends KillableWorker {
       return
     }
 
+    // Ensure that we have at most max 20 workers. Done here too since this value
+    // is not private and can (and sometimes should) be set from the outside.
+    if (this.MAX_WORKERS > 20) {
+      this.MAX_WORKERS = 20
+    }
+
     const currentWorkers = this.queue.filter((q) => q.working).length
-    if (currentWorkers === this.maxWorkers) {
+    if (currentWorkers === this.currentWorkers) {
       return
     }
     // Get the first none-working item in the queue
@@ -189,11 +202,19 @@ export class ApiManager extends KillableWorker {
         if (!item.props.suppressErrors) {
           this.errorNotifier({
             willRetry: true,
-            error: `Oh dear, you've been temporarily rate limited. The maximum requests allowed is 5 pr. second.`,
+            error: `Oh dear, you've been temporarily rate limited.`,
           })
         }
-        this.recordRequestStatus('rate-limited')
-        await sleep(5000)
+
+        /**
+         * Invoke the backoff mechanism, unless the request is already
+         * part of a rate limted group, in which case the backoff has
+         * already been set in motion.
+         */
+        if (!item.partOfRateLimitedGroup) {
+          this.backoffOnRateLimit()
+        }
+
         item.working = false
         return
       }
