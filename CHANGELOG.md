@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.20.2
+
+### Patch Changes
+
+- a6c58f3: Fix copying files with special characters
+
 ## 1.20.1
 
 ### Patch Changes
