@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.20.1
+
+### Patch Changes
+
+- 4ea66fb: Reverting speed optimisations introduced in 1.20.0, due to edge case
+  race conditions.
+
 ## 1.20.0
 
 ### Minor Changes
