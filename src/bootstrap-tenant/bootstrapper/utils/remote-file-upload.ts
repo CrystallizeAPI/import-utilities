@@ -39,7 +39,7 @@ async function downloadRemoteOrLocal(fileURL: string) {
     await fs.promises.access(fileURL)
     return fs.promises.readFile(fileURL)
   } catch (e) {
-    return download(fileURL)
+    return download(encodeURI(fileURL))
   }
 }
 
