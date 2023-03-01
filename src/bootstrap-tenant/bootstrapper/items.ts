@@ -1281,7 +1281,9 @@ export async function setItems({
       }
 
       const responses: any[] = []
-      await Promise.all(updates.map((u) => u()))
+      for (let i = 0; i < updates.length; i++) {
+        responses.push(await updates[i]())
+      }
 
       context.emit(EVENT_NAMES.ITEM_UPDATED, {
         id: itemId,
@@ -2175,7 +2177,9 @@ export async function setItems({
       const itm = item as JSONFolder
 
       if (itm.children) {
-        await Promise.all(itm.children.map(handleItemRelationsAndPublish))
+        for (let i = 0; i < itm.children.length; i++) {
+          await handleItemRelationsAndPublish(itm.children[i])
+        }
       }
     }
   }
@@ -2212,11 +2216,9 @@ export async function setItems({
    */
   context.useReferenceCache = true
 
-  /**
-   * For this it should be safe to wrap it in a Promise.all, since there
-   * are no race conditions on the tree to worry about.
-   */
-  await Promise.all(spec.items.map(handleItemRelationsAndPublish))
+  for (let i = 0; i < spec.items.length; i++) {
+    await handleItemRelationsAndPublish(spec.items[i])
+  }
 
   // clearInterval(getFileuploaderStatusInterval)
 
