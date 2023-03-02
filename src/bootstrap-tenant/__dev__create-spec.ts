@@ -7,7 +7,7 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'dounot'
+  const tenantIdentifier = 'frntr'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
@@ -31,22 +31,24 @@ async function createSpec() {
   })
 
   const spec = await bootstrapper.createSpec({
-    languages: false,
-    vatTypes: false,
-    priceVariants: false,
+    languages: true,
+    vatTypes: true,
+    priceVariants: true,
     shapes: true,
-    topicMaps: false,
-    grids: false,
-    items: false,
-    stockLocations: false,
-    subscriptionPlans: false,
+    topicMaps: true,
+    grids: true,
+    items: {
+      version: 'published',
+    },
+    stockLocations: true,
+    subscriptionPlans: true,
     onUpdate: (areaUpdate) => {
       console.log(JSON.stringify(areaUpdate, null, 1))
     },
   })
 
   writeFileSync(
-    `./json-spec/${tenantIdentifier}.json`,
+    `./json-spec/${tenantIdentifier}-published.json`,
     JSON.stringify(spec, null, 2),
     'utf-8'
   )

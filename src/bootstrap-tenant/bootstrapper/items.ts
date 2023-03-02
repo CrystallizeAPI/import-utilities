@@ -286,7 +286,7 @@ async function createVideosInput(
         onUpdate({
           error: {
             code: 'UPLOAD_FAILED',
-            message: `Could not upload video "${JSON.stringify(video)}"`,
+            message: `${e} - Could not upload video "${JSON.stringify(video)}"`,
           },
         })
       }
@@ -617,6 +617,12 @@ async function createComponentsInput(
         const selectedComponentDefinition = componentConfig.choices.find(
           (c: any) => c.id === selectedComponentId
         )
+
+        // if (selectedComponentDefinition?.type == 'itemRelations') {
+        //   return {
+        //     componentChoice: null,
+        //   }
+        // }
 
         const content = await createComponentInput(
           selectedComponentDefinition,
@@ -1060,6 +1066,8 @@ export async function setItems({
     // Create the object to store the component data in
     item._componentsData = {}
 
+    // console.log('item', JSON.stringify(item, null, 2))
+
     if (!item.shape) {
       onUpdate({
         error: {
@@ -1218,28 +1226,39 @@ export async function setItems({
        * each component. This will ensure that no
        * component data will be lost during the update
        */
+      console.log('a')
       if (item._componentsData?.[language]) {
         Object.keys(item._componentsData[language]).forEach(
           (componentId: string) => {
-            const componentContent: ComponentContentInput =
+            const componentContent: any =
               item._componentsData?.[language][componentId]
 
-            updates.push(() =>
-              context.callPIM(
-                buildUpdateItemComponentQueryAndVariables({
-                  itemId,
-                  language,
-                  input: {
-                    componentId,
-                    ...componentContent,
-                  },
-                })
+            // Due to the chance that itemRelations has min 1 item, we need to skip all initial itemRelations component
+            // passing as API will throw an error in case we pass itemIds: [].
+            // The last step will come back to itemRelations and fill in the correct ids.
+            if (
+              componentContent?.componentChoice?.itemRelations ||
+              componentContent?.itemRelations
+            ) {
+              return
+            } else {
+              updates.push(() =>
+                context.callPIM(
+                  buildUpdateItemComponentQueryAndVariables({
+                    itemId,
+                    language,
+                    input: {
+                      componentId,
+                      ...componentContent,
+                    },
+                  })
+                )
               )
-            )
+            }
           }
         )
       }
-
+      console.log('d')
       if ((item as JSONProduct).variants?.length) {
         const product = item as JSONProduct
         for (const variant of product.variants) {
@@ -1284,7 +1303,7 @@ export async function setItems({
       for (let i = 0; i < updates.length; i++) {
         responses.push(await updates[i]())
       }
-
+      console.log('e')
       context.emit(EVENT_NAMES.ITEM_UPDATED, {
         id: itemId,
         name: getTranslation(item.name, language),
@@ -1295,6 +1314,7 @@ export async function setItems({
         },
       } as ItemEventPayloadCreatedOrUpdated)
 
+      console.log('e')
       return responses
     }
 
@@ -1752,12 +1772,14 @@ export async function setItems({
     // If the item exists in Crystallize already
     item._exists = Boolean(item.id)
 
+    console.log('1')
     item.id = (await createOrUpdateItem(
       item,
       parentId || rootItemId,
       index + 1
     )) as string
 
+    console.log('2')
     finishedItems++
     onUpdate({
       progress: finishedItems / totalItems,
@@ -1778,6 +1800,7 @@ export async function setItems({
         })
       }
 
+      console.log('item.externalReference', item.externalReference)
       if (item.externalReference) {
         context.itemExternalReferenceToIDMap.set(item.externalReference, {
           itemId: item.id,
@@ -1899,6 +1922,9 @@ export async function setItems({
             .filter((s: any) => s.type === 'itemRelations')
             .map((s: any) => s.id)
 
+          console.log('item', item.name)
+          console.log('itemRelationIds', itemRelationIds)
+          console.log('componentsData', componentsData)
           // Get existing data for component
           if (itemRelationIds.length > 0) {
             const existingComponentsData =
@@ -1907,6 +1933,7 @@ export async function setItems({
               ]
             const componentData = existingComponentsData[componentId]
 
+            console.log('componentData', componentData)
             if (componentData) {
               if (shapeComponent.type === 'componentChoice') {
                 if (componentData.componentChoice?.componentId) {
@@ -1957,10 +1984,9 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds =
-                              await getItemIdsForItemRelation(
-                                jsonChunk[itemRelationId] as JSONItemRelation[]
-                              )
+                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
+                              jsonChunk[itemRelationId] as JSONItemRelation[]
+                            )
                           }
                         })
                       )
