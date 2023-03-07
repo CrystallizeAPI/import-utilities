@@ -103,7 +103,7 @@ function handlePropertiesTableSection(section: any) {
   }
 }
 
-function getItemById(items: JSONItem[], id: string) {
+function getItemById(items: JSONItem[], id: string): JSONItem | null {
   let found: JSONItem | null = null
 
   function search(item: JSONItem) {
@@ -486,21 +486,39 @@ export async function getAllCatalogueItems(
 
   const allCatalogueItems: JSONItem[] = []
 
-  function mergeWithExisting(itemForNewLang: JSONItem) {
+  function mergeWithExisting(itemForNewLang: JSONItem, parentId?: string) {
     const existingItem = getItemById(
       allCatalogueItems,
       itemForNewLang.id as string
     )
     if (!existingItem) {
-      console.log(
-        'Huh, weird. Could not find existing item with id',
-        itemForNewLang.id
-      )
+      // Add it to the parentId children array (if it has it)
+      let added = false
+      if (parentId) {
+        const parentItem = getItemById(allCatalogueItems, parentId)
+        if (parentItem) {
+          const parentItemAsFolder = parentItem as JSONFolder
+          if (!parentItemAsFolder.children) {
+            parentItemAsFolder.children = []
+          }
+          parentItemAsFolder.children.push(itemForNewLang)
+          added = true
+        }
+      }
+
+      if (!added) {
+        console.log(
+          'Huh, weird. Could not find existing item with id',
+          itemForNewLang.id
+        )
+      }
     } else {
       mergeInTranslations(existingItem, itemForNewLang)
     }
     if ('children' in itemForNewLang) {
-      itemForNewLang.children?.forEach(mergeWithExisting)
+      itemForNewLang.children?.forEach((c) =>
+        mergeWithExisting(c, itemForNewLang.id)
+      )
     }
   }
 
@@ -517,7 +535,9 @@ export async function getAllCatalogueItems(
        */
       removeUnwantedFieldsFromThing(itemsForLanguage, ['cataloguePath'])
 
-      itemsForLanguage.forEach(mergeWithExisting)
+      const rootItemId = await getTenantRootItemId(context)
+
+      itemsForLanguage.forEach((m) => mergeWithExisting(m, rootItemId))
     }
   }
 
