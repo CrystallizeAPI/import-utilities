@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.22.0
+
+### Minor Changes
+
+- bb8967f: Add option to keep Item's original ID in the spec
+
 ## 1.21.0
 
 ### Minor Changes
