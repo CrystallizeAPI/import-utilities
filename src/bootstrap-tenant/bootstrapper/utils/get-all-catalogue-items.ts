@@ -66,7 +66,7 @@ function handleSubscriptionPlan(plan: any): JSONProductSubscriptionPlan {
       period: pricing.period,
       unit: pricing.unit,
       price: handlePriceVariants(pricing.priceVariants),
-      meteredVariables: pricing.meteredVariables.map((m: any) => ({
+      meteredVariables: pricing?.meteredVariables?.map((m: any) => ({
         id: m.id,
         identifier: m.identifier,
         name: m.name,
@@ -127,6 +127,7 @@ export interface ItemsCreateSpecOptions {
   basePath?: string
   version?: 'published' | 'draft'
   setExternalReference?: boolean
+  keepOriginalIds?: boolean
 }
 
 type pathValidation = {
@@ -543,11 +544,13 @@ export async function getAllCatalogueItems(
 
   allCatalogueItems.sort(byTreePosition)
 
-  return removeUnwantedFieldsFromThing(allCatalogueItems, [
-    'id',
-    'treePosition',
-    translationFieldIdentifier,
-  ])
+  const fieldsToRemove = ['treePosition', translationFieldIdentifier]
+
+  if (!options?.keepOriginalIds) {
+    fieldsToRemove.push('id')
+  }
+
+  return removeUnwantedFieldsFromThing(allCatalogueItems, fieldsToRemove)
 }
 
 const GET_ITEM_CHILDREN = `
