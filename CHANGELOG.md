@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.21.0
+
+### Minor Changes
+
+- df92131: Added option to keep original Ids of Items in spec, vita
+  spec.config.items.keepOriginalIds
+
 ## 1.20.3
 
 ### Patch Changes
