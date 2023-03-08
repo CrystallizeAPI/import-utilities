@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.20.3
+
+### Patch Changes
+
+- a32f14e: Fix/ showing Item's published languages even if def lang not
+  published
+
 ## 1.20.2
 
 ### Patch Changes
