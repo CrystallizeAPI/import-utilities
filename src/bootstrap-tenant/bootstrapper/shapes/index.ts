@@ -75,6 +75,7 @@ const shouldDefer = (data: Shape): boolean => {
 async function handleShape(
   data: Shape,
   context: BootstrapperContext,
+  onUpdate: (t: AreaUpdate) => void,
   isDeferred = false
 ): Promise<Status> {
   const s = { ...data }
@@ -92,16 +93,28 @@ async function handleShape(
     )
 
     if (!result) {
+      onUpdate({
+        error: {
+          code: 'CANNOT_HANDLE_SHAPE',
+          message: 'API did not return any result',
+        },
+      })
       return Status.error
     }
     if (defer) {
       return Status.deferred
     }
     return Status.updated
-  } catch (err) {
+  } catch (err: any) {
     if (context.config.logLevel === 'verbose') {
       console.error(err)
     }
+    onUpdate({
+      error: {
+        code: 'CANNOT_HANDLE_SHAPE',
+        message: err.message,
+      },
+    })
     return Status.error
   }
 }
@@ -208,7 +221,7 @@ export async function setShapes({
       }
     }
 
-    const result = await handleShape(data, context)
+    const result = await handleShape(data, context, onUpdate)
     if (result === 'deferred') {
       deferredShapes.push(data)
     } else {
@@ -223,7 +236,7 @@ export async function setShapes({
 
   for (let i = 0; i < deferredShapes.length; i++) {
     const shape = deferredShapes[i]
-    const result = await handleShape(shape, context, true)
+    const result = await handleShape(shape, context, onUpdate, true)
     finished++
     onUpdate({
       progress: finished / spec.shapes.length,
