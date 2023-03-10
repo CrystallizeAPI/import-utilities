@@ -51,7 +51,7 @@ export const EVENT_NAMES = {
 }
 
 export type EVENT_NAMES_KEYS = keyof typeof EVENT_NAMES
-export type EVENT_NAMES_VALUES = typeof EVENT_NAMES[EVENT_NAMES_KEYS]
+export type EVENT_NAMES_VALUES = (typeof EVENT_NAMES)[EVENT_NAMES_KEYS]
 
 export interface AreaWarning {
   message: string
@@ -63,6 +63,7 @@ export interface AreaError {
   code:
     | 'UPLOAD_FAILED'
     | 'SHAPE_ID_MISSING'
+    | 'CANNOT_HANDLE_SHAPE'
     | 'CANNOT_HANDLE_ITEM'
     | 'CANNOT_HANDLE_PRODUCT'
     | 'CANNOT_HANDLE_ITEM_RELATION'
