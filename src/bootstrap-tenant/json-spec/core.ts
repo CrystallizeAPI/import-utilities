@@ -213,11 +213,11 @@ export type JSONStructuredTopic = {
 }
 export type JSONItemTopic = JSONStructuredTopic | string
 export interface JSONItemBase {
+  name: JSONStringTranslated
+  shape: string
   cataloguePath?: string
   externalReference?: string
   id?: string
-  name: JSONStringTranslated
-  shape: string
   components?: Record<string, JSONComponentContent | JSONComponentChoice> | null
   topics?: JSONItemTopic[]
   parentExternalReference?: string

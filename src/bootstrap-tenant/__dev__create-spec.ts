@@ -7,17 +7,17 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'dounot'
+  const tenantIdentifier = 'dounot-hkn'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
   const bootstrapper = new Bootstrapper()
-  // bootstrapper.env = 'dev'
+  bootstrapper.env = 'dev'
   // bootstrapper.env = 'prod'
 
   bootstrapper.setAccessToken(
-    process.env.CRYSTALLIZE_ACCESS_TOKEN_ID!,
-    process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
+    process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_ID!,
+    process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET!
   )
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
@@ -32,15 +32,18 @@ async function createSpec() {
 
   const timeStart = new Date()
   const spec = await bootstrapper.createSpec({
-    languages: true,
-    vatTypes: true,
-    priceVariants: true,
-    shapes: true,
-    topicMaps: true,
-    grids: true,
-    items: true,
-    stockLocations: true,
-    subscriptionPlans: true,
+    languages: false,
+    vatTypes: false,
+    priceVariants: false,
+    shapes: false,
+    topicMaps: false,
+    grids: false,
+    items: {
+      version: 'published',
+      includeUnpublishedFolders: true,
+    },
+    stockLocations: false,
+    subscriptionPlans: false,
     onUpdate: (areaUpdate) => {
       console.log(JSON.stringify(areaUpdate, null, 1))
     },
@@ -55,7 +58,7 @@ async function createSpec() {
 
   console.log(
     `✨ Spec created (${tenantIdentifier}.json). Duration: ${
-      (timeStart.getTime() - timeEnd.getTime()) / 1000
+      (timeEnd.getTime() - timeStart.getTime()) / 1000
     }s ✨`
   )
 }

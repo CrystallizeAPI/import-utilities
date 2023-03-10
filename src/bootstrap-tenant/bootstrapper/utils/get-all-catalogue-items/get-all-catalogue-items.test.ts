@@ -1,9 +1,9 @@
 import test from 'ava'
-import { JSONItem } from '../../json-spec'
+import { JSONItem } from '../../../json-spec'
 import {
   buildPathShouldBeIncludedValidator,
   getOnlyItemsWithPathStartingWith,
-} from './get-all-catalogue-items'
+} from '.'
 
 test('pathValidator should work with single level paths', (t) => {
   const validator = buildPathShouldBeIncludedValidator('/shop')
