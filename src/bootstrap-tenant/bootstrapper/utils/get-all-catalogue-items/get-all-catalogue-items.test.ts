@@ -3,7 +3,9 @@ import { JSONItem } from '../../../json-spec'
 import {
   buildPathShouldBeIncludedValidator,
   getOnlyItemsWithPathStartingWith,
-} from '.'
+  removeUnpublishedFolderFieldIndicator,
+  unpublishedFolderFieldIndicator,
+} from './utils'
 
 test('pathValidator should work with single level paths', (t) => {
   const validator = buildPathShouldBeIncludedValidator('/shop')
@@ -54,5 +56,27 @@ test('final filtering should work', (t) => {
   t.deepEqual(
     [firstShoe, secondShoe],
     getOnlyItemsWithPathStartingWith(basePath, allCatalogueItemsForLanguage)
+  )
+})
+
+test('removeUnpublishedFolderFieldIndicator', (t) => {
+  t.deepEqual(
+    removeUnpublishedFolderFieldIndicator([
+      {
+        name: {
+          en: unpublishedFolderFieldIndicator,
+          no: 'navn',
+        },
+        shape: '',
+      },
+    ]),
+    [
+      {
+        name: {
+          no: 'navn',
+        },
+        shape: '',
+      },
+    ]
   )
 })

@@ -40,7 +40,7 @@ async function createSpec() {
     grids: false,
     items: {
       version: 'published',
-      includeUnpublishedFolders: true,
+      includeDescendantsOfUnpublishedFolders: true,
     },
     stockLocations: false,
     subscriptionPlans: false,
