@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.22.1
+
+### Patch Changes
+
+- f46635a: Emit shape creation errors
+
 ## 1.22.0
 
 ### Minor Changes
