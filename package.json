@@ -1,6 +1,6 @@
 {
   "name": "@crystallize/import-utilities",
-  "version": "1.22.1",
+  "version": "1.23.0",
   "main": "dist/index.js",
   "author": "Crystallize <hello@crystallize.com>",
   "contributors": [

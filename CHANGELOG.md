@@ -1,5 +1,21 @@
 # @crystallize/import-utilities
 
+## 1.23.0
+
+### Minor Changes
+
+- 2eecefa: Certain internals in the items area are now running in parallel for
+  the spec creation. This increases the speed of spec creation of items with
+  roughly 40%.
+
+  This also introduces an internal load balancing mechanism, which is designed
+  to keep the request counts below the threshold of Crystallize APIs
+
+### Patch Changes
+
+- 5e70780: Bump import-export-sdk and schema deps
+- 5794af7: Update @crystallize/schema to 0.0.4
+
 ## 1.22.1
 
 ### Patch Changes
