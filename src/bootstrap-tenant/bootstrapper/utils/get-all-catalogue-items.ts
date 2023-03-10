@@ -277,16 +277,18 @@ export async function getAllCatalogueItems(
 
         const rawChilds = pageResponse.data?.tree?.getNode?.children || []
 
-        for (let i = 0; i < rawChilds.length; i++) {
-          const pathValid = pathShouldBeIncluded(rawChilds[i].path)
+        await Promise.all(
+          rawChilds.map(async (rawChild: any) => {
+            const pathValid = pathShouldBeIncluded(rawChild.path)
 
-          if (pathValid.descendants || pathValid.thisItem) {
-            const item = await getItem(rawChilds[i])
-            if (item) {
-              children.push(item)
+            if (pathValid.descendants || pathValid.thisItem) {
+              const item = await getItem(rawChild)
+              if (item) {
+                children.push(item)
+              }
             }
-          }
-        }
+          })
+        )
 
         return children.sort(byTreePosition)
       }
@@ -464,15 +466,17 @@ export async function getAllCatalogueItems(
       }
     }[] = rootItemsResponse.data?.tree?.getNode?.children || []
 
-    for (let i = 0; i < rootItems.length; i++) {
-      const pathValid = pathShouldBeIncluded(rootItems[i].path)
-      if (pathValid.descendants || pathValid.thisItem) {
-        const item = await getItem(rootItems[i])
-        if (item) {
-          allCatalogueItemsForLanguage.push(item)
+    await Promise.all(
+      rootItems.map(async (rootItem) => {
+        const pathValid = pathShouldBeIncluded(rootItem.path)
+        if (pathValid.descendants || pathValid.thisItem) {
+          const item = await getItem(rootItem)
+          if (item) {
+            allCatalogueItemsForLanguage.push(item)
+          }
         }
-      }
-    }
+      })
+    )
 
     // Filter out on the desired path in the end
     if (options?.basePath?.length) {
