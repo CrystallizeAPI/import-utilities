@@ -271,15 +271,6 @@ export class Bootstrapper extends EventEmitter {
      */
     await sleep(5)
 
-    if (this.PIMAPIManager && this.config.multilingual) {
-      /**
-       * Due to a potential race condition when operating on
-       * multiple languages on the same time, we need to limit
-       * the amount of workers to 1 for now
-       */
-      this.PIMAPIManager.MAX_WORKERS = 1
-    }
-
     const r = await this.context.callPIM({
       query: gql`
           {
@@ -608,6 +599,15 @@ export class Bootstrapper extends EventEmitter {
       await this.ensureTenantExists()
 
       await this.getTenantBasics()
+
+      if (this.PIMAPIManager && this.config.multilingual) {
+        /**
+         * Due to a potential race condition when operating on
+         * multiple languages on the same time, we need to limit
+         * the amount of workers to 1 for now
+         */
+        this.PIMAPIManager.useSingleWorker()
+      }
 
       // Store the config in the context for easy access
       this.context.config = this.config

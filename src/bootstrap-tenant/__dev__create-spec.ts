@@ -21,29 +21,31 @@ async function createSpec() {
   )
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
-  bootstrapper.config.multilingual = false
+  bootstrapper.config.multilingual = true
   // bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.on(EVENT_NAMES.ERROR, (error: BootstrapperError) => {
-    if (!error.willRetry) {
+    if (error.willRetry) {
       console.log(error)
     }
   })
 
+  const timeStart = new Date()
   const spec = await bootstrapper.createSpec({
-    languages: false,
-    vatTypes: false,
-    priceVariants: false,
+    languages: true,
+    vatTypes: true,
+    priceVariants: true,
     shapes: true,
-    topicMaps: false,
-    grids: false,
-    items: false,
-    stockLocations: false,
-    subscriptionPlans: false,
+    topicMaps: true,
+    grids: true,
+    items: true,
+    stockLocations: true,
+    subscriptionPlans: true,
     onUpdate: (areaUpdate) => {
       console.log(JSON.stringify(areaUpdate, null, 1))
     },
   })
+  const timeEnd = new Date()
 
   writeFileSync(
     `./json-spec/${tenantIdentifier}.json`,
@@ -51,7 +53,11 @@ async function createSpec() {
     'utf-8'
   )
 
-  console.log(`✨ Spec created (${tenantIdentifier}.json) ✨`)
+  console.log(
+    `✨ Spec created (${tenantIdentifier}.json). Duration: ${
+      (timeStart.getTime() - timeEnd.getTime()) / 1000
+    }s ✨`
+  )
 }
 
 createSpec()
