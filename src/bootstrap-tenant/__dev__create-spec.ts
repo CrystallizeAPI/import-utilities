@@ -7,7 +7,7 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'dounot-hkn'
+  const tenantIdentifier = 'dounot'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
