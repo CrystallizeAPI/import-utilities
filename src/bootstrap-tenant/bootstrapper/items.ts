@@ -400,9 +400,17 @@ async function createComponentsInput(
   ) {
     switch (componentDefinition?.type) {
       case 'boolean': {
+        const b = component as boolean
+
+        if (!b) {
+          return {
+            boolean: null,
+          }
+        }
+
         const inp: BooleanComponentContentInput = {
           boolean: {
-            value: component as boolean,
+            value: b,
           },
         }
         return inp
