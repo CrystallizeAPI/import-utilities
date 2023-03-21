@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.24.1
+
+### Patch Changes
+
+- dbe4a4c: Fix error when boolean content is null in a chunk
+
 ## 1.24.0
 
 ### Minor Changes
