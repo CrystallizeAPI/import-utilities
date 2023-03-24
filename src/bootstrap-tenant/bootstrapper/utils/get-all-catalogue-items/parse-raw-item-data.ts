@@ -29,7 +29,7 @@ export function parseRawItemData({
     treePosition: item.tree.position,
     externalReference: item.externalReference,
     shape: item.shape.identifier,
-    components: handleComponents(item.components),
+    components: handleComponents(item.components, item.id),
     topics: item.topics,
   }
 
@@ -68,7 +68,7 @@ export function parseRawItemData({
           handleImage(i, `${v.sku}.images.${index}`)
         ),
         subscriptionPlans: v.subscriptionPlans?.map(handleSubscriptionPlan),
-        components: handleComponents(v.components),
+        components: handleComponents(v.components, v.sku),
       }
 
       return variant
@@ -113,19 +113,22 @@ export function parseRawItemData({
     }
   }
 
-  function handleComponents(cmps?: any): Record<string, JSONComponentContent> {
+  function handleComponents(
+    cmps: any,
+    translationIdBase: string
+  ): Record<string, JSONComponentContent> {
     const components: Record<string, any> = {}
 
-    function getComponentContent(c: any, id: string): any {
+    function getComponentContent(c: any, translationId: string): any {
       if (!c) {
         return null
       }
       switch (c.type) {
         case 'singleLine': {
-          return tr(c.content?.text, id)
+          return tr(c.content?.text, translationId)
         }
         case 'richText': {
-          return tr(c.content, id)
+          return tr(c.content, translationId)
         }
         case 'itemRelations': {
           return c.content?.items?.map((item: any) => {
@@ -150,17 +153,17 @@ export function parseRawItemData({
         }
         case 'images': {
           return c.content?.images?.map((i: any, index: number) =>
-            handleImage(i, `${id}.${index}`)
+            handleImage(i, `${translationId}.${index}`)
           )
         }
         case 'videos': {
           return c.content?.videos?.map((v: any, index: number) =>
-            handleVideo(v, `${id}.${index}`)
+            handleVideo(v, `${translationId}.${index}`)
           )
         }
         case 'files': {
           return c.content?.files?.map((v: any, index: number) =>
-            handleFile(v, `${id}.${index}`)
+            handleFile(v, `${translationId}.${index}`)
           )
         }
         case 'datetime': {
@@ -168,7 +171,7 @@ export function parseRawItemData({
         }
         case 'paragraphCollection': {
           return c.content?.paragraphs?.map((v: any, index: number) =>
-            handleParagraph(v, `${id}.${index}`)
+            handleParagraph(v, `${translationId}.${index}`)
           )
         }
         case 'propertiesTable': {
@@ -184,7 +187,7 @@ export function parseRawItemData({
           }
 
           return {
-            [sel.id]: getComponentContent(sel, `${id}.${sel.id}`),
+            [sel.id]: getComponentContent(sel, `${translationId}.${sel.id}`),
           }
         }
         case 'contentChunk': {
@@ -196,7 +199,7 @@ export function parseRawItemData({
               catalogueChunk.forEach((component) => {
                 chunk[component.id] = getComponentContent(
                   component,
-                  `${id}.${chunkIndex}.${component.id}`
+                  `${translationId}.${chunkIndex}.${component.id}`
                 )
               })
 
@@ -212,13 +215,15 @@ export function parseRawItemData({
       }
     }
 
-    cmps?.forEach((c: any) => {
-      const content = getComponentContent(c, `${item.id}.${c.id}`)
+    if (cmps) {
+      cmps.forEach((c: any) => {
+        const content = getComponentContent(c, `${translationIdBase}.${c.id}`)
 
-      if (content) {
-        components[c.id] = content
-      }
-    })
+        if (content) {
+          components[c.id] = content
+        }
+      })
+    }
 
     return components
   }
