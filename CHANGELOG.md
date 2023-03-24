@@ -1,5 +1,12 @@
 # @crystallize/import-utilities
 
+## 1.24.2
+
+### Patch Changes
+
+- 81563ab: Fixed an issue where product variant component data would not be
+  exported for all languages.
+
 ## 1.24.1
 
 ### Patch Changes
