@@ -51,7 +51,6 @@ async function downloadFile(fileURL: string) {
   // Videos
   if (fileURL.endsWith('.m3u8')) {
     const canConvert = await ffmpegAvailable
-    console.log('canConvert: ', canConvert)
     if (!canConvert) {
       throw new Error('No support for video conversion, install ffmpeg')
     }
@@ -163,7 +162,6 @@ export async function remoteFileUpload({
     )
   }
 
-  console.log('creating signature', fileName, contentType)
   // Create the signature required to do an upload
   const signedUploadResponse = await context.callPIM({
     variables: {
@@ -195,7 +193,6 @@ export async function remoteFileUpload({
   })
 
   const result = signedUploadResponse.data?.fileUpload
-  console.log('got the result signature', result)
 
   if (!signedUploadResponse || !result) {
     throw new Error('Could not get presigned request fields')
@@ -208,14 +205,15 @@ export async function remoteFileUpload({
   fields.forEach((field: any) => formData.append(field.name, field.value))
   formData.append('file', file)
 
-  console.log('upploading the file')
+  context.config.logLevel === 'verbose' && console.log('Upploading a file')
   // Upload the file
   const uploadResponse = await fetch(url, {
     method: 'post',
     body: formData,
   })
 
-  console.log('upload Response', uploadResponse)
+  context.config.logLevel === 'verbose' &&
+    console.log('Upload Response:', uploadResponse)
 
   if (uploadResponse.status !== 201) {
     throw new Error('Cannot upload ' + fileUrl)

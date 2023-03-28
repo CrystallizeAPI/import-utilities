@@ -12,7 +12,6 @@ import {
   GridRelationsComponentContentInput,
   ImageComponentContentInput,
   ImagesComponentContentInput,
-  ItemRelationsComponentContentInput,
   ItemType,
   KeyValuePairInput,
   LocationComponentContentInput,
@@ -626,17 +625,17 @@ async function createComponentsInput(
           (c: any) => c.id === selectedComponentId
         )
 
-        // if (selectedComponentDefinition?.type == 'itemRelations') {
-        //   return {
-        //     componentChoice: null,
-        //   }
-        // }
-
         const content = await createComponentInput(
           selectedComponentDefinition,
           choice[selectedComponentId],
           context
         )
+
+        if (selectedComponentDefinition.type === 'itemRelations') {
+          return {
+            componentChoice: null,
+          }
+        }
 
         const inp: ComponentChoiceComponentContentInput = {
           componentChoice: {
@@ -647,12 +646,16 @@ async function createComponentsInput(
         return inp
       }
       case 'itemRelations': {
-        const inp: ItemRelationsComponentContentInput = {
-          itemRelations: {
-            itemIds: [], // Will be populated later
-          },
-        }
-        return inp
+        // Due to API constrains if the itemRelations min is 1, itemIds: [] will be invalid
+        // So we return null and don't pass it to the updates array
+        // const inp: ItemRelationsComponentContentInput = {
+        //   itemRelations: {
+        //     itemIds: [], // Will be populated later
+        //   },
+        // }
+        // return inp
+
+        return undefined
       }
       case 'gridRelations': {
         const gridsComponent = component as JSONGrid[]
@@ -707,7 +710,7 @@ async function createComponentsInput(
                 chunk[componentId],
                 context
               )
-              if (content) {
+              if (content && !content.itemRelations) {
                 newChunk.push({
                   componentId,
                   ...content,
@@ -891,7 +894,7 @@ function subscriptionPlanPrincingJsonToInput(
       jsonPrice: pricing.price,
     }),
     meteredVariables:
-      pricing?.meteredVariables && pricing?.meteredVariables.length > 0
+      pricing?.meteredVariables?.length > 0
         ? pricing.meteredVariables.map(handleMeteredVariable)
         : undefined,
   }
@@ -1238,21 +1241,10 @@ export async function setItems({
       if (item._componentsData?.[language]) {
         Object.keys(item._componentsData[language]).forEach(
           (componentId: string) => {
-            const componentContent: any =
+            const componentContent: ComponentContentInput =
               item._componentsData?.[language][componentId]
 
-            if (
-              // @ts-ignore
-              componentContent?.componentChoice?.itemRelations ||
-              // @ts-ignore
-              componentContent?.itemRelations ||
-              // @ts-ignore
-              componentContent?.contentChunk?.chunks?.some((object: any) =>
-                object?.some((childObject: any) => childObject.itemRelations)
-              )
-            ) {
-              return
-            } else {
+            componentContent &&
               updates.push(() =>
                 context.callPIM(
                   buildUpdateItemComponentQueryAndVariables({
@@ -1265,7 +1257,6 @@ export async function setItems({
                   })
                 )
               )
-            }
           }
         )
       }
@@ -1289,20 +1280,8 @@ export async function setItems({
               (componentId: string) => {
                 const componentContent: ComponentContentInput =
                   variant._componentsData?.[language][componentId]
-                if (
-                  // @ts-ignore
-                  componentContent?.componentChoice?.itemRelations ||
-                  // @ts-ignore
-                  componentContent?.itemRelations ||
-                  // @ts-ignore
-                  componentContent?.contentChunk?.chunks?.some((object: any) =>
-                    object?.some(
-                      (childObject: any) => childObject.itemRelations
-                    )
-                  )
-                ) {
-                  return
-                } else {
+
+                componentContent &&
                   updates.push(() =>
                     context.callPIM(
                       buildUpdateVariantComponentQueryAndVariables({
@@ -1316,7 +1295,6 @@ export async function setItems({
                       })
                     )
                   )
-                }
               }
             )
           }
@@ -1418,24 +1396,12 @@ export async function setItems({
             (componentId: string) => {
               const componentContent: ComponentContentInput =
                 jsonVariant._componentsData?.[language][componentId]
-              if (
-                // @ts-ignore
-                componentContent?.componentChoice?.itemRelations ||
-                // @ts-ignore
-                componentContent?.itemRelations ||
-                // @ts-ignore
-                componentContent?.contentChunk?.chunks?.some((object: any) =>
-                  object?.some((childObject: any) => childObject.itemRelations)
-                )
-              ) {
-                return
-              } else {
-                variant?.components || (variant.components = [])
+              variant?.components || (variant.components = [])
+              componentContent &&
                 variant?.components?.push({
                   componentId,
                   ...componentContent,
                 })
-              }
             }
           )
         } else {
