@@ -882,7 +882,10 @@ function subscriptionPlanPrincingJsonToInput(
     priceVariants: handleJsonPriceToPriceInput({
       jsonPrice: pricing.price,
     }),
-    meteredVariables: pricing.meteredVariables.map(handleMeteredVariable),
+    meteredVariables:
+      pricing?.meteredVariables && pricing?.meteredVariables.length > 0
+        ? pricing.meteredVariables.map(handleMeteredVariable)
+        : undefined,
   }
 }
 
@@ -1226,19 +1229,21 @@ export async function setItems({
        * each component. This will ensure that no
        * component data will be lost during the update
        */
-      console.log('a')
       if (item._componentsData?.[language]) {
         Object.keys(item._componentsData[language]).forEach(
           (componentId: string) => {
             const componentContent: any =
               item._componentsData?.[language][componentId]
 
-            // Due to the chance that itemRelations has min 1 item, we need to skip all initial itemRelations component
-            // passing as API will throw an error in case we pass itemIds: [].
-            // The last step will come back to itemRelations and fill in the correct ids.
             if (
+              // @ts-ignore
               componentContent?.componentChoice?.itemRelations ||
-              componentContent?.itemRelations
+              // @ts-ignore
+              componentContent?.itemRelations ||
+              // @ts-ignore
+              componentContent?.contentChunk?.chunks?.some((object: any) =>
+                object?.some((childObject: any) => childObject.itemRelations)
+              )
             ) {
               return
             } else {
@@ -1258,7 +1263,6 @@ export async function setItems({
           }
         )
       }
-      console.log('d')
       if ((item as JSONProduct).variants?.length) {
         const product = item as JSONProduct
         for (const variant of product.variants) {
@@ -1279,20 +1283,34 @@ export async function setItems({
               (componentId: string) => {
                 const componentContent: ComponentContentInput =
                   variant._componentsData?.[language][componentId]
-
-                updates.push(() =>
-                  context.callPIM(
-                    buildUpdateVariantComponentQueryAndVariables({
-                      productId: itemId,
-                      sku: variant.sku,
-                      language,
-                      input: {
-                        componentId,
-                        ...componentContent,
-                      },
-                    })
+                if (
+                  // @ts-ignore
+                  componentContent?.componentChoice?.itemRelations ||
+                  // @ts-ignore
+                  componentContent?.itemRelations ||
+                  // @ts-ignore
+                  componentContent?.contentChunk?.chunks?.some((object: any) =>
+                    object?.some(
+                      (childObject: any) => childObject.itemRelations
+                    )
                   )
-                )
+                ) {
+                  return
+                } else {
+                  updates.push(() =>
+                    context.callPIM(
+                      buildUpdateVariantComponentQueryAndVariables({
+                        productId: itemId,
+                        sku: variant.sku,
+                        language,
+                        input: {
+                          componentId,
+                          ...componentContent,
+                        },
+                      })
+                    )
+                  )
+                }
               }
             )
           }
@@ -1303,7 +1321,6 @@ export async function setItems({
       for (let i = 0; i < updates.length; i++) {
         responses.push(await updates[i]())
       }
-      console.log('e')
       context.emit(EVENT_NAMES.ITEM_UPDATED, {
         id: itemId,
         name: getTranslation(item.name, language),
@@ -1314,7 +1331,6 @@ export async function setItems({
         },
       } as ItemEventPayloadCreatedOrUpdated)
 
-      console.log('e')
       return responses
     }
 
@@ -1378,7 +1394,7 @@ export async function setItems({
         }),
         ...(attributes && { attributes }),
       }
-
+      delete variant.components
       if (shape.variantComponents) {
         jsonVariant._componentsData = {}
         if (jsonVariant.components) {
@@ -1391,73 +1407,90 @@ export async function setItems({
             onUpdate,
           })
         }
+        if (jsonVariant._componentsData?.[language]) {
+          Object.keys(jsonVariant._componentsData?.[language]).forEach(
+            (componentId: string) => {
+              const componentContent: ComponentContentInput =
+                jsonVariant._componentsData?.[language][componentId]
+              if (
+                // @ts-ignore
+                componentContent?.componentChoice?.itemRelations ||
+                // @ts-ignore
+                componentContent?.itemRelations ||
+                // @ts-ignore
+                componentContent?.contentChunk?.chunks?.some((object: any) =>
+                  object?.some((childObject: any) => childObject.itemRelations)
+                )
+              ) {
+                return
+              } else {
+                variant?.components || (variant.components = [])
+                variant?.components?.push({
+                  componentId,
+                  ...componentContent,
+                })
+              }
+            }
+          )
+        } else {
+          delete variant.components
+        }
 
-        variant.components = jsonVariant.components
-          ? Object.keys(jsonVariant._componentsData?.[language] || {}).map(
-              (componentId: string) => ({
-                // @ts-expect-error jsonVariant._componentsData will be set
-                ...jsonVariant._componentsData[language][componentId],
-                componentId,
-              })
-            )
-          : undefined
-      } else {
-        delete variant.components
-      }
-
-      if (jsonVariant.subscriptionPlans) {
-        variant.subscriptionPlans = jsonVariant.subscriptionPlans.map((sP) => {
-          const meteredVariables = getSubscriptionPlanMeteredVariables({
-            planIdentifier: sP.identifier,
-            context,
-          })
-
-          return {
-            identifier: sP.identifier,
-            periods: sP.periods.map((p) => {
-              const id = getSubscriptionPlanPeriodId({
+        if (jsonVariant.subscriptionPlans) {
+          variant.subscriptionPlans = jsonVariant.subscriptionPlans.map(
+            (sP) => {
+              const meteredVariables = getSubscriptionPlanMeteredVariables({
                 planIdentifier: sP.identifier,
-                periodName: p.name,
                 context,
               })
 
-              if (!id) {
-                throw new Error('Plan period id is null')
-              }
-
               return {
-                id,
-                ...(p.initial && {
-                  initial: subscriptionPlanPrincingJsonToInput(
-                    p.initial,
-                    meteredVariables
-                  ),
+                identifier: sP.identifier,
+                periods: sP.periods.map((p) => {
+                  const id = getSubscriptionPlanPeriodId({
+                    planIdentifier: sP.identifier,
+                    periodName: p.name,
+                    context,
+                  })
+
+                  if (!id) {
+                    throw new Error('Plan period id is null')
+                  }
+
+                  return {
+                    id,
+                    ...(p.initial && {
+                      initial: subscriptionPlanPrincingJsonToInput(
+                        p.initial,
+                        meteredVariables
+                      ),
+                    }),
+                    recurring: subscriptionPlanPrincingJsonToInput(
+                      p.recurring,
+                      meteredVariables
+                    ),
+                  }
                 }),
-                recurring: subscriptionPlanPrincingJsonToInput(
-                  p.recurring,
-                  meteredVariables
-                ),
               }
-            }),
-          }
-        })
-      }
+            }
+          )
+        }
 
-      if (jsonVariant.images) {
-        variant.images = await createImagesInput({
-          images: jsonVariant.images,
-          language,
-          context,
-          onUpdate,
-        })
-      }
+        if (jsonVariant.images) {
+          variant.images = await createImagesInput({
+            images: jsonVariant.images,
+            language,
+            context,
+            onUpdate,
+          })
+        }
 
-      // This causes an internal error at the API right now. Setting the value to an empty
-      // array has the same outcome as setting it to null
-      if (variant.images === null) {
-        variant.images = []
+        // This causes an internal error at the API right now. Setting the value to an empty
+        // array has the same outcome as setting it to null
+        if (variant.images === null) {
+          variant.images = []
+        }
       }
-
       return variant
     }
 
@@ -1772,14 +1805,12 @@ export async function setItems({
     // If the item exists in Crystallize already
     item._exists = Boolean(item.id)
 
-    console.log('1')
     item.id = (await createOrUpdateItem(
       item,
       parentId || rootItemId,
       index + 1
     )) as string
 
-    console.log('2')
     finishedItems++
     onUpdate({
       progress: finishedItems / totalItems,
@@ -1800,7 +1831,6 @@ export async function setItems({
         })
       }
 
-      console.log('item.externalReference', item.externalReference)
       if (item.externalReference) {
         context.itemExternalReferenceToIDMap.set(item.externalReference, {
           itemId: item.id,
@@ -1921,10 +1951,6 @@ export async function setItems({
           const itemRelationIds = (choices || components)
             .filter((s: any) => s.type === 'itemRelations')
             .map((s: any) => s.id)
-
-          console.log('item', item.name)
-          console.log('itemRelationIds', itemRelationIds)
-          console.log('componentsData', componentsData)
           // Get existing data for component
           if (itemRelationIds.length > 0) {
             const existingComponentsData =
@@ -1933,7 +1959,6 @@ export async function setItems({
               ]
             const componentData = existingComponentsData[componentId]
 
-            console.log('componentData', componentData)
             if (componentData) {
               if (shapeComponent.type === 'componentChoice') {
                 if (componentData.componentChoice?.componentId) {
