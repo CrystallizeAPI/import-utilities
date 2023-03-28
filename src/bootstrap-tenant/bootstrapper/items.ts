@@ -1069,8 +1069,6 @@ export async function setItems({
     // Create the object to store the component data in
     item._componentsData = {}
 
-    // console.log('item', JSON.stringify(item, null, 2))
-
     if (!item.shape) {
       onUpdate({
         error: {
