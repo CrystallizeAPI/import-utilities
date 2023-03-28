@@ -4,9 +4,9 @@ specifiers:
   '@ava/typescript': ^1.1.1
   '@changesets/cli': ^2.25.2
   '@crystallize/content-transformer': ^9.1.2
-  '@crystallize/import-export-sdk': ^0.0.1-9
+  '@crystallize/import-export-sdk': ^0.0.1
   '@crystallize/js-api-client': ^1.3.1
-  '@crystallize/schema': ^0.0.1-14
+  '@crystallize/schema': ^0.0.4
   '@graphql-codegen/cli': 2.16.4
   '@graphql-codegen/introspection': ^2.2.3
   '@graphql-codegen/typescript': 2.8.7
@@ -46,9 +46,9 @@ specifiers:
 
 dependencies:
   '@crystallize/content-transformer': 9.2.0
-  '@crystallize/import-export-sdk': 0.0.1-9
+  '@crystallize/import-export-sdk': 0.0.1
   '@crystallize/js-api-client': 1.6.0
-  '@crystallize/schema': 0.0.1-14
+  '@crystallize/schema': 0.0.4
   dotenv: 10.0.0
   download: 8.0.0
   duration: 0.2.2
@@ -913,11 +913,11 @@ packages:
       parse5: 6.0.1
     dev: false
 
-  /@crystallize/import-export-sdk/0.0.1-9:
-    resolution: {integrity: sha512-aXUlIhm1eMHxORCgyCnushrs6oupwDbADo4mBMEZVTc8jweTJDPfWWTKXZW9CyM6pRUBNhmZnYJO3VMXChfrrQ==}
+  /@crystallize/import-export-sdk/0.0.1:
+    resolution: {integrity: sha512-pwPhcH7GncTEJG1WQ05uSBFdljhBY+90Q3W/YIdTp/w0gwH88pDbDjYJdxO/MrQ4xZRmB71wEw2qla9TTbQbbA==}
     dependencies:
       '@crystallize/js-api-client': 1.6.0
-      '@crystallize/schema': 0.0.1-14
+      '@crystallize/schema': 0.0.4
     transitivePeerDependencies:
       - encoding
     dev: false
@@ -935,8 +935,8 @@ packages:
       - encoding
     dev: false
 
-  /@crystallize/schema/0.0.1-14:
-    resolution: {integrity: sha512-9UB6xMlTN6vX9xXToWdWxPP+UhvkqQYL0vyMmImC0Ddqf4i62RbJiSSOvL+vuBWjkYVRk7FjXLzb1iz8YySa6A==}
+  /@crystallize/schema/0.0.4:
+    resolution: {integrity: sha512-FsrGDh0Fh6dAh/UUWQGvf3IDnJ8j1pkx6uPAhOTGnAD8dZA7DXVNMxSh4K6/C3/6BJrKoiH2qfWPdczBifx1hw==}
     dependencies:
       zod: 3.20.2
     dev: false

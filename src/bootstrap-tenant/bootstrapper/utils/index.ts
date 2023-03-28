@@ -63,6 +63,7 @@ export interface AreaError {
   code:
     | 'UPLOAD_FAILED'
     | 'SHAPE_ID_MISSING'
+    | 'CANNOT_HANDLE_SHAPE'
     | 'CANNOT_HANDLE_ITEM'
     | 'CANNOT_HANDLE_PRODUCT'
     | 'CANNOT_HANDLE_ITEM_RELATION'

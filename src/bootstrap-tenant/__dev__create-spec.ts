@@ -12,40 +12,43 @@ async function createSpec() {
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
   const bootstrapper = new Bootstrapper()
-  // bootstrapper.env = 'dev'
+  bootstrapper.env = 'dev'
   // bootstrapper.env = 'prod'
 
   bootstrapper.setAccessToken(
-    process.env.CRYSTALLIZE_ACCESS_TOKEN_ID!,
-    process.env.CRYSTALLIZE_ACCESS_TOKEN_SECRET!
+    process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_ID!,
+    process.env.DEV_CRYSTALLIZE_ACCESS_TOKEN_SECRET!
   )
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
-  bootstrapper.config.multilingual = false
+  bootstrapper.config.multilingual = true
   // bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.on(EVENT_NAMES.ERROR, (error: BootstrapperError) => {
-    if (!error.willRetry) {
+    if (error.willRetry) {
       console.log(error)
     }
   })
 
+  const timeStart = new Date()
   const spec = await bootstrapper.createSpec({
-    languages: true,
-    vatTypes: true,
-    priceVariants: true,
-    shapes: true,
-    topicMaps: true,
-    grids: true,
+    languages: false,
+    vatTypes: false,
+    priceVariants: false,
+    shapes: false,
+    topicMaps: false,
+    grids: false,
     items: {
       version: 'published',
+      includeDescendantsOfUnpublishedFolders: true,
     },
-    stockLocations: true,
-    subscriptionPlans: true,
+    stockLocations: false,
+    subscriptionPlans: false,
     onUpdate: (areaUpdate) => {
       console.log(JSON.stringify(areaUpdate, null, 1))
     },
   })
+  const timeEnd = new Date()
 
   writeFileSync(
     `./json-spec/${tenantIdentifier}-published.json`,
@@ -53,7 +56,11 @@ async function createSpec() {
     'utf-8'
   )
 
-  console.log(`✨ Spec created (${tenantIdentifier}.json) ✨`)
+  console.log(
+    `✨ Spec created (${tenantIdentifier}.json). Duration: ${
+      (timeEnd.getTime() - timeStart.getTime()) / 1000
+    }s ✨`
+  )
 }
 
 createSpec()

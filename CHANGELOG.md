@@ -1,5 +1,93 @@
 # @crystallize/import-utilities
 
+## 1.24.2
+
+### Patch Changes
+
+- 81563ab: Fixed an issue where product variant component data would not be
+  exported for all languages.
+
+## 1.24.1
+
+### Patch Changes
+
+- dbe4a4c: Fix error when boolean content is null in a chunk
+
+## 1.24.0
+
+### Minor Changes
+
+- 2bc9e95: `includeDescendantsOfUnpublishedFolders` option for items is
+  introduced to give you the possibility to include published items that are
+  located under an published folders for `bootstrapper.createSpec()`.
+
+  This is only useful if you're targeting the `published` version of items.
+  Example:
+
+  ```
+  const spec = await bootstrapper.createSpec({
+      ...
+      items: {
+        version: 'published',
+        includeDescendantsOfUnpublishedFolders: true,
+      }
+    })
+  ```
+
+  **Beware** Unpublished folders will appear with an invalid shape identifier in
+  the export, which makes it unsuitable for import. The real value here is if
+  you combine this with another `createSpec` where you target the `current` or
+  `draft` version of items, which together gives the correct image of the
+  current item tree state.
+
+## 1.23.0
+
+### Minor Changes
+
+- 2eecefa: Certain internals in the items area are now running in parallel for
+  the spec creation. This increases the speed of spec creation of items with
+  roughly 40%.
+
+  This also introduces an internal load balancing mechanism, which is designed
+  to keep the request counts below the threshold of Crystallize APIs
+
+### Patch Changes
+
+- 5e70780: Bump import-export-sdk and schema deps
+- 5794af7: Update @crystallize/schema to 0.0.4
+
+## 1.22.1
+
+### Patch Changes
+
+- f46635a: Emit shape creation errors
+
+## 1.22.0
+
+### Minor Changes
+
+- bb8967f: Add option to keep Item's original ID in the spec
+
+## 1.21.0
+
+### Minor Changes
+
+- df92131: Added option to keep original Ids of Items in spec, vita
+  spec.config.items.keepOriginalIds
+
+## 1.20.3
+
+### Patch Changes
+
+- a32f14e: Fix/ showing Item's published languages even if def lang not
+  published
+
+## 1.20.2
+
+### Patch Changes
+
+- a6c58f3: Fix copying files with special characters
+
 ## 1.20.1
 
 ### Patch Changes

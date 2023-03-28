@@ -31,19 +31,23 @@ interface QueuedRequest {
 
 type errorNotifierFn = (args: BootstrapperError) => void
 
-type RequestStatus = 'ok' | 'error'
+type RequestStatus = {
+  date: Date
+  status: 'ok' | 'error'
+}
 
 export class ApiManager extends KillableWorker {
   queue: QueuedRequest[] = []
   url = ''
-  currentWorkers = 2
+  currentWorkers = 1
   errorNotifier: errorNotifierFn
   logLevel: LogLevel = 'silent'
   CRYSTALLIZE_ACCESS_TOKEN_ID = ''
   CRYSTALLIZE_ACCESS_TOKEN_SECRET = ''
   CRYSTALLIZE_STATIC_AUTH_TOKEN = ''
   CRYSTALLIZE_SESSION_ID = ''
-  MAX_WORKERS = 20
+
+  #MAX_WORKERS = 12
 
   constructor(url: string) {
     super()
@@ -72,7 +76,7 @@ export class ApiManager extends KillableWorker {
     })
   }
 
-  backoffOnRateLimit() {
+  private backoffOnRateLimit() {
     // Mark all in-flight requests as being part of a rate limited group
     this.queue
       .filter((q) => q.working)
@@ -87,46 +91,94 @@ export class ApiManager extends KillableWorker {
     }
   }
 
+  private rateLimitLookbackWindowInMinutes = 5
+  private rateLimitAvgReqPrSeconds = 15
+
   /**
-   * Adjust the maximum amount of workers up and down depending on
-   * the amount of errors coming from the API
+   * Determine if there is a chance for this client alone
+   * to go over the rate limit. Since the API rate limiter
+   * is IP based, there might be other clients affecting the
+   * rate limit, so this measure here is not enough on its own.
    */
-  lastRequestsStatuses: RequestStatus[] = []
-  recordRequestStatus = (status: RequestStatus) => {
-    this.lastRequestsStatuses.unshift(status)
+  private clientOverRateLimit() {
+    if (this.lastRequestsStatuses.length === 0) {
+      return false
+    }
+
+    const now = new Date()
+
+    // Get the oldest request status (will always be the last one in the array)
+    const oldestRequestRecord =
+      this.lastRequestsStatuses[this.lastRequestsStatuses.length - 1]
+
+    const secondsInWindow =
+      (now.getTime() - oldestRequestRecord.date.getTime()) / 1000
+    const reqsInWindow =
+      this.lastRequestsStatuses.length +
+      this.queue.filter((i) => i.working).length
+    const avgReqsPrSecond = reqsInWindow / secondsInWindow
+
+    // Let's stay well beyond the api rate limit
+    const localRateLimitReducer = 1
+
+    const overRateLimit =
+      secondsInWindow > 20 &&
+      avgReqsPrSecond >= this.rateLimitAvgReqPrSeconds - localRateLimitReducer
+
+    return overRateLimit
+  }
+
+  /**
+   * Keep a record of the last requests, so that we can adjust
+   * the number of requests to the API. Factors that can change
+   * the number of current workers are:
+   * - Network congestion between this client and the API
+   * - Crystallize API rate limiting
+   * - Local client errors
+   * - Crystallize API errors
+   */
+  private lastRequestsStatuses: RequestStatus[] = []
+  private recordRequestStatus = (status: RequestStatus['status']) => {
+    const now = new Date()
+    this.lastRequestsStatuses.unshift({ date: now, status })
 
     const errors = this.lastRequestsStatuses.filter(
-      (r) => r === 'error'
+      (r) => r.status === 'error'
     )?.length
     if (errors > 5) {
       this.currentWorkers--
-      this.lastRequestsStatuses.length = 0
     } else if (errors === 0) {
       this.currentWorkers++
-      this.lastRequestsStatuses.length = 0
     }
 
     if (this.currentWorkers < 1) {
       this.currentWorkers = 1
-    } else if (this.currentWorkers > this.MAX_WORKERS) {
-      this.currentWorkers = this.MAX_WORKERS
+    } else if (this.currentWorkers > this.#MAX_WORKERS) {
+      this.currentWorkers = this.#MAX_WORKERS
     }
 
-    // Keep the last 20 request statuses
-    if (this.lastRequestsStatuses.length > 20) {
-      this.lastRequestsStatuses.length = 20
-    }
+    // Keep the request statuses for rate limit lookback window
+    const rateLimitLookbackWindowStart = new Date(now.getTime())
+    rateLimitLookbackWindowStart.setMinutes(
+      now.getMinutes() - this.rateLimitLookbackWindowInMinutes
+    )
+
+    this.lastRequestsStatuses = this.lastRequestsStatuses.filter(
+      (s) => s.date > rateLimitLookbackWindowStart
+    )
+  }
+
+  useSingleWorker() {
+    this.#MAX_WORKERS = 1
+    this.currentWorkers = 1
   }
 
   async work() {
-    if (this.isKilled) {
+    if (this.isKilled || this.isPaused || this.queue.length === 0) {
       return
     }
-
-    // Ensure that we have at most max 20 workers. Done here too since this value
-    // is not private and can (and sometimes should) be set from the outside.
-    if (this.MAX_WORKERS > 20) {
-      this.MAX_WORKERS = 20
+    if (this.clientOverRateLimit()) {
+      return
     }
 
     const currentWorkers = this.queue.filter((q) => q.working).length
@@ -199,13 +251,6 @@ export class ApiManager extends KillableWorker {
 
       // Rate limited
       if (e.response?.status === 429) {
-        if (!item.props.suppressErrors) {
-          this.errorNotifier({
-            willRetry: true,
-            error: `Oh dear, you've been temporarily rate limited.`,
-          })
-        }
-
         /**
          * Invoke the backoff mechanism, unless the request is already
          * part of a rate limted group, in which case the backoff has
@@ -213,7 +258,23 @@ export class ApiManager extends KillableWorker {
          */
         if (!item.partOfRateLimitedGroup) {
           this.backoffOnRateLimit()
+
+          if (!item.props.suppressErrors) {
+            this.errorNotifier({
+              willRetry: true,
+              error: `Oh dear, you've been temporarily rate limited. Resuming operations in a short while.`,
+            })
+          }
+
+          // Pause for 30 seconds, then clear the partOfRateLimitedGroup flag
+          this.pauseFor(30000, () => {
+            this.queue.forEach((item) => {
+              item.partOfRateLimitedGroup = false
+            })
+          })
         }
+
+        this.recordRequestStatus('error')
 
         item.working = false
         return
