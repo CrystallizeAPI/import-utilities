@@ -1,5 +1,15 @@
 # @crystallize/import-utilities
 
+## 1.24.3
+
+### Patch Changes
+
+- e530a8c: Added types for useItemRelationsComponent extended
+  component-content.input
+- 24e5633: Added a fix for sanitization of not adding item relations components
+  when found alone, in chunks and choice in items.ts for documents, products,
+  and variant items.
+
 ## 1.24.2
 
 ### Patch Changes
