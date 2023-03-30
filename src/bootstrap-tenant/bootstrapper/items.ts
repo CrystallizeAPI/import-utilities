@@ -12,6 +12,7 @@ import {
   GridRelationsComponentContentInput,
   ImageComponentContentInput,
   ImagesComponentContentInput,
+  ItemRelationsComponentContentInput,
   ItemType,
   KeyValuePairInput,
   LocationComponentContentInput,
@@ -96,6 +97,7 @@ import {
   ContentChunkComponentConfig,
 } from '@crystallize/schema/shape'
 import { buildUpdateVariantComponentQueryAndVariables } from '../../graphql/build-update-variant-component-mutation'
+import { hasItemRelationsComponent } from './utils/has-item-relations-component'
 
 export interface Props {
   spec: JsonSpec | null
@@ -631,12 +633,6 @@ async function createComponentsInput(
           context
         )
 
-        if (selectedComponentDefinition.type === 'itemRelations') {
-          return {
-            componentChoice: null,
-          }
-        }
-
         const inp: ComponentChoiceComponentContentInput = {
           componentChoice: {
             componentId: selectedComponentId,
@@ -646,14 +642,12 @@ async function createComponentsInput(
         return inp
       }
       case 'itemRelations': {
-        // Due to API constrains if the itemRelations min is 1, itemIds: [] will be invalid
-        // So we return null and don't pass it to the updates array
-        // const inp: ItemRelationsComponentContentInput = {
-        //   itemRelations: {
-        //     itemIds: [], // Will be populated later
-        //   },
-        // }
-        // return inp
+        const inp: ItemRelationsComponentContentInput = {
+          itemRelations: {
+            itemIds: [], // Will be populated later
+          },
+        }
+        return inp
 
         return undefined
       }
@@ -710,7 +704,7 @@ async function createComponentsInput(
                 chunk[componentId],
                 context
               )
-              if (content && !content.itemRelations) {
+              if (content) {
                 newChunk.push({
                   componentId,
                   ...content,
@@ -1245,6 +1239,7 @@ export async function setItems({
               item._componentsData?.[language][componentId]
 
             componentContent &&
+              !hasItemRelationsComponent(componentContent) &&
               updates.push(() =>
                 context.callPIM(
                   buildUpdateItemComponentQueryAndVariables({
@@ -1282,6 +1277,7 @@ export async function setItems({
                   variant._componentsData?.[language][componentId]
 
                 componentContent &&
+                  !hasItemRelationsComponent(componentContent) &&
                   updates.push(() =>
                     context.callPIM(
                       buildUpdateVariantComponentQueryAndVariables({
@@ -1398,6 +1394,7 @@ export async function setItems({
                 jsonVariant._componentsData?.[language][componentId]
               variant?.components || (variant.components = [])
               componentContent &&
+                !hasItemRelationsComponent(componentContent) &&
                 variant?.components?.push({
                   componentId,
                   ...componentContent,
