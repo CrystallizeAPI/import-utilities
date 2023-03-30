@@ -97,6 +97,7 @@ import {
   ContentChunkComponentConfig,
 } from '@crystallize/schema/shape'
 import { buildUpdateVariantComponentQueryAndVariables } from '../../graphql/build-update-variant-component-mutation'
+import { hasItemRelationsComponent } from './utils/has-item-relations-component'
 
 export interface Props {
   spec: JsonSpec | null
@@ -286,7 +287,7 @@ async function createVideosInput(
         onUpdate({
           error: {
             code: 'UPLOAD_FAILED',
-            message: `Could not upload video "${JSON.stringify(video)}"`,
+            message: `${e} - Could not upload video "${JSON.stringify(video)}"`,
           },
         })
       }
@@ -647,6 +648,8 @@ async function createComponentsInput(
           },
         }
         return inp
+
+        return undefined
       }
       case 'gridRelations': {
         const gridsComponent = component as JSONGrid[]
@@ -884,7 +887,10 @@ function subscriptionPlanPrincingJsonToInput(
     priceVariants: handleJsonPriceToPriceInput({
       jsonPrice: pricing.price,
     }),
-    meteredVariables: pricing.meteredVariables.map(handleMeteredVariable),
+    meteredVariables:
+      pricing?.meteredVariables?.length > 0
+        ? pricing.meteredVariables.map(handleMeteredVariable)
+        : undefined,
   }
 }
 
@@ -1232,22 +1238,23 @@ export async function setItems({
             const componentContent: ComponentContentInput =
               item._componentsData?.[language][componentId]
 
-            updates.push(() =>
-              context.callPIM(
-                buildUpdateItemComponentQueryAndVariables({
-                  itemId,
-                  language,
-                  input: {
-                    componentId,
-                    ...componentContent,
-                  },
-                })
+            componentContent &&
+              !hasItemRelationsComponent(componentContent) &&
+              updates.push(() =>
+                context.callPIM(
+                  buildUpdateItemComponentQueryAndVariables({
+                    itemId,
+                    language,
+                    input: {
+                      componentId,
+                      ...componentContent,
+                    },
+                  })
+                )
               )
-            )
           }
         )
       }
-
       if ((item as JSONProduct).variants?.length) {
         const product = item as JSONProduct
         for (const variant of product.variants) {
@@ -1269,19 +1276,21 @@ export async function setItems({
                 const componentContent: ComponentContentInput =
                   variant._componentsData?.[language][componentId]
 
-                updates.push(() =>
-                  context.callPIM(
-                    buildUpdateVariantComponentQueryAndVariables({
-                      productId: itemId,
-                      sku: variant.sku,
-                      language,
-                      input: {
-                        componentId,
-                        ...componentContent,
-                      },
-                    })
+                componentContent &&
+                  !hasItemRelationsComponent(componentContent) &&
+                  updates.push(() =>
+                    context.callPIM(
+                      buildUpdateVariantComponentQueryAndVariables({
+                        productId: itemId,
+                        sku: variant.sku,
+                        language,
+                        input: {
+                          componentId,
+                          ...componentContent,
+                        },
+                      })
+                    )
                   )
-                )
               }
             )
           }
@@ -1292,7 +1301,6 @@ export async function setItems({
       for (let i = 0; i < updates.length; i++) {
         responses.push(await updates[i]())
       }
-
       context.emit(EVENT_NAMES.ITEM_UPDATED, {
         id: itemId,
         name: getTranslation(item.name, language),
@@ -1366,7 +1374,7 @@ export async function setItems({
         }),
         ...(attributes && { attributes }),
       }
-
+      delete variant.components
       if (shape.variantComponents) {
         jsonVariant._componentsData = {}
         if (jsonVariant.components) {
@@ -1379,73 +1387,79 @@ export async function setItems({
             onUpdate,
           })
         }
+        if (jsonVariant._componentsData?.[language]) {
+          Object.keys(jsonVariant._componentsData?.[language]).forEach(
+            (componentId: string) => {
+              const componentContent: ComponentContentInput =
+                jsonVariant._componentsData?.[language][componentId]
+              variant?.components || (variant.components = [])
+              componentContent &&
+                !hasItemRelationsComponent(componentContent) &&
+                variant?.components?.push({
+                  componentId,
+                  ...componentContent,
+                })
+            }
+          )
+        } else {
+          delete variant.components
+        }
 
-        variant.components = jsonVariant.components
-          ? Object.keys(jsonVariant._componentsData?.[language] || {}).map(
-              (componentId: string) => ({
-                // @ts-expect-error jsonVariant._componentsData will be set
-                ...jsonVariant._componentsData[language][componentId],
-                componentId,
-              })
-            )
-          : undefined
-      } else {
-        delete variant.components
-      }
-
-      if (jsonVariant.subscriptionPlans) {
-        variant.subscriptionPlans = jsonVariant.subscriptionPlans.map((sP) => {
-          const meteredVariables = getSubscriptionPlanMeteredVariables({
-            planIdentifier: sP.identifier,
-            context,
-          })
-
-          return {
-            identifier: sP.identifier,
-            periods: sP.periods.map((p) => {
-              const id = getSubscriptionPlanPeriodId({
+        if (jsonVariant.subscriptionPlans) {
+          variant.subscriptionPlans = jsonVariant.subscriptionPlans.map(
+            (sP) => {
+              const meteredVariables = getSubscriptionPlanMeteredVariables({
                 planIdentifier: sP.identifier,
-                periodName: p.name,
                 context,
               })
 
-              if (!id) {
-                throw new Error('Plan period id is null')
-              }
-
               return {
-                id,
-                ...(p.initial && {
-                  initial: subscriptionPlanPrincingJsonToInput(
-                    p.initial,
-                    meteredVariables
-                  ),
+                identifier: sP.identifier,
+                periods: sP.periods.map((p) => {
+                  const id = getSubscriptionPlanPeriodId({
+                    planIdentifier: sP.identifier,
+                    periodName: p.name,
+                    context,
+                  })
+
+                  if (!id) {
+                    throw new Error('Plan period id is null')
+                  }
+
+                  return {
+                    id,
+                    ...(p.initial && {
+                      initial: subscriptionPlanPrincingJsonToInput(
+                        p.initial,
+                        meteredVariables
+                      ),
+                    }),
+                    recurring: subscriptionPlanPrincingJsonToInput(
+                      p.recurring,
+                      meteredVariables
+                    ),
+                  }
                 }),
-                recurring: subscriptionPlanPrincingJsonToInput(
-                  p.recurring,
-                  meteredVariables
-                ),
               }
-            }),
-          }
-        })
-      }
+            }
+          )
+        }
 
-      if (jsonVariant.images) {
-        variant.images = await createImagesInput({
-          images: jsonVariant.images,
-          language,
-          context,
-          onUpdate,
-        })
-      }
+        if (jsonVariant.images) {
+          variant.images = await createImagesInput({
+            images: jsonVariant.images,
+            language,
+            context,
+            onUpdate,
+          })
+        }
 
-      // This causes an internal error at the API right now. Setting the value to an empty
-      // array has the same outcome as setting it to null
-      if (variant.images === null) {
-        variant.images = []
+        // This causes an internal error at the API right now. Setting the value to an empty
+        // array has the same outcome as setting it to null
+        if (variant.images === null) {
+          variant.images = []
+        }
       }
-
       return variant
     }
 
@@ -1906,7 +1920,6 @@ export async function setItems({
           const itemRelationIds = (choices || components)
             .filter((s: any) => s.type === 'itemRelations')
             .map((s: any) => s.id)
-
           // Get existing data for component
           if (itemRelationIds.length > 0) {
             const existingComponentsData =
@@ -1965,10 +1978,9 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds =
-                              await getItemIdsForItemRelation(
-                                jsonChunk[itemRelationId] as JSONItemRelation[]
-                              )
+                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
+                              jsonChunk[itemRelationId] as JSONItemRelation[]
+                            )
                           }
                         })
                       )

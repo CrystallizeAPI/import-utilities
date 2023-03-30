@@ -52,7 +52,7 @@ async function downloadFile(fileURL: string) {
   if (fileURL.endsWith('.m3u8')) {
     const canConvert = await ffmpegAvailable
     if (!canConvert) {
-      throw new Error('No support for video conversion')
+      throw new Error('No support for video conversion, install ffmpeg')
     }
 
     const tmpFile = `./tmp-${uuid()}.mp4`
@@ -205,11 +205,15 @@ export async function remoteFileUpload({
   fields.forEach((field: any) => formData.append(field.name, field.value))
   formData.append('file', file)
 
+  context.config.logLevel === 'verbose' && console.log('Upploading a file')
   // Upload the file
   const uploadResponse = await fetch(url, {
     method: 'post',
     body: formData,
   })
+
+  context.config.logLevel === 'verbose' &&
+    console.log('Upload Response:', uploadResponse)
 
   if (uploadResponse.status !== 201) {
     throw new Error('Cannot upload ' + fileUrl)
