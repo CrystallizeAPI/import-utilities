@@ -31,6 +31,7 @@
     "dev:bootstrapper": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
     "dev:bootstrapper:inspect": "nodemon --watch \"src/**\" --ext \"ts,json\" --exec \"node --inspect-brk -r ts-node/register src/bootstrap-tenant/__dev__bootstrap.ts\"",
     "generate-graphql-types": "graphql-codegen --require dotenv/config --config codegen.yml",
+    "api-schema:legacy": "graphql-codegen --require dotenv/config --config ./src/grab-schema.ts",
     "changeset": "changeset",
     "publish-packages": "changeset publish",
     "lint": "eslint src"

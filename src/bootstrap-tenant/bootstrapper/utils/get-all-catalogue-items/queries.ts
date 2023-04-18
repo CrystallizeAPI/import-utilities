@@ -229,6 +229,11 @@ fragment itemRelationsContent on ItemRelationsContent {
     }
     externalReference
   }
+  productVariants {
+    sku
+    externalReference
+  }
+
 }
 
 fragment gridRelationsContent on GridRelationsContent {

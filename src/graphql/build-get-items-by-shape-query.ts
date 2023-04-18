@@ -33,6 +33,9 @@ const basicComponentContent = [
     items: {
       id: true,
     },
+    productVariations: {
+      sku: true,
+    },
   },
   {
     __typeName: 'LocationContent',

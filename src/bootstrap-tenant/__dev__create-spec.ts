@@ -7,12 +7,12 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'dounot'
+  const tenantIdentifier = 'import-utils-rel-sku'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
   const bootstrapper = new Bootstrapper()
-  bootstrapper.env = 'dev'
+  // bootstrapper.env = 'dev'
   // bootstrapper.env = 'prod'
 
   bootstrapper.setAccessToken(
@@ -21,7 +21,7 @@ async function createSpec() {
   )
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
-  bootstrapper.config.multilingual = true
+  // bootstrapper.config.multilingual = true
   // bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.on(EVENT_NAMES.ERROR, (error: BootstrapperError) => {
@@ -32,16 +32,13 @@ async function createSpec() {
 
   const timeStart = new Date()
   const spec = await bootstrapper.createSpec({
-    languages: false,
-    vatTypes: false,
-    priceVariants: false,
-    shapes: false,
+    languages: true,
+    vatTypes: true,
+    priceVariants: true,
+    shapes: true,
     topicMaps: false,
     grids: false,
-    items: {
-      version: 'published',
-      includeDescendantsOfUnpublishedFolders: true,
-    },
+    items: true,
     stockLocations: false,
     subscriptionPlans: false,
     onUpdate: (areaUpdate) => {

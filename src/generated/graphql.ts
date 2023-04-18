@@ -1217,6 +1217,17 @@ export type FilesComponentConfigInput = {
   min?: InputMaybe<Scalars['Int']>
 }
 
+export type FocalPoint = {
+  __typename?: 'FocalPoint'
+  x: Scalars['Float']
+  y: Scalars['Float']
+}
+
+export type FocalPointInput = {
+  x: Scalars['Float']
+  y: Scalars['Float']
+}
+
 export type Folder = Item & {
   __typename?: 'Folder'
   components?: Maybe<Array<Component>>
@@ -1505,6 +1516,7 @@ export type Image = {
   __typename?: 'Image'
   altText?: Maybe<Scalars['String']>
   caption?: Maybe<RichTextContent>
+  focalPoint?: Maybe<FocalPoint>
   height?: Maybe<Scalars['Int']>
   key: Scalars['String']
   meta?: Maybe<Array<KeyValuePair>>
@@ -1543,6 +1555,7 @@ export type ImageFilterInput = {
 export type ImageInput = {
   altText?: InputMaybe<Scalars['String']>
   caption?: InputMaybe<RichTextContentInput>
+  focalPoint?: InputMaybe<FocalPointInput>
   key: Scalars['String']
   meta?: InputMaybe<Array<KeyValuePairInput>>
   mimeType?: InputMaybe<Scalars['String']>
@@ -1790,15 +1803,25 @@ export type ItemQueriesGetManyArgs = {
 export type ItemRelationsComponentConfig = {
   __typename?: 'ItemRelationsComponentConfig'
   acceptedShapeIdentifiers?: Maybe<Array<Scalars['String']>>
+  /** @deprecated max has been deprecated in favor of maxItems */
   max?: Maybe<Scalars['Int']>
+  maxItems?: Maybe<Scalars['Int']>
+  maxSkus?: Maybe<Scalars['Int']>
+  /** @deprecated min has been deprecated in favor of minItems */
   min?: Maybe<Scalars['Int']>
+  minItems?: Maybe<Scalars['Int']>
+  minSkus?: Maybe<Scalars['Int']>
   quickSelect?: Maybe<ItemRelationsComponentQuickSelectConfig>
 }
 
 export type ItemRelationsComponentConfigInput = {
   acceptedShapeIdentifiers?: InputMaybe<Array<Scalars['String']>>
   max?: InputMaybe<Scalars['Int']>
+  maxItems?: InputMaybe<Scalars['Int']>
+  maxSkus?: InputMaybe<Scalars['Int']>
   min?: InputMaybe<Scalars['Int']>
+  minItems?: InputMaybe<Scalars['Int']>
+  minSkus?: InputMaybe<Scalars['Int']>
   quickSelect?: InputMaybe<ItemRelationsComponentQuickSelectConfigInput>
 }
 
@@ -1825,10 +1848,12 @@ export type ItemRelationsComponentQuickSelectFolderConfigInput = {
 export type ItemRelationsContent = {
   __typename?: 'ItemRelationsContent'
   items?: Maybe<Array<Item>>
+  productVariants?: Maybe<Array<ProductVariant>>
 }
 
 export type ItemRelationsContentInput = {
   itemIds?: InputMaybe<Array<Scalars['ID']>>
+  skus?: InputMaybe<Array<Scalars['String']>>
 }
 
 export enum ItemSortField {
@@ -4162,6 +4187,7 @@ export type TenantMutationsCreateArgs = {
 
 export type TenantMutationsCreateCopyTaskArgs = {
   desiredIdentifier: Scalars['String']
+  desiredName?: InputMaybe<Scalars['String']>
   exclude?: InputMaybe<Array<TenantCopyExcludeableTypes>>
   overwrite?: InputMaybe<Scalars['Boolean']>
   tenantId: Scalars['ID']
@@ -4543,6 +4569,7 @@ export type UpdateGridInput = {
 export type UpdateImageInput = {
   altText?: InputMaybe<Scalars['String']>
   caption?: InputMaybe<RichTextContentInput>
+  focalPoint?: InputMaybe<FocalPointInput>
   meta?: InputMaybe<Array<KeyValuePairInput>>
 }
 
@@ -4856,6 +4883,7 @@ export type UserQueriesGetArgs = {
 }
 
 export enum UserRole {
+  Custom = 'custom',
   TenantAdmin = 'tenantAdmin',
   User = 'user',
 }
@@ -4872,7 +4900,7 @@ export enum UserRoles {
 
 export type UserTenantRole = {
   __typename?: 'UserTenantRole'
-  role?: Maybe<UserRole>
+  role: Scalars['String']
   tenant: Tenant
   tenantId: Scalars['ID']
   user: User
@@ -5336,6 +5364,8 @@ export type ResolversTypes = {
   FilesComponentConfig: ResolverTypeWrapper<FilesComponentConfig>
   FilesComponentConfigInput: FilesComponentConfigInput
   Float: ResolverTypeWrapper<Scalars['Float']>
+  FocalPoint: ResolverTypeWrapper<FocalPoint>
+  FocalPointInput: FocalPointInput
   Folder: ResolverTypeWrapper<Folder>
   FolderMutations: ResolverTypeWrapper<FolderMutations>
   FolderQueries: ResolverTypeWrapper<FolderQueries>
@@ -5890,6 +5920,8 @@ export type ResolversParentTypes = {
   FilesComponentConfig: FilesComponentConfig
   FilesComponentConfigInput: FilesComponentConfigInput
   Float: Scalars['Float']
+  FocalPoint: FocalPoint
+  FocalPointInput: FocalPointInput
   Folder: Folder
   FolderMutations: FolderMutations
   FolderQueries: FolderQueries
@@ -7106,6 +7138,15 @@ export type FilesComponentConfigResolvers<
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
 }
 
+export type FocalPointResolvers<
+  ContextType = any,
+  ParentType extends ResolversParentTypes['FocalPoint'] = ResolversParentTypes['FocalPoint']
+> = {
+  x?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  y?: Resolver<ResolversTypes['Float'], ParentType, ContextType>
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
+}
+
 export type FolderResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['Folder'] = ResolversParentTypes['Folder']
@@ -7466,6 +7507,11 @@ export type ImageResolvers<
   altText?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>
   caption?: Resolver<
     Maybe<ResolversTypes['RichTextContent']>,
+    ParentType,
+    ContextType
+  >
+  focalPoint?: Resolver<
+    Maybe<ResolversTypes['FocalPoint']>,
     ParentType,
     ContextType
   >
@@ -7838,7 +7884,11 @@ export type ItemRelationsComponentConfigResolvers<
     ContextType
   >
   max?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  maxItems?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  maxSkus?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   min?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  minItems?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
+  minSkus?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>
   quickSelect?: Resolver<
     Maybe<ResolversTypes['ItemRelationsComponentQuickSelectConfig']>,
     ParentType,
@@ -7875,6 +7925,11 @@ export type ItemRelationsContentResolvers<
 > = {
   items?: Resolver<
     Maybe<Array<ResolversTypes['Item']>>,
+    ParentType,
+    ContextType
+  >
+  productVariants?: Resolver<
+    Maybe<Array<ResolversTypes['ProductVariant']>>,
     ParentType,
     ContextType
   >
@@ -11758,7 +11813,7 @@ export type UserTenantRoleResolvers<
   ContextType = any,
   ParentType extends ResolversParentTypes['UserTenantRole'] = ResolversParentTypes['UserTenantRole']
 > = {
-  role?: Resolver<Maybe<ResolversTypes['UserRole']>, ParentType, ContextType>
+  role?: Resolver<ResolversTypes['String'], ParentType, ContextType>
   tenant?: Resolver<ResolversTypes['Tenant'], ParentType, ContextType>
   tenantId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>
@@ -12096,6 +12151,7 @@ export type Resolvers<ContextType = any> = {
   FileSize?: FileSizeResolvers<ContextType>
   FileUploadMutations?: FileUploadMutationsResolvers<ContextType>
   FilesComponentConfig?: FilesComponentConfigResolvers<ContextType>
+  FocalPoint?: FocalPointResolvers<ContextType>
   Folder?: FolderResolvers<ContextType>
   FolderMutations?: FolderMutationsResolvers<ContextType>
   FolderQueries?: FolderQueriesResolvers<ContextType>

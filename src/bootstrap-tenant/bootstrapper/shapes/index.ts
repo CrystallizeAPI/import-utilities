@@ -30,6 +30,7 @@ export async function getExistingShapesForSpec(
     },
     { includeComponents: true }
   )
+  console.log('query', query)
   const existingShapes: Shape[] = await context.client
     ?.pimApi(query, variables)
     .then((res) => res?.shape?.getMany)
@@ -39,7 +40,7 @@ export async function getExistingShapesForSpec(
     if (shape.type !== 'product') {
       delete shape.variantComponents
     }
-
+    console.log('shape', shape.components)
     return shape
   })
 }
