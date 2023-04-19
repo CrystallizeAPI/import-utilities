@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.24.4
+
+### Patch Changes
+
+- 65a058c: Fixed package links in readme
+
 ## 1.24.3
 
 ### Patch Changes
