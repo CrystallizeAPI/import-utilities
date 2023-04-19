@@ -120,7 +120,7 @@ You can create the tenant specification manually, with the help of the
 `JSONSpec` type exported from the package:
 
 ```typescript
-import { JSONSpec } from '@crystallize/import-utilites'
+import { JSONSpec } from '@crystallize/import-utilities'
 
 const mySpec: JSONSpec = {
   languages: [{}],
@@ -137,7 +137,7 @@ You can create the tenant specification automatically, with the help of the
 `Bootstrapper` class exported from the package:
 
 ```typescript
-import { Bootstrapper } from '@crystallize/import-utilites'
+import { Bootstrapper } from '@crystallize/import-utilities'
 
 const mySpec: JSONSpec = await bootstrapper.createSpec({
   ...
@@ -157,7 +157,7 @@ You can bootstrap a tenant using a specification with the help of the
 `Bootstrapper` class exported from the package:
 
 ```typescript
-import { Bootstrapper, JSONSpec } from '@crystallize/import-utilites'
+import { Bootstrapper, JSONSpec } from '@crystallize/import-utilities'
 
 bootstrapper.start()
 ```
