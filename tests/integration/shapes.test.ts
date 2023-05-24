@@ -14,7 +14,7 @@ import {
 } from '@crystallize/js-api-client'
 import { fail } from 'assert'
 import { getManyShapesQuery } from '@crystallize/import-export-sdk/shape'
-import { Shape, ShapeComponent } from '@crystallize/schema/shape'
+import { Shape, ShapeComponent } from '@crystallize/schema'
 import { validateObject } from './_utils'
 import { BootstrapperError } from '../../src/bootstrap-tenant/bootstrapper'
 

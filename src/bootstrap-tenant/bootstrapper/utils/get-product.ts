@@ -1,6 +1,7 @@
 import { BootstrapperContext } from '.'
 import { ProductVariant } from '../../../generated/graphql'
 
+// @todo: this type might be wrong!
 type ExistingProduct = {
   id: string
   vatType: {

@@ -7,7 +7,7 @@ import { BootstrapperError } from './bootstrapper'
 import { Bootstrapper, EVENT_NAMES } from './index'
 
 async function createSpec() {
-  const tenantIdentifier = 'import-utils-rel-sku'
+  const tenantIdentifier = 'frntr'
 
   console.log(`✨ Creating spec for ${tenantIdentifier} ✨`)
 
@@ -21,8 +21,8 @@ async function createSpec() {
   )
 
   bootstrapper.setTenantIdentifier(tenantIdentifier)
-  // bootstrapper.config.multilingual = true
-  // bootstrapper.config.logLevel = 'verbose'
+  bootstrapper.config.multilingual = true
+  bootstrapper.config.logLevel = 'verbose'
 
   bootstrapper.on(EVENT_NAMES.ERROR, (error: BootstrapperError) => {
     if (error.willRetry) {

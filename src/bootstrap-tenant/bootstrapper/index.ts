@@ -26,7 +26,7 @@ import { setPriceVariants, getExistingPriceVariants } from './price-variants'
 import { setLanguages, getTenantSettings } from './languages'
 import { setVatTypes, getExistingVatTypes } from './vat-types'
 import { getAllTopicsForSpec, setTopics } from './topics'
-import { setItems } from './items'
+import { setItems } from './items/setItems'
 import {
   getAllCatalogueItems,
   ItemsCreateSpecOptions,
@@ -44,6 +44,7 @@ import { setCustomers } from './customers'
 import { createClient, createMassCallClient } from '@crystallize/js-api-client'
 import { getExistingOrders } from './utils/get-all-orders'
 import { getExistingCustomers } from './utils/get-all-customers'
+import { debug } from 'console'
 
 export interface ICreateSpec {
   language?: string
@@ -547,6 +548,7 @@ export class Bootstrapper extends EventEmitter {
           this.context,
           itemOptions
         )
+
         spec.items.forEach((i: any) => {
           function handleLevel(a: any) {
             if (a && typeof a === 'object') {
@@ -619,7 +621,6 @@ export class Bootstrapper extends EventEmitter {
           "config.shapeComponents = 'replace' is not supported at the moment, falling back to the default option 'amend'"
         )
       }
-
       await this.setLanguages()
       await this.setPriceVariants()
       await this.setStockLocations()

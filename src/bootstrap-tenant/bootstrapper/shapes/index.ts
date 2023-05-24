@@ -4,11 +4,11 @@ import {
   ItemRelationsComponentConfig,
   Shape,
   ShapeComponent,
-} from '@crystallize/schema/shape'
+} from '@crystallize/schema'
 import {
   shape as shapeOperation,
   getManyShapesQuery,
-} from '@crystallize/import-export-sdk/shape'
+} from '@crystallize/import-export-sdk'
 import { MassClientInterface } from '@crystallize/js-api-client'
 
 import { JsonSpec } from '../../json-spec'
@@ -30,7 +30,6 @@ export async function getExistingShapesForSpec(
     },
     { includeComponents: true }
   )
-  console.log('query', query)
   const existingShapes: Shape[] = await context.client
     ?.pimApi(query, variables)
     .then((res) => res?.shape?.getMany)
@@ -40,7 +39,6 @@ export async function getExistingShapesForSpec(
     if (shape.type !== 'product') {
       delete shape.variantComponents
     }
-    console.log('shape', shape.components)
     return shape
   })
 }

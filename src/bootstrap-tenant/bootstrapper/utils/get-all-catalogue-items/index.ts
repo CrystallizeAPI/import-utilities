@@ -20,6 +20,7 @@ import {
   removeUnpublishedFolderFieldIndicator,
   unpublishedFolderFieldIndicator,
 } from './utils'
+import { waitForDebugger } from 'inspector'
 
 export type ItemsCreateSpecOptions = {
   basePath?: string
@@ -38,7 +39,6 @@ export async function getAllCatalogueItems(
   const languages = context.config.multilingual
     ? context.languages.map((l) => l.code)
     : [lng]
-
   const pathShouldBeIncluded = buildPathShouldBeIncludedValidator(
     options?.basePath
   )
@@ -71,9 +71,7 @@ export async function getAllCatalogueItems(
           id,
         },
       })
-
       let parsedItem: JSONItem | null = null
-
       const rawCatalogueData: JSONItem | null = response.data?.item?.get
       if (rawCatalogueData) {
         // Fallback when name is not set for draft
@@ -83,7 +81,6 @@ export async function getAllCatalogueItems(
 
         parsedItem = parseRawItemData({ item: rawCatalogueData, options, tr })
       }
-
       const children = await getItemChildren({ itemId: id })
       if (children.length > 0) {
         if (parsedItem) {
@@ -113,7 +110,7 @@ export async function getAllCatalogueItems(
           parsedItem = unpublishedFolder
         }
       }
-
+      waitForDebugger
       return parsedItem
     }
 
@@ -216,7 +213,6 @@ export async function getAllCatalogueItems(
   for (let i = 0; i < languages.length; i++) {
     const language = languages[i]
     const itemsForLanguage = await handleLanguage(language)
-
     if (allCatalogueItems.length === 0) {
       allCatalogueItems.push(...itemsForLanguage)
     } else {

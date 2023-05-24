@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 import { MassClientInterface } from '@crystallize/js-api-client'
-import { Shape } from '@crystallize/schema/shape'
+import { Shape } from '@crystallize/schema'
 import { SubscriptionPlan } from '../../../generated/graphql'
 import {
   JSONLanguage,

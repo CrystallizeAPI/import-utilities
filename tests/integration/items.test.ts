@@ -20,7 +20,7 @@ import {
   createMassCallClient,
 } from '@crystallize/js-api-client'
 import { fail } from 'assert'
-import { Shape } from '@crystallize/schema/shape'
+import { Shape } from '@crystallize/schema'
 import { validateObject } from './_utils'
 import { BootstrapperError } from '../../src/bootstrap-tenant/bootstrapper'
 

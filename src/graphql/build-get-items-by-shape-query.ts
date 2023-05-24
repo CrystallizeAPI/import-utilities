@@ -33,7 +33,7 @@ const basicComponentContent = [
     items: {
       id: true,
     },
-    productVariations: {
+    productVariants: {
       sku: true,
     },
   },
