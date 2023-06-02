@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 import { MassClientInterface } from '@crystallize/js-api-client'
-import { Shape } from '@crystallize/schema/shape'
+import { Shape } from '@crystallize/schema'
 import { SubscriptionPlan } from '../../../generated/graphql'
 import {
   JSONLanguage,
@@ -51,7 +51,7 @@ export const EVENT_NAMES = {
 }
 
 export type EVENT_NAMES_KEYS = keyof typeof EVENT_NAMES
-export type EVENT_NAMES_VALUES = typeof EVENT_NAMES[EVENT_NAMES_KEYS]
+export type EVENT_NAMES_VALUES = (typeof EVENT_NAMES)[EVENT_NAMES_KEYS]
 
 export interface AreaWarning {
   message: string

@@ -1,11 +1,8 @@
 import 'dotenv/config'
 import test from 'ava'
 import { v4 } from 'uuid'
-import {
-  deleteTenantMutation,
-  tenant,
-} from '@crystallize/import-export-sdk/tenant'
-import { Tenant } from '@crystallize/schema/tenant'
+import { deleteTenantMutation, tenant } from '@crystallize/import-export-sdk'
+import { Tenant } from '@crystallize/schema'
 import {
   Bootstrapper,
   EVENT_NAMES,
@@ -20,7 +17,7 @@ import {
   createMassCallClient,
 } from '@crystallize/js-api-client'
 import { fail } from 'assert'
-import { Shape } from '@crystallize/schema/shape'
+import { Shape } from '@crystallize/schema'
 import { validateObject } from './_utils'
 import { BootstrapperError } from '../../src/bootstrap-tenant/bootstrapper'
 

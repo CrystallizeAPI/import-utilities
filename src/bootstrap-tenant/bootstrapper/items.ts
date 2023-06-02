@@ -1,4 +1,4 @@
-import { Shape, ShapeComponent } from '@crystallize/schema/shape'
+import { Shape, ShapeComponent } from '@crystallize/schema'
 import gql from 'graphql-tag'
 // @ts-expect-error no types for this
 import fromHTML from '@crystallize/content-transformer/fromHTML'
@@ -95,7 +95,7 @@ import { getTopicIds } from './utils/get-topic-id'
 import {
   ComponentChoiceComponentConfig,
   ContentChunkComponentConfig,
-} from '@crystallize/schema/shape'
+} from '@crystallize/schema'
 import { buildUpdateVariantComponentQueryAndVariables } from '../../graphql/build-update-variant-component-mutation'
 import { hasItemRelationsComponent } from './utils/has-item-relations-component'
 
@@ -1978,9 +1978,10 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
-                              jsonChunk[itemRelationId] as JSONItemRelation[]
-                            )
+                            ].itemRelations.itemIds =
+                              await getItemIdsForItemRelation(
+                                jsonChunk[itemRelationId] as JSONItemRelation[]
+                              )
                           }
                         })
                       )

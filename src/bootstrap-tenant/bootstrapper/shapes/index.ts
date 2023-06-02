@@ -4,11 +4,11 @@ import {
   ItemRelationsComponentConfig,
   Shape,
   ShapeComponent,
-} from '@crystallize/schema/shape'
+} from '@crystallize/schema'
 import {
   shape as shapeOperation,
   getManyShapesQuery,
-} from '@crystallize/import-export-sdk/shape'
+} from '@crystallize/import-export-sdk'
 import { MassClientInterface } from '@crystallize/js-api-client'
 
 import { JsonSpec } from '../../json-spec'
