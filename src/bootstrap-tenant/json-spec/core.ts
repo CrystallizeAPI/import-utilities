@@ -9,7 +9,7 @@ import {
   Shape,
   ShapeComponent,
   ShapeComponentConfig,
-} from '@crystallize/schema/shape'
+} from '@crystallize/schema'
 import {
   SubscriptionPeriodUnit,
   SubscriptionPlanPeriod,

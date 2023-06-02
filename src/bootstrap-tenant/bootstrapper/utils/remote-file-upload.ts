@@ -39,7 +39,14 @@ async function downloadRemoteOrLocal(fileURL: string) {
     await fs.promises.access(fileURL)
     return fs.promises.readFile(fileURL)
   } catch (e) {
-    return download(encodeURI(fileURL))
+    try {
+      const fileBuffer = await download(fileURL, undefined, {
+        encoding: 'buffer',
+      })
+      return fileBuffer
+    } catch (e) {
+      throw new Error(`Could not download or access file "${fileURL}"`)
+    }
   }
 }
 
@@ -52,7 +59,9 @@ async function downloadFile(fileURL: string) {
   if (fileURL.endsWith('.m3u8')) {
     const canConvert = await ffmpegAvailable
     if (!canConvert) {
-      throw new Error('No support for video conversion, install ffmpeg')
+      throw new Error(
+        'Your machine has support for video conversion - ffmpeg: ffmegAvailable package, install ffmpeg'
+      )
     }
 
     const tmpFile = `./tmp-${uuid()}.mp4`
@@ -103,13 +112,17 @@ async function downloadFile(fileURL: string) {
 }
 
 async function handleFileBuffer(fileBuffer: Buffer) {
-  const fType = await fileType.fromBuffer(fileBuffer)
-  const contentType: MimeType | undefined | string = fType?.mime
-  const ext = fType?.ext as string
+  try {
+    const fType = await fileType.fromBuffer(fileBuffer)
+    const contentType: MimeType | undefined | string = fType?.mime
+    const ext = fType?.ext as string
 
-  return {
-    contentType,
-    ext,
+    return {
+      contentType,
+      ext,
+    }
+  } catch (e) {
+    throw new Error(`handleFileBuffer fileType error ${e}`)
   }
 }
 
