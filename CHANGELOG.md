@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.26.0
+
+### Minor Changes
+
+- 5134397: Upgrading packages and minor bugfix
+
 ## 1.25.0
 
 ### Minor Changes
