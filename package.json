@@ -1,6 +1,6 @@
 {
   "name": "@crystallize/import-utilities",
-  "version": "1.24.3",
+  "version": "1.25.0",
   "main": "dist/index.js",
   "author": "Crystallize <hello@crystallize.com>",
   "contributors": [
@@ -37,10 +37,10 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@crystallize/content-transformer": "^9.1.2",
-    "@crystallize/import-export-sdk": "/Users/simakovic/code/crystallize/libraries/components/import-export-sdk",
-    "@crystallize/js-api-client": "^1.3.1",
-    "@crystallize/schema": "/Users/simakovic/code/crystallize/libraries/components/schema",
+    "@crystallize/content-transformer": "^9.2.0",
+    "@crystallize/import-export-sdk": "^0.1.2",
+    "@crystallize/js-api-client": "^1.12.0",
+    "@crystallize/schema": "^0.1.2",
     "dotenv": "^10.0.0",
     "download": "^8.0.0",
     "duration": "^0.2.2",
@@ -62,10 +62,10 @@
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
     "@changesets/cli": "^2.25.2",
-    "@graphql-codegen/cli": "2.16.4",
-    "@graphql-codegen/introspection": "^2.2.3",
-    "@graphql-codegen/typescript": "2.8.7",
-    "@graphql-codegen/typescript-resolvers": "^2.7.12",
+    "@graphql-codegen/cli": "3.3.1",
+    "@graphql-codegen/introspection": "^3.0.1",
+    "@graphql-codegen/typescript": "3.0.4",
+    "@graphql-codegen/typescript-resolvers": "^3.2.1",
     "@types/cli-progress": "^3.9.2",
     "@types/download": "^8.0.0",
     "@types/lodash.merge": "^4.6.6",
@@ -88,5 +88,13 @@
   },
   "engines": {
     "node": ">=16.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "got@<11.8.5": "11.8.5",
+      "undici@<5.19.1": ">=5.19.1",
+      "undici@>=2.0.0 <5.19.1": ">=5.19.1",
+      "http-cache-semantics@<4.1.1": ">=4.1.1"
+    }
   }
 }

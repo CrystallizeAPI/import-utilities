@@ -5205,6 +5205,76 @@ export type DirectiveResolverFn<
   info: GraphQLResolveInfo
 ) => TResult | Promise<TResult>
 
+/** Mapping of union types */
+export type ResolversUnionTypes = {
+  ComponentConfig:
+    | ComponentChoiceComponentConfig
+    | ContentChunkComponentConfig
+    | FilesComponentConfig
+    | ItemRelationsComponentConfig
+    | NumericComponentConfig
+    | PropertiesTableComponentConfig
+    | SelectionComponentConfig
+  ComponentContent:
+    | BooleanContent
+    | ComponentChoiceContent
+    | ContentChunkContent
+    | DatetimeContent
+    | FileContent
+    | GridRelationsContent
+    | ImageContent
+    | ItemRelationsContent
+    | LocationContent
+    | NumericContent
+    | ParagraphCollectionContent
+    | PropertiesTableContent
+    | RichTextContent
+    | SelectionContent
+    | SingleLineContent
+    | VideoContent
+  Payment:
+    | CashPayment
+    | CustomPayment
+    | KlarnaPayment
+    | PaypalPayment
+    | StripePayment
+}
+
+/** Mapping of union parent types */
+export type ResolversUnionParentTypes = {
+  ComponentConfig:
+    | ComponentChoiceComponentConfig
+    | ContentChunkComponentConfig
+    | FilesComponentConfig
+    | ItemRelationsComponentConfig
+    | NumericComponentConfig
+    | PropertiesTableComponentConfig
+    | SelectionComponentConfig
+  ComponentContent:
+    | BooleanContent
+    | ComponentChoiceContent
+    | ContentChunkContent
+    | DatetimeContent
+    | FileContent
+    | GridRelationsContent
+    | ImageContent
+    | ItemRelationsContent
+    | LocationContent
+    | NumericContent
+    | ParagraphCollectionContent
+    | PropertiesTableContent
+    | RichTextContent
+    | SelectionContent
+    | SingleLineContent
+    | VideoContent
+  Payment:
+    | CashPayment
+    | CustomPayment
+    | KlarnaPayment
+    | PaypalPayment
+    | StripePayment
+}
+
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   AcceptedContentType: ResolverTypeWrapper<AcceptedContentType>
@@ -5249,32 +5319,9 @@ export type ResolversTypes = {
   ComponentChoiceComponentConfig: ResolverTypeWrapper<ComponentChoiceComponentConfig>
   ComponentChoiceComponentConfigInput: ComponentChoiceComponentConfigInput
   ComponentChoiceContent: ResolverTypeWrapper<ComponentChoiceContent>
-  ComponentConfig:
-    | ResolversTypes['ComponentChoiceComponentConfig']
-    | ResolversTypes['ContentChunkComponentConfig']
-    | ResolversTypes['FilesComponentConfig']
-    | ResolversTypes['ItemRelationsComponentConfig']
-    | ResolversTypes['NumericComponentConfig']
-    | ResolversTypes['PropertiesTableComponentConfig']
-    | ResolversTypes['SelectionComponentConfig']
+  ComponentConfig: ResolverTypeWrapper<ResolversUnionTypes['ComponentConfig']>
   ComponentConfigInput: ComponentConfigInput
-  ComponentContent:
-    | ResolversTypes['BooleanContent']
-    | ResolversTypes['ComponentChoiceContent']
-    | ResolversTypes['ContentChunkContent']
-    | ResolversTypes['DatetimeContent']
-    | ResolversTypes['FileContent']
-    | ResolversTypes['GridRelationsContent']
-    | ResolversTypes['ImageContent']
-    | ResolversTypes['ItemRelationsContent']
-    | ResolversTypes['LocationContent']
-    | ResolversTypes['NumericContent']
-    | ResolversTypes['ParagraphCollectionContent']
-    | ResolversTypes['PropertiesTableContent']
-    | ResolversTypes['RichTextContent']
-    | ResolversTypes['SelectionContent']
-    | ResolversTypes['SingleLineContent']
-    | ResolversTypes['VideoContent']
+  ComponentContent: ResolverTypeWrapper<ResolversUnionTypes['ComponentContent']>
   ComponentInput: ComponentInput
   ComponentType: ComponentType
   ContentChunkComponentConfig: ResolverTypeWrapper<ContentChunkComponentConfig>
@@ -5480,12 +5527,7 @@ export type ResolversTypes = {
   ParagraphContent: ResolverTypeWrapper<ParagraphContent>
   ParagraphContentInput: ParagraphContentInput
   Parameter: Parameter
-  Payment:
-    | ResolversTypes['CashPayment']
-    | ResolversTypes['CustomPayment']
-    | ResolversTypes['KlarnaPayment']
-    | ResolversTypes['PaypalPayment']
-    | ResolversTypes['StripePayment']
+  Payment: ResolverTypeWrapper<ResolversUnionTypes['Payment']>
   PaymentInput: PaymentInput
   PaymentProvider: PaymentProvider
   PaymentType:
@@ -5808,32 +5850,9 @@ export type ResolversParentTypes = {
   ComponentChoiceComponentConfig: ComponentChoiceComponentConfig
   ComponentChoiceComponentConfigInput: ComponentChoiceComponentConfigInput
   ComponentChoiceContent: ComponentChoiceContent
-  ComponentConfig:
-    | ResolversParentTypes['ComponentChoiceComponentConfig']
-    | ResolversParentTypes['ContentChunkComponentConfig']
-    | ResolversParentTypes['FilesComponentConfig']
-    | ResolversParentTypes['ItemRelationsComponentConfig']
-    | ResolversParentTypes['NumericComponentConfig']
-    | ResolversParentTypes['PropertiesTableComponentConfig']
-    | ResolversParentTypes['SelectionComponentConfig']
+  ComponentConfig: ResolversUnionParentTypes['ComponentConfig']
   ComponentConfigInput: ComponentConfigInput
-  ComponentContent:
-    | ResolversParentTypes['BooleanContent']
-    | ResolversParentTypes['ComponentChoiceContent']
-    | ResolversParentTypes['ContentChunkContent']
-    | ResolversParentTypes['DatetimeContent']
-    | ResolversParentTypes['FileContent']
-    | ResolversParentTypes['GridRelationsContent']
-    | ResolversParentTypes['ImageContent']
-    | ResolversParentTypes['ItemRelationsContent']
-    | ResolversParentTypes['LocationContent']
-    | ResolversParentTypes['NumericContent']
-    | ResolversParentTypes['ParagraphCollectionContent']
-    | ResolversParentTypes['PropertiesTableContent']
-    | ResolversParentTypes['RichTextContent']
-    | ResolversParentTypes['SelectionContent']
-    | ResolversParentTypes['SingleLineContent']
-    | ResolversParentTypes['VideoContent']
+  ComponentContent: ResolversUnionParentTypes['ComponentContent']
   ComponentInput: ComponentInput
   ContentChunkComponentConfig: ContentChunkComponentConfig
   ContentChunkComponentConfigInput: ContentChunkComponentConfigInput
@@ -6025,12 +6044,7 @@ export type ResolversParentTypes = {
   ParagraphCollectionContentInput: ParagraphCollectionContentInput
   ParagraphContent: ParagraphContent
   ParagraphContentInput: ParagraphContentInput
-  Payment:
-    | ResolversParentTypes['CashPayment']
-    | ResolversParentTypes['CustomPayment']
-    | ResolversParentTypes['KlarnaPayment']
-    | ResolversParentTypes['PaypalPayment']
-    | ResolversParentTypes['StripePayment']
+  Payment: ResolversUnionParentTypes['Payment']
   PaymentInput: PaymentInput
   PaymentType:
     | ResolversParentTypes['CashPayment']

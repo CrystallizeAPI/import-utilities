@@ -1,5 +1,21 @@
 # @crystallize/import-utilities
 
+## 1.25.0
+
+### Minor Changes
+
+- 5828857: Updated generated grapqhl schema
+
+### Patch Changes
+
+- 5828857: Updated dependencies to resolve vulnerabilities
+
+## 1.24.4
+
+### Patch Changes
+
+- 65a058c: Fixed package links in readme
+
 ## 1.24.3
 
 ### Patch Changes
