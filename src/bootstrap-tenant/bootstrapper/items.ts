@@ -644,7 +644,8 @@ async function createComponentsInput(
       case 'itemRelations': {
         const inp: ItemRelationsComponentContentInput = {
           itemRelations: {
-            itemIds: [], // Will be populated later
+            itemIds: [],
+            skus: [], // Will be populated later
           },
         }
         return inp

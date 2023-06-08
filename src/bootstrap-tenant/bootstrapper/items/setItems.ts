@@ -37,34 +37,6 @@ export async function setItems({
 
   const rootItemId = await getTenantRootItemId(context)
 
-  /**
-   * First off, let's start uploading all the images
-   */
-  // const allMediaUrls = getAllMediaUrls(spec.items)
-  // const allMediaUplods = allMediaUrls.map(context.uploadFileFromUrl)
-
-  // // Pull the status every second
-  // const getFileuploaderStatusInterval = setInterval(() => {
-  //   const queue = context.fileUploader.workerQueue
-  //   const endedUploads = queue.filter((u) => u.status === 'done')
-
-  //   const progress = endedUploads.length / queue.length
-  //   onUpdate({
-  //     message: 'media-upload-progress',
-  //     progress,
-  //   })
-
-  //   if (progress === 1) {
-  //     clearInterval(getFileuploaderStatusInterval)
-  //   }
-  // }, 1000)
-
-  // onUpdate({
-  //   message: `Initiating upload of ${allMediaUrls.length} media item(s)`,
-  // })
-
-  // await Promise.all(allMediaUplods)
-
   // Get a total item count
   let totalItems = 0
   function getCount(item: JSONFolder) {

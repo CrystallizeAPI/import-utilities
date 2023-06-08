@@ -44,7 +44,6 @@ import { setCustomers } from './customers'
 import { createClient, createMassCallClient } from '@crystallize/js-api-client'
 import { getExistingOrders } from './utils/get-all-orders'
 import { getExistingCustomers } from './utils/get-all-customers'
-import { debug } from 'console'
 
 export interface ICreateSpec {
   language?: string
