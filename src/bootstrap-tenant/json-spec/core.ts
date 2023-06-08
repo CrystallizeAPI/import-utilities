@@ -177,11 +177,6 @@ export type JSONItemReference = {
 export interface JSONGridReference {
   name?: string
 }
-// export type JSONItemRelation = {
-//   items: JSONItemReference[]
-//   productVariants: JSONItemReference[]
-// }
-// export type JSONItemRelations = [JSONItemRelation]
 export type JSONItemRelations = {
   items: JSONItemReference[]
   productVariants: JSONItemReference[]
