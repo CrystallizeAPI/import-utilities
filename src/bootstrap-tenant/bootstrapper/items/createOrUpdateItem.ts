@@ -167,7 +167,6 @@ export async function createOrUpdateItem(
     let existingProductVariants: undefined | ProductVariant[]
     if (shape?.type === 'product') {
       const existingProduct = await getProduct(language, itemId, context)
-      // @todo type error with productVariants[]
       existingProductVariants = existingProduct.variants
 
       // Add vatType if it is not part of the item.
@@ -544,8 +543,6 @@ export async function createOrUpdateItem(
         context,
       })
     }
-
-    //@todo: CONTINUE HERE, check some types, and rootItemId might be needed to be imported
 
     if (item._options?.moveToRoot) {
       if (item._parentId !== rootItemId) {

@@ -131,7 +131,6 @@ export function parseRawItemData({
         case 'richText': {
           return tr(c.content, translationId)
         }
-        // @todo THIS IS WHERE THE COOKIE CRUMBLES FIRST FOR PRODUCTVARIANT
         case 'itemRelations': {
           return {
             items: c.content?.items?.map((item: any) => {

@@ -35,8 +35,6 @@ export const getComponentUpdateMutationInput = async ({
     return null
   }
 
-  // @todo: JSONComponentContent throwing errors, using ComponentContentInput at the moment
-
   let mutationInput = null
   switch (shapeComponent?.type) {
     case 'itemRelations': {
@@ -49,7 +47,6 @@ export const getComponentUpdateMutationInput = async ({
             item,
             componentContent as JSONItemRelations
           ),
-          // @todo: fetch product variant SKUs
           skus: componentContent?.productVariants?.map(
             (relObject: JSONItemReference) => relObject.sku
           ),
