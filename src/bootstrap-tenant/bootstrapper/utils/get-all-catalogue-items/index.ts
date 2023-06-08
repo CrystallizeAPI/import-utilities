@@ -20,7 +20,6 @@ import {
   removeUnpublishedFolderFieldIndicator,
   unpublishedFolderFieldIndicator,
 } from './utils'
-import { waitForDebugger } from 'inspector'
 
 export type ItemsCreateSpecOptions = {
   basePath?: string
@@ -110,7 +109,6 @@ export async function getAllCatalogueItems(
           parsedItem = unpublishedFolder
         }
       }
-      waitForDebugger
       return parsedItem
     }
 
