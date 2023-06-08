@@ -40,7 +40,7 @@
     "@crystallize/content-transformer": "^9.2.0",
     "@crystallize/import-export-sdk": "^0.1.2",
     "@crystallize/js-api-client": "^1.12.2",
-    "@crystallize/schema": "^0.1.4",
+    "@crystallize/schema": "^0.2.0",
     "dotenv": "^10.0.0",
     "download": "^8.0.0",
     "duration": "^0.2.2",
