@@ -1843,7 +1843,7 @@ export async function setItems({
             componentId,
             itemRelations: {
               itemIds: await getItemIdsForItemRelation(
-                componentContent as JSONItemRelations
+                componentContent as JSONItemRelation[]
               ),
             },
           }
@@ -1916,9 +1916,10 @@ export async function setItems({
                           if (itemRelationComponentIndex !== -1) {
                             chunk[
                               itemRelationComponentIndex
-                            ].itemRelations.itemIds = await getItemIdsForItemRelation(
-                              jsonChunk[itemRelationId] as JSONItemRelation[]
-                            )
+                            ].itemRelations.itemIds =
+                              await getItemIdsForItemRelation(
+                                jsonChunk[itemRelationId] as JSONItemRelation[]
+                              )
                           }
                         })
                       )
