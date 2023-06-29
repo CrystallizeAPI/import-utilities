@@ -222,6 +222,10 @@ query GET_PRODUCT_INFO($language: String!, $itemId: ID!) {
       }
       externalReference
     }
+    productVariants {
+      sku
+      externalReference
+    }
   }
   
   fragment gridRelationsContent on GridRelationsContent {

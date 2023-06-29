@@ -32,18 +32,20 @@ async function createSpec() {
 
   const timeStart = new Date()
   const spec = await bootstrapper.createSpec({
-    languages: false,
-    vatTypes: false,
-    priceVariants: false,
-    shapes: false,
-    topicMaps: false,
-    grids: false,
+    languages: true,
+    vatTypes: true,
+    priceVariants: true,
+    shapes: true,
+    topicMaps: true,
+    grids: true,
     items: {
       version: 'published',
-      includeDescendantsOfUnpublishedFolders: true,
+      includeDescendantsOfUnpublishedFolders: false,
     },
-    stockLocations: false,
-    subscriptionPlans: false,
+    stockLocations: true,
+    subscriptionPlans: true,
+    customers: false,
+    orders: false,
     onUpdate: (areaUpdate) => {
       console.log(JSON.stringify(areaUpdate, null, 1))
     },

@@ -8,7 +8,7 @@ import { JsonSpec } from './json-spec'
 
 async function bootstrap() {
   try {
-    const tenantIdentifier = 'dounot'
+    const tenantIdentifier = 'dounot-copy'
     const jsonSpec: JsonSpec = JSON.parse(
       await readFile('./json-spec/dounot.json', 'utf-8')
     )
@@ -16,6 +16,7 @@ async function bootstrap() {
     console.log(`✨ Bootstrapping ${tenantIdentifier} ✨`)
 
     const bootstrapper = new Bootstrapper()
+    // bootstrapper.config.logLevel = 'verbose'
     bootstrapper.env = 'dev'
 
     // bootstrapper.config.shapeComponents = 'amend'

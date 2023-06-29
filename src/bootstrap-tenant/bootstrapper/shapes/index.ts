@@ -39,7 +39,6 @@ export async function getExistingShapesForSpec(
     if (shape.type !== 'product') {
       delete shape.variantComponents
     }
-
     return shape
   })
 }

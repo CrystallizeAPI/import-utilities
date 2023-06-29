@@ -1,3 +1,4 @@
+import { debug } from 'console'
 import { ItemsCreateSpecOptions } from '.'
 import {
   JSONItem,
@@ -131,19 +132,38 @@ export function parseRawItemData({
           return tr(c.content, translationId)
         }
         case 'itemRelations': {
-          return c.content?.items?.map((item: any) => {
-            if (options?.setExternalReference) {
-              return {
-                externalReference:
-                  item.externalReference || `crystallize-spec-ref-${item.id}`,
+          return {
+            items: c.content?.items?.map((item: any) => {
+              if (options?.setExternalReference) {
+                return {
+                  externalReference:
+                    item.externalReference || `crystallize-spec-ref-${item.id}`,
+                }
               }
-            }
 
-            return {
-              externalReference: item.externalReference,
-              cataloguePath: item.tree.path,
-            }
-          })
+              return {
+                externalReference: item.externalReference,
+                cataloguePath: item.tree.path,
+              }
+            }),
+            productVariants: c.content?.productVariants?.map(
+              (productVariant: any) => {
+                if (options?.setExternalReference) {
+                  return {
+                    sku: productVariant.sku,
+                    externalReference:
+                      item.externalReference ||
+                      `crystallize-spec-ref-${productVariant.sku}`,
+                  }
+                }
+
+                return {
+                  externalReference: item.externalReference,
+                  cataloguePath: item.tree.path,
+                }
+              }
+            ),
+          }
         }
         case 'gridRelations': {
           return c.content?.grids
@@ -209,12 +229,12 @@ export function parseRawItemData({
 
           return chunks
         }
+
         default: {
           return c.content
         }
       }
     }
-
     if (cmps) {
       cmps.forEach((c: any) => {
         const content = getComponentContent(c, `${translationIdBase}.${c.id}`)
@@ -224,7 +244,6 @@ export function parseRawItemData({
         }
       })
     }
-
     return components
   }
 

@@ -169,15 +169,18 @@ export interface JSONPropertiesTableSection {
   properties?: Record<string, any>
 }
 export type JSONPropertiesTable = JSONPropertiesTableSection[]
-export interface JSONItemReference {
+export type JSONItemReference = {
   cataloguePath?: string
   externalReference?: string
+  sku?: string
 }
 export interface JSONGridReference {
   name?: string
 }
-export type JSONItemRelation = JSONItemReference
-export type JSONItemRelations = JSONItemRelation[]
+export type JSONItemRelations = {
+  items: JSONItemReference[]
+  productVariants: JSONItemReference[]
+}
 export type JSONGridRelation = JSONGridReference
 export type JSONGridRelations = JSONGridReference[]
 

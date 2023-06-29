@@ -45,6 +45,10 @@ test('get items with id and language', (t) => {
                 items {
                   id
                 }
+                productVariants {
+                  sku
+                }
+                
               }
               ... on LocationContent {
                 lat
@@ -106,6 +110,9 @@ test('get items with id and language', (t) => {
                     ... on ItemRelationsContent {
                       items {
                         id
+                      }
+                      productVariants {
+                        sku
                       }
                     }
                     ... on LocationContent {
@@ -180,6 +187,9 @@ test('get items with id and language', (t) => {
                     items {
                       id
                     }
+                    productVariants {
+                      sku
+                    }
                   }
                   ... on LocationContent {
                     lat
@@ -241,6 +251,9 @@ test('get items with id and language', (t) => {
                         ... on ItemRelationsContent {
                           items {
                             id
+                          }
+                          productVariants {
+                            sku
                           }
                         }
                         ... on LocationContent {
