@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.28.0
+
+### Minor Changes
+
+- 2db6ea6: Update dependencies
+
 ## 1.27.0
 
 ### Minor Changes
