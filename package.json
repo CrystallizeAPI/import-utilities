@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@crystallize/content-transformer": "^9.2.0",
-    "@crystallize/import-export-sdk": "^0.1.2",
+    "@crystallize/import-export-sdk": "^0.1.4",
     "@crystallize/js-api-client": "^1.12.2",
     "@crystallize/schema": "^0.2.0",
     "dotenv": "^10.0.0",
