@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.27.0
+
+### Minor Changes
+
+- 6beea90: Add Item Relation for SKUs
+
 ## 1.26.0
 
 ### Minor Changes
