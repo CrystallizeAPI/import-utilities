@@ -46,7 +46,6 @@ import {
   JSONComponentContent,
   JSONComponentChoice,
   JSONContentChunk,
-  JSONItemRelations,
   JSONItemRelation,
   JSONSelection,
   JSONVideos,

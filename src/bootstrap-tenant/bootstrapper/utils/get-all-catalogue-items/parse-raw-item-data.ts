@@ -1,4 +1,3 @@
-import { debug } from 'console'
 import { ItemsCreateSpecOptions } from '.'
 import {
   JSONItem,
