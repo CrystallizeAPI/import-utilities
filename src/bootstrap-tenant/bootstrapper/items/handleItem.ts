@@ -42,7 +42,7 @@ export async function handleItem(
       language: context.targetLanguage || context.defaultLanguage,
     })
     parentId = parentItemAndParentId.itemId || ''
-    if (parentId !== '') {
+    if (parentId == '') {
       parentId = context.fallbackFolderId
       onUpdate({
         error: {
