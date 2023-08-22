@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.28.1
+
+### Patch Changes
+
+- 5d97e84: Hotfix of parentId when creating an item
+
 ## 1.28.0
 
 ### Minor Changes
