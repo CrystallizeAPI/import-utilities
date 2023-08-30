@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.28.2
+
+### Patch Changes
+
+- afafc0d: do not pass empty sessionid to js-api-client
+
 ## 1.28.1
 
 ### Patch Changes
