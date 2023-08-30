@@ -41,7 +41,7 @@ import {
 import { createAPICaller } from './utils/api'
 import { setOrders } from './orders'
 import { setCustomers } from './customers'
-import { createClient, createMassCallClient } from '@crystallize/js-api-client'
+import { ClientConfiguration, createClient, createMassCallClient } from '@crystallize/js-api-client'
 import { getExistingOrders } from './utils/get-all-orders'
 import { getExistingCustomers } from './utils/get-all-customers'
 
@@ -194,11 +194,10 @@ export class Bootstrapper extends EventEmitter {
   setSessionId = (sessionId: string) => {
     // PIM
     this.PIMAPIManager = createAPICaller({
-      uri: `https://${
-        this.env === 'dev'
-          ? 'pim-dev.crystallize.digital'
-          : 'pim.crystallize.com'
-      }/graphql`,
+      uri: `https://${this.env === 'dev'
+        ? 'pim-dev.crystallize.digital'
+        : 'pim.crystallize.com'
+        }/graphql`,
       errorNotifier: (error: BootstrapperError) => {
         this.emit(EVENT_NAMES.ERROR, error)
       },
@@ -212,11 +211,10 @@ export class Bootstrapper extends EventEmitter {
   setAccessToken = (ACCESS_TOKEN_ID: string, ACCESS_TOKEN_SECRET: string) => {
     // PIM
     this.PIMAPIManager = createAPICaller({
-      uri: `https://${
-        this.env === 'dev'
-          ? 'pim-dev.crystallize.digital'
-          : 'pim.crystallize.com'
-      }/graphql`,
+      uri: `https://${this.env === 'dev'
+        ? 'pim-dev.crystallize.digital'
+        : 'pim.crystallize.com'
+        }/graphql`,
       errorNotifier: (error: BootstrapperError) => {
         this.emit(EVENT_NAMES.ERROR, error)
       },
@@ -302,21 +300,25 @@ export class Bootstrapper extends EventEmitter {
       this.context.fileUploader.context = this.context
       this.context.defaultLanguage = tenant.defaults.language
 
-      const baseUrl = `https://${
-        this.env === 'dev'
-          ? 'api-dev.crystallize.digital'
-          : 'api.crystallize.com'
-      }/${this.context.tenantIdentifier}`
+      const baseUrl = `https://${this.env === 'dev'
+        ? 'api-dev.crystallize.digital'
+        : 'api.crystallize.com'
+        }/${this.context.tenantIdentifier}`
 
-      const client = createClient({
+      let clientConfig: ClientConfiguration = {
         tenantIdentifier: this.context.tenantIdentifier,
         tenantId: this.context.tenantId,
         accessTokenId: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID,
         accessTokenSecret: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
-        sessionId: this.PIMAPIManager?.CRYSTALLIZE_SESSION_ID,
-        origin:
-          this.env === 'dev' ? '-dev.crystallize.digital' : '.crystallize.com',
-      })
+        origin: this.env === 'dev' ? '-dev.crystallize.digital' : '.crystallize.com',
+      }
+      if (`${this.PIMAPIManager?.CRYSTALLIZE_SESSION_ID}`.length > 0) {
+        clientConfig = {
+          ...clientConfig,
+          sessionId: this.PIMAPIManager?.CRYSTALLIZE_SESSION_ID,
+        }
+      }
+      const client = createClient(clientConfig)
 
       this.context.client = createMassCallClient(client, {})
 
@@ -346,11 +348,10 @@ export class Bootstrapper extends EventEmitter {
 
       // Orders
       this.ordersAPIManager = createAPICaller({
-        uri: `https://${
-          this.env === 'dev'
-            ? 'api-dev.crystallize.digital'
-            : 'api.crystallize.com'
-        }/${this.tenantIdentifier}/orders`,
+        uri: `https://${this.env === 'dev'
+          ? 'api-dev.crystallize.digital'
+          : 'api.crystallize.com'
+          }/${this.tenantIdentifier}/orders`,
         errorNotifier: (error: BootstrapperError) => {
           this.emit(EVENT_NAMES.ERROR, error)
         },
