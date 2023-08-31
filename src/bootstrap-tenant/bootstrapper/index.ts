@@ -328,8 +328,8 @@ export class Bootstrapper extends EventEmitter {
         logLevel: this.config.logLevel,
       })
       this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN = tenant.staticAuthToken
-      this.catalogueAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = tenant.accessTokenId
-      this.catalogueAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = tenant.accessTokenSecret
+      this.catalogueAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = `${this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID}`
+      this.catalogueAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = `${this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET}`
       this.context.callCatalogue = this.catalogueAPIManager.push
 
       // Search
@@ -341,8 +341,8 @@ export class Bootstrapper extends EventEmitter {
         logLevel: this.config.logLevel,
       })
       this.searchAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN = tenant.staticAuthToken
-      this.searchAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = tenant.accessTokenId
-      this.searchAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = tenant.accessTokenSecret
+      this.searchAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = `${this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID}`
+      this.searchAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = `${this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET}`
       this.context.callSearch = this.searchAPIManager.push
 
       // Orders
