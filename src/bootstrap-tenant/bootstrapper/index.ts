@@ -41,7 +41,7 @@ import {
 import { createAPICaller } from './utils/api'
 import { setOrders } from './orders'
 import { setCustomers } from './customers'
-import { ClientConfiguration, createClient, createMassCallClient } from '@crystallize/js-api-client'
+import { createClient, createMassCallClient } from '@crystallize/js-api-client'
 import { getExistingOrders } from './utils/get-all-orders'
 import { getExistingCustomers } from './utils/get-all-customers'
 
@@ -305,20 +305,17 @@ export class Bootstrapper extends EventEmitter {
         : 'api.crystallize.com'
         }/${this.context.tenantIdentifier}`
 
-      let clientConfig: ClientConfiguration = {
+      // this is PIM CLIENT only for now....
+      // we should have this PER client like the following
+      const client = createClient({
         tenantIdentifier: this.context.tenantIdentifier,
         tenantId: this.context.tenantId,
         accessTokenId: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_ID,
         accessTokenSecret: this.PIMAPIManager?.CRYSTALLIZE_ACCESS_TOKEN_SECRET,
-        origin: this.env === 'dev' ? '-dev.crystallize.digital' : '.crystallize.com',
-      }
-      if (`${this.PIMAPIManager?.CRYSTALLIZE_SESSION_ID}`.length > 0) {
-        clientConfig = {
-          ...clientConfig,
-          sessionId: this.PIMAPIManager?.CRYSTALLIZE_SESSION_ID,
-        }
-      }
-      const client = createClient(clientConfig)
+        sessionId: this.PIMAPIManager?.CRYSTALLIZE_SESSION_ID,
+        origin:
+          this.env === 'dev' ? '-dev.crystallize.digital' : '.crystallize.com',
+      })
 
       this.context.client = createMassCallClient(client, {})
 
@@ -330,8 +327,9 @@ export class Bootstrapper extends EventEmitter {
         },
         logLevel: this.config.logLevel,
       })
-      this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
-        tenant.staticAuthToken
+      this.catalogueAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN = tenant.staticAuthToken
+      this.catalogueAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = tenant.accessTokenId
+      this.catalogueAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = tenant.accessTokenSecret
       this.context.callCatalogue = this.catalogueAPIManager.push
 
       // Search
@@ -342,8 +340,9 @@ export class Bootstrapper extends EventEmitter {
         },
         logLevel: this.config.logLevel,
       })
-      this.searchAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN =
-        tenant.staticAuthToken
+      this.searchAPIManager.CRYSTALLIZE_STATIC_AUTH_TOKEN = tenant.staticAuthToken
+      this.searchAPIManager.CRYSTALLIZE_ACCESS_TOKEN_ID = tenant.accessTokenId
+      this.searchAPIManager.CRYSTALLIZE_ACCESS_TOKEN_SECRET = tenant.accessTokenSecret
       this.context.callSearch = this.searchAPIManager.push
 
       // Orders
