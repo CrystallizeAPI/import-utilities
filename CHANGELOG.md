@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.28.3
+
+### Patch Changes
+
+- 18de93a: add token and secret on catalog calls to handle protected api"
+
 ## 1.28.2
 
 ### Patch Changes
