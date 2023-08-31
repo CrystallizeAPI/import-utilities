@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.28.4
+
+### Patch Changes
+
+- 6da5976: typo where to get the token
+
 ## 1.28.3
 
 ### Patch Changes
