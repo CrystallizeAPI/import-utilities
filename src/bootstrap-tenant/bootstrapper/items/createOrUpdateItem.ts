@@ -385,60 +385,62 @@ export async function createOrUpdateItem(
       } else {
         delete variant.components
       }
+    }
 
-      if (jsonVariant.subscriptionPlans) {
-        variant.subscriptionPlans = jsonVariant.subscriptionPlans.map((sP) => {
-          const meteredVariables = getSubscriptionPlanMeteredVariables({
-            planIdentifier: sP.identifier,
-            context,
-          })
+    if (jsonVariant.images) {
+      variant.images = await createImagesInput({
+        images: jsonVariant.images,
+        language,
+        context,
+        onUpdate,
+      })
+    }
 
-          return {
-            identifier: sP.identifier,
-            periods: sP.periods.map((p) => {
-              const id = getSubscriptionPlanPeriodId({
-                planIdentifier: sP.identifier,
-                periodName: p.name,
-                context,
-              })
+    // This causes an internal error at the API right now. Setting the value to an empty
+    // array has the same outcome as setting it to null
+    if (variant.images === null) {
+      variant.images = []
+    }
 
-              if (!id) {
-                throw new Error('Plan period id is null')
-              }
 
-              return {
-                id,
-                ...(p.initial && {
-                  initial: subscriptionPlanPrincingJsonToInput(
+    if (jsonVariant.subscriptionPlans) {
+      variant.subscriptionPlans = jsonVariant.subscriptionPlans.map((sP) => {
+        const meteredVariables = getSubscriptionPlanMeteredVariables({
+          planIdentifier: sP.identifier,
+          context,
+        })
+
+        return {
+          identifier: sP.identifier,
+          periods: sP.periods.map((p) => {
+            const id = getSubscriptionPlanPeriodId({
+              planIdentifier: sP.identifier,
+              periodName: p.name,
+              context,
+            })
+
+            if (!id) {
+              throw new Error('Plan period id is null')
+            }
+
+            return {
+              id,
+              ...(p.initial && {
+                initial: subscriptionPlanPrincingJsonToInput(
                     p.initial,
                     meteredVariables
-                  ),
-                }),
-                recurring: subscriptionPlanPrincingJsonToInput(
+                ),
+              }),
+              recurring: subscriptionPlanPrincingJsonToInput(
                   p.recurring,
                   meteredVariables
-                ),
-              }
-            }),
-          }
-        })
-      }
-
-      if (jsonVariant.images) {
-        variant.images = await createImagesInput({
-          images: jsonVariant.images,
-          language,
-          context,
-          onUpdate,
-        })
-      }
-
-      // This causes an internal error at the API right now. Setting the value to an empty
-      // array has the same outcome as setting it to null
-      if (variant.images === null) {
-        variant.images = []
-      }
+              ),
+            }
+          }),
+        }
+      })
     }
+
     return variant
   }
 
