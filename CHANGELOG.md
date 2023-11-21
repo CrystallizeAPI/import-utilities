@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.28.5
+
+### Patch Changes
+
+- df54201: fix importing variants with images and subscription plans
+
 ## 1.28.4
 
 ### Patch Changes
