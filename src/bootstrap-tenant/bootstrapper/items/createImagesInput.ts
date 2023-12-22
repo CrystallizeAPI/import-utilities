@@ -27,11 +27,11 @@ export async function createImagesInput(
           image.key = uploadResult.key
           image.mimeType = uploadResult.mimeType
         }
-      } catch (e) {
+      } catch (e: any) {
         onUpdate({
           error: {
             code: 'UPLOAD_FAILED',
-            message: `Could not upload image "${JSON.stringify(image)}"`,
+            message: `Could not upload image "${JSON.stringify(image)}". Reason: ${e.message ?? 'unknown'}`,
           },
         })
       }
