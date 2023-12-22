@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.28.6
+
+### Patch Changes
+
+- 5393ddb: Add more visibility on uploading error
+
 ## 1.28.5
 
 ### Patch Changes
