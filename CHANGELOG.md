@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.28.7
+
+### Patch Changes
+
+- 17fe54b: reject an Error not a string
+
 ## 1.28.6
 
 ### Patch Changes
