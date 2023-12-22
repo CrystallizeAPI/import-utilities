@@ -61,14 +61,14 @@ export interface AreaWarning {
 export interface AreaError {
   message: string
   code:
-    | 'UPLOAD_FAILED'
-    | 'SHAPE_ID_MISSING'
-    | 'CANNOT_HANDLE_SHAPE'
-    | 'CANNOT_HANDLE_ITEM'
-    | 'CANNOT_HANDLE_PRODUCT'
-    | 'CANNOT_HANDLE_ITEM_RELATION'
-    | 'PARENT_FOLDER_NOT_FOUND'
-    | 'OTHER'
+  | 'UPLOAD_FAILED'
+  | 'SHAPE_ID_MISSING'
+  | 'CANNOT_HANDLE_SHAPE'
+  | 'CANNOT_HANDLE_ITEM'
+  | 'CANNOT_HANDLE_PRODUCT'
+  | 'CANNOT_HANDLE_ITEM_RELATION'
+  | 'PARENT_FOLDER_NOT_FOUND'
+  | 'OTHER'
   item?: JSONItem
 }
 
@@ -233,10 +233,8 @@ export class FileUploadManager extends KillableWorker {
       }
 
       if (isLastAttempt) {
-        const msg = fileNotFound
-          ? `Got 404 for file "${item.url}"`
-          : e.message || JSON.stringify(e, null, 1)
-        item.reject?.(msg)
+        const msg = fileNotFound ? `Got 404 for file "${item.url}"` : e.message || JSON.stringify(e, null, 1)
+        item.reject?.(new Error(msg))
         removeWorker(item)
       } else {
         item.failCount++
