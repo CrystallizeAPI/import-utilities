@@ -22,11 +22,11 @@ export async function createFilesInput(
           // Store the values so that we don't re-upload again during import
           file.key = uploadResult.key
         }
-      } catch (e) {
+      } catch (e: any) {
         onUpdate({
           error: {
             code: 'UPLOAD_FAILED',
-            message: `Could not upload file "${JSON.stringify(file)}"`,
+            message: `Could not upload file "${JSON.stringify(file)}". Reason: ${e.message ?? 'unknown'}`,
           },
         })
       }

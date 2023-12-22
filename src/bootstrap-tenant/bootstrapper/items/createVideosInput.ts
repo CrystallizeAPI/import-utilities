@@ -23,11 +23,11 @@ export async function createVideosInput(
           // Store the values so that we don't re-upload again during import
           video.key = uploadResult.key
         }
-      } catch (e) {
+      } catch (e: any) {
         onUpdate({
           error: {
             code: 'UPLOAD_FAILED',
-            message: `${e} - Could not upload video "${JSON.stringify(video)}"`,
+            message: `Could not upload video "${JSON.stringify(video)}". Reason: ${e.message ?? 'unknown'}`,
           },
         })
       }
