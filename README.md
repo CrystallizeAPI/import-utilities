@@ -360,3 +360,24 @@ It is described in a `.json` file, like such:
   "items": []
 }
 ```
+
+## Long running processes
+
+Most examples of using import-utilities library assume that you're using it as a CLI tool. In that case the execution of `.kill()` method is optional. However, if you want to use import-utilities in a long running process (for example in a web server) then you have to use this method like in the following example:
+
+```typescript
+...
+public async importProductsAsync(spec: JsonSpec): Promise<void> {
+  const bootstrapper = new Bootstrapper();
+
+  bootstrapper.setAccessToken("<access_token_id>", "<access_token_secret>");
+  bootstrapper.setTenantIdentifier("<crystallize_tenant_identifier>");
+  bootstrapper.setFallbackFolderId("<crystallize_fallback_folder_id>");
+
+  bootstrapper.setSpec(spec);
+
+  await bootstrapper.start();
+  await bootstrapper.kill();
+}
+...
+```
