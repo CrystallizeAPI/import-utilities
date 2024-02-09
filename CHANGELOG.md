@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.29.0
+
+### Minor Changes
+
+- 53996d2: Add an option in the config to disable publish
+
 ## 1.28.7
 
 ### Patch Changes
