@@ -172,6 +172,7 @@ export class Bootstrapper extends EventEmitter {
     shapeComponents: 'amend',
     logLevel: 'silent',
     experimental: {},
+    skipPublication: false
   }
 
   status: Status = {

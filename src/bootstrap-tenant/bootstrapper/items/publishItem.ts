@@ -10,6 +10,10 @@ export function publishItem(
     return Promise.resolve()
   }
 
+  if (context.config.skipPublication === true) {
+    return Promise.resolve()
+  }
+
   return context.callPIM({
     query: gql`
       mutation PUBLISH_ITEM($id: ID!, $language: String!) {

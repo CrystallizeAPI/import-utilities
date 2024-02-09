@@ -85,6 +85,7 @@ export interface Config {
   shapeComponents?: 'amend' | 'replace'
   logLevel?: LogLevel
   multilingual?: boolean
+  skipPublication?: boolean
   experimental: {
     parallelize?: boolean // Deprecated
   }
