@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.30.0
+
+### Minor Changes
+
+- 14b396d: Add the JSONItem document as from in the CREATED and UPDATED event
+
 ## 1.29.0
 
 ### Minor Changes
