@@ -290,6 +290,7 @@ export async function createOrUpdateItem(
         type: shape.type,
         identifier: shape.identifier,
       },
+      from: item,
     } as ItemEventPayloadCreatedOrUpdated)
 
     return responses
@@ -427,13 +428,13 @@ export async function createOrUpdateItem(
               id,
               ...(p.initial && {
                 initial: subscriptionPlanPrincingJsonToInput(
-                    p.initial,
-                    meteredVariables
+                  p.initial,
+                  meteredVariables
                 ),
               }),
               recurring: subscriptionPlanPrincingJsonToInput(
-                  p.recurring,
-                  meteredVariables
+                p.recurring,
+                meteredVariables
               ),
             }
           }),
@@ -461,18 +462,18 @@ export async function createOrUpdateItem(
       inp.variants.push(
         ...existingProductVariants.map(
           ({ priceVariants, stockLocations, components, ...rest }) =>
-            ({
-              ...rest,
-              priceVariants: priceVariants?.map((p) => ({
-                identifier: p.identifier,
-                price: p.price,
-              })),
-              stockLocations: stockLocations?.map((p) => ({
-                identifier: p.identifier,
-                stock: p.stock,
-                meta: p.meta,
-              })),
-            } as CreateProductVariantInput)
+          ({
+            ...rest,
+            priceVariants: priceVariants?.map((p) => ({
+              identifier: p.identifier,
+              price: p.price,
+            })),
+            stockLocations: stockLocations?.map((p) => ({
+              identifier: p.identifier,
+              stock: p.stock,
+              meta: p.meta,
+            })),
+          } as CreateProductVariantInput)
         )
       )
     }
@@ -679,6 +680,7 @@ export async function createOrUpdateItem(
           type: shape.type,
           identifier: shape.identifier,
         },
+        from: item,
       } as ItemEventPayloadCreatedOrUpdated)
 
       // Set the component data for the item

@@ -142,6 +142,7 @@ export type ItemEventPayloadCreatedOrUpdated = ItemEventPayload & {
     type: 'product' | 'document' | 'folder'
     identifier: string
   }
+  from: JSONItem
 }
 // Lets keep this old type in order to not break things.
 export type ItemCreatedOrUpdated = ItemEventPayloadCreatedOrUpdated
