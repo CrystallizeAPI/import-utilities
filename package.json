@@ -1,6 +1,6 @@
 {
   "name": "@crystallize/import-utilities",
-  "version": "1.30.0",
+  "version": "1.31.0",
   "main": "dist/index.js",
   "author": "Crystallize <hello@crystallize.com>",
   "contributors": [
@@ -38,9 +38,9 @@
   },
   "dependencies": {
     "@crystallize/content-transformer": "^9.2.0",
-    "@crystallize/import-export-sdk": "^0.1.4",
-    "@crystallize/js-api-client": "^1.12.2",
-    "@crystallize/schema": "^0.2.0",
+    "@crystallize/import-export-sdk": "^0.1.5",
+    "@crystallize/js-api-client": "^2.5.0",
+    "@crystallize/schema": "^0.3.0",
     "dotenv": "^10.0.0",
     "download": "^8.0.0",
     "duration": "^0.2.2",
