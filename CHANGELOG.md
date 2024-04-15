@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.32.0
+
+### Minor Changes
+
+- 84cc793: convert nullable boolean to false
+
 ## 1.30.0
 
 ### Minor Changes
