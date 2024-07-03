@@ -1,5 +1,11 @@
 # @crystallize/import-utilities
 
+## 1.33.0
+
+### Minor Changes
+
+- 0092300: fix the move of an existing item in children
+
 ## 1.32.0
 
 ### Minor Changes
