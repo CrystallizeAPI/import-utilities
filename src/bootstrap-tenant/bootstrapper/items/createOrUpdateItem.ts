@@ -17,6 +17,7 @@ import {
   EVENT_NAMES,
   ItemEventPayloadCreatedOrUpdated,
   getItemVersionsForLanguages,
+  getTenantRootItemId,
   getTranslation,
   validShapeIdentifier,
 } from '../utils'
@@ -546,7 +547,7 @@ export async function createOrUpdateItem(
         context,
       })
     }
-
+    const realRootItemId = await getTenantRootItemId(context)
     if (item._options?.moveToRoot) {
       if (item._parentId !== rootItemId) {
         await context.callPIM({
@@ -559,7 +560,7 @@ export async function createOrUpdateItem(
       item._exists &&
       item._parentId !== parentId &&
       itemId !== parentId &&
-      parentId !== rootItemId // Do not move items to root unless _moveToRoot is set
+      parentId !== realRootItemId // Do not move items to root unless _moveToRoot is set
     ) {
       /**
        * Move the item if it is a part of a children array,

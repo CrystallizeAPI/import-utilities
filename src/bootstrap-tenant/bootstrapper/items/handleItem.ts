@@ -19,9 +19,9 @@ export async function handleItem(
   if (!item) {
     return finishedItems
   }
-
   let parentId = rootItemId
 
+  // updating the id and parentId of the item from the DB
   const itemAndParentId = await getItemId({
     context,
     externalReference: item.externalReference,
@@ -33,6 +33,7 @@ export async function handleItem(
   item.id = itemAndParentId.itemId
   item._parentId = itemAndParentId.parentId
 
+  // if that's mention in the spec, we take the parent id
   if (item.parentExternalReference || item.parentCataloguePath) {
     const parentItemAndParentId = await getItemId({
       context,
